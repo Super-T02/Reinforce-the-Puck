@@ -21,22 +21,22 @@ class EnvWrapper:
         self.agent = agent
         self.observation_space = self.env.observation_space
         self.action_space = self.env.action_space
-        self._last_observation = None
+        self._last_observation = (None, 0, False, False, {})
         self._logger = logging.getLogger(__name__)
 
         self.reset()
 
     @property
-    def last_observation(self):
+    def last_observation(self) -> tuple[any, float, bool, bool, dict[str, any]]:
         """
         Return the last observation from the environment.
 
         Returns:
-            state: The last observation from the environment.
+            tuple[any, float, bool, bool, dict[str, any]]: The last observation from the environment.
         """
         return self._last_observation
 
-    def reset(self):
+    def reset(self) -> any:
         """
         Reset the environment and return the initial state.
 
@@ -46,12 +46,12 @@ class EnvWrapper:
         state, _ = self.env.reset()
         return state
 
-    def step(self) -> tuple:
+    def step(self) -> tuple[any, float, bool, bool, dict[str, any]]:
         """
         Take an simulation step in the environment.
 
         Returns:
-            tuple: (next_state, reward, done, truncated, info)
+            tuple[any, float, bool, bool, dict[str, any]]: (next_state, reward, done, truncated, info)
         """
         state = self._last_observation[0]
         action = self.agent.act(state)
@@ -71,8 +71,12 @@ class EnvWrapper:
         self._last_observation = (state, 0, False, False, {})
         return state
 
-    def run(self):
-        """Run one episode of the environment."""
+    def run(self) -> float:
+        """Run one episode of the environment.
+
+        Returns:
+            float: The total reward received in the episode.
+        """
         done = False
         self._logger.info("Running one episode...")
         reward = 0
@@ -83,7 +87,12 @@ class EnvWrapper:
         self._logger.info("Episode finished. Total reward: %f", reward)
         return reward
 
-    def close(self):
-        """Close the environment."""
+    def close(self) -> "EnvWrapper":
+        """Close the environment.
+
+        Returns:
+            EnvWrapper: The environment wrapper object.
+        """
         self.env.close()
         self._logger.info("Environment closed.")
+        return self
