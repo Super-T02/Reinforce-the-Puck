@@ -1,8 +1,10 @@
-class Agent:
+from training.trainer import BaseTrainer
+
+
+class BaseAgent:
     """Base class for all agents."""
 
-    # Todo: Correct class for trainer
-    def __init__(self, name: str, trainer: object, config: dict):
+    def __init__(self, name: str, trainer: BaseTrainer, config: dict):
         """
         Initialize the agent.
 
@@ -36,7 +38,7 @@ class Agent:
         done: bool,
         trunc: bool,
         info: dict[str, any],
-    ) -> "Agent":
+    ) -> "BaseAgent":
         """Save the experience tuple
 
         Args:
@@ -51,9 +53,10 @@ class Agent:
         Returns:
             Agent: The agent object.
         """
+        # Todo: Implement when memory is merged
         raise NotImplementedError
 
-    def train(self) -> "Agent":
+    def train(self) -> "BaseAgent":
         """Learn from the last iteration.
 
         Returns:

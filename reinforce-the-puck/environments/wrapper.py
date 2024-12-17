@@ -1,7 +1,7 @@
 import logging
 
 import gymnasium as gym
-from agents.base_agent import Agent
+from agents.base_agent import BaseAgent
 
 
 class EnvWrapper:
@@ -9,7 +9,7 @@ class EnvWrapper:
     A general-purpose environment wrapper for Gymnasium environments.
     """
 
-    def __init__(self, env_name: str, agent: Agent):
+    def __init__(self, env_name: str, agent: BaseAgent):
         """
         Initialize the environment wrapper.
 
