@@ -86,8 +86,10 @@ class Network(Feedforward):
         output_size,
         activation=torch.nn.Tanh,
         output_activation=None,
+        loss_fn=torch.nn.SmoothL1Loss(),
         device=config.DEVICE,
         dtype=config.DTYPE,
+        **kwargs,
     ):
         """Initialize the Network.
 
@@ -97,6 +99,7 @@ class Network(Feedforward):
             output_size (int): Output size.
             activation (any, optional): Activation function. Defaults to torch.nn.Tanh.
             output_activation (any | None, optional): Output activation function. Defaults to None.
+            loss_fn (callable, optional): Loss function. Defaults to torch.nn.SmoothL1Loss().
             device (str, optional): Device to run the model on. Defaults to config.DEVICE.
             dtype (torch.dtype, optional): Data type. Defaults to config
         """
@@ -109,16 +112,7 @@ class Network(Feedforward):
             device,
             dtype,
         )
-        self._statistics = {}
-
-    @property
-    def statistics(self) -> dict:
-        """Get the statistics of the model.
-
-        Returns:
-            dict: Dictionary containing the statistics.
-        """
-        return self._statistics
+        self._loss_fn = loss_fn
 
     def save(self, path: str) -> "Network":
         """Save the model to a file.
@@ -144,7 +138,7 @@ class Network(Feedforward):
         self.load_state_dict(torch.load(path))
         return self
 
-    def fit(self, x: torch.Tensor, y: torch.Tensor, **kwargs) -> "Network":
+    def get_loss(self, x: torch.Tensor, y: torch.Tensor, **kwargs) -> object:
         """Fit the model to the data.
 
         Args:
@@ -152,18 +146,86 @@ class Network(Feedforward):
             y (torch.Tensor): Target tensor.
 
         Returns:
-            Network: Network object.
+            object: Loss object.
         """
         raise NotImplementedError
 
-    def evaluate(self, x: torch.Tensor, y: torch.Tensor, **kwargs) -> "Network":
-        """Evaluate the model on the data.
+
+class QFunction(Network):
+    """Q-Function Network."""
+
+    def __init__(
+        self,
+        input_size: int,
+        hidden_sizes: list[int],
+        output_size: int,
+        activation: any = torch.nn.Tanh,
+        output_activation: any | None = None,
+        loss_fn: callable = torch.nn.SmoothL1Loss(),
+        device: str = config.DEVICE,
+        dtype: torch.dtype = config.DTYPE,
+        **kwargs,
+    ):
+        """Initialize the Q-Function Network.
+
+        Args:
+            input_size (int): Input size.
+            hidden_sizes (list[int]): List of hidden layer sizes.
+            output_size (int): Output size.
+            activation (any, optional): Activation function. Defaults to torch.nn.Tanh.
+            output_activation (any | None, optional): Output activation function. Defaults to None.
+            loss_fn (callable, optional): Loss function. Defaults to torch.nn.SmoothL1Loss().
+            device (str, optional): Device to run the model on. Defaults to config.DEVICE.
+            dtype (torch.dtype, optional): Data type. Defaults to config.DTYPE.
+        """
+        super(QFunction, self).__init__(
+            input_size,
+            hidden_sizes,
+            output_size,
+            activation,
+            output_activation,
+            loss_fn,
+            device,
+            dtype,
+        )
+
+    def get_loss(self, x: torch.Tensor, y: torch.Tensor) -> object:
+        """Calculate the loss for the given input and target.
 
         Args:
             x (torch.Tensor): Input tensor.
             y (torch.Tensor): Target tensor.
+            loss_fn (callable): Loss function.
 
         Returns:
-            Network: Network object.
+            object: Loss object.
         """
-        raise NotImplementedError
+        return self._loss_fn(self.forward(x), y)
+
+    def Qvalues(
+        self, observations: torch.Tensor, actions: torch.Tensor
+    ) -> torch.Tensor:
+        """Get the Q-Values for the given observations and actions.
+
+        Args:
+            observations (torch.Tensor): Observations tensor.
+            actions (torch.Tensor): Actions tensor.
+
+        Returns:
+            torch.Tensor: Q-Values tensor.
+        """
+        return self.forward(self.prepare(observations, actions))
+
+    def prepare(
+        self, observations: torch.Tensor, actions: torch.Tensor
+    ) -> torch.Tensor:
+        """Prepare the input for the Q-Function.
+
+        Args:
+            observations (torch.Tensor): Observations tensor.
+            actions (torch.Tensor): Actions tensor.
+
+        Returns:
+            torch.Tensor: Input tensor.
+        """
+        return torch.cat((observations, actions), dim=-1)
