@@ -1,3 +1,4 @@
+import logging
 import os
 import pickle
 from typing import Callable, List
@@ -5,7 +6,6 @@ from typing import Callable, List
 import torch
 from evaluation.tensorboard_statistics import TensorboardStatistics
 from torch.nn import Module
-from utils.logger import get_logger
 
 
 class Batch:
@@ -41,7 +41,7 @@ class BaseTrainer:
         self._save_checkpoint_freq = save_checkpoint_freq
         self._max_checkpoints = max_checkpoints
         self._checkpoints = []
-        self._logger = get_logger()
+        self._logger = logging.getLogger(__name__)
 
     def save_checkpoint(self, model: Module, checkpoint_name: str):
         """
