@@ -5,6 +5,7 @@ from typing import Callable, List
 import torch
 from evaluation.tensorboard_statistics import TensorboardStatistics
 from torch.nn import Module
+from utils.logger import get_logger
 
 
 class Batch:
@@ -31,12 +32,16 @@ class BaseTrainer:
         batch_size: int,
         log_freq: int,
         save_checkpoint_freq: int,
+        max_checkpoints: int = 5,
     ):
         self._checkpoint_dir = checkpoint_dir
         self._learning_rate = learning_rate
         self._batch_size = batch_size
         self._log_freq = log_freq
         self._save_checkpoint_freq = save_checkpoint_freq
+        self._max_checkpoints = max_checkpoints
+        self._checkpoints = []
+        self._logger = get_logger()
 
     def save_checkpoint(self, model: Module, checkpoint_name: str):
         """
@@ -51,6 +56,20 @@ class BaseTrainer:
         """
         checkpoint_path = os.path.join(self._checkpoint_dir, checkpoint_name + ".pth")
         model.save(checkpoint_path)
+
+        # Add the new checkpoint to the list
+        self._checkpoints.append(checkpoint_path)
+
+        # Remove old checkpoints if exceeding max_checkpoints
+        if len(self._checkpoints) > self._max_checkpoints:
+            oldest_checkpoint = self._checkpoints.pop(0)
+            if os.path.exists(oldest_checkpoint):
+                try:
+                    os.remove(oldest_checkpoint)
+                except OSError as e:
+                    self._logger.error(
+                        f"Error deleting checkpoint {oldest_checkpoint}: {e}"
+                    )
 
     def train_step(self, model: Module, batch: Batch) -> dict:
         """
@@ -114,6 +133,7 @@ class BaseTrainer:
                     self.__convert_dicts_to_lists(statistics),
                     f"loss_{self.__generate_training_name(iteration)}",
                 )
+                self._logger.info(f"Iteration {iteration}: {statistic}")
                 tensorboard.write_tensorboard_statistics(iteration, statistic)
 
             if iteration % self._save_checkpoint_freq == 0:
