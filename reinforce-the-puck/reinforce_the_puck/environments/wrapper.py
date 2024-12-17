@@ -1,0 +1,89 @@
+import logging
+
+import gymnasium as gym
+from agents.base_agent import Agent
+
+
+class EnvWrapper:
+    """
+    A general-purpose environment wrapper for Gymnasium environments.
+    """
+
+    def __init__(self, env_name: str, agent: Agent):
+        """
+        Initialize the environment wrapper.
+
+        Args:
+            env_name (str): Name of the Gymnasium environment.
+            agent (object): The agent object that interacts with the environment.
+        """
+        self.env = gym.make(env_name)
+        self.agent = agent
+        self.observation_space = self.env.observation_space
+        self.action_space = self.env.action_space
+        self._last_observation = None
+        self._logger = logging.getLogger(__name__)
+
+        self.reset()
+
+    @property
+    def last_observation(self):
+        """
+        Return the last observation from the environment.
+
+        Returns:
+            state: The last observation from the environment.
+        """
+        return self._last_observation
+
+    def reset(self):
+        """
+        Reset the environment and return the initial state.
+
+        Returns:
+            state: The initial state of the environment.
+        """
+        state, _ = self.env.reset()
+        return state
+
+    def step(self) -> tuple:
+        """
+        Take an simulation step in the environment.
+
+        Returns:
+            tuple: (next_state, reward, done, truncated, info)
+        """
+        state = self._last_observation[0]
+        action = self.agent.act(state)
+        self._last_observation = self.env.step(action)
+        self.agent.save_experience(state, action, *self._last_observation)
+        return self._last_observation
+
+    def reset(self):
+        """
+        Reset the environment and return the initial state.
+
+        Returns:
+            state: The initial state of the environment.
+        """
+        state, _ = self.env.reset()
+        self.agent.reset()
+        self._last_observation = (state, 0, False, False, {})
+        return state
+
+    def run(self):
+        """Run one episode of the environment."""
+        done = False
+        self._logger.info("Running one episode...")
+        reward = 0
+        while not done:
+            self.step()
+            done = self._last_observation[2]
+            reward += self._last_observation[1]
+        self._logger.info("Episode finished. Total reward: %f", reward)
+        return reward
+
+    def close(self):
+        """Close the environment."""
+        self.env.close()
+        self._logger.info("Environment closed.")
