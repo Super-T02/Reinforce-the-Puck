@@ -15,7 +15,7 @@ class Agent:
         self._config = config
         self._trainer = trainer
 
-    def act(self, state):
+    def act(self, state) -> any:
         """
         Select an action based on the given state.
 
