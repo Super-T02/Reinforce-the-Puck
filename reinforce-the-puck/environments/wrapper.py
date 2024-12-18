@@ -2,6 +2,7 @@ import logging
 
 import gymnasium as gym
 from agents.base_agent import BaseAgent
+from utils.config import global_config
 
 
 class EnvWrapper:
@@ -67,7 +68,6 @@ class EnvWrapper:
             state: The initial state of the environment.
         """
         state, _ = self.env.reset()
-        self.agent.reset()
         self._last_observation = (state, 0, False, False, {})
         return state
 
@@ -85,6 +85,31 @@ class EnvWrapper:
             done = self._last_observation[2]
             reward += self._last_observation[1]
         self._logger.info("Episode finished. Total reward: %f", reward)
+        return reward
+
+    def run_train_episode(self, i: int) -> float:
+        """Run a single episode of the training.
+
+        Args:
+            i (int): The episode number.
+
+        Returns:
+            float: The total reward of the episode.
+        """
+        reward = 0
+        self.reset()
+        self.agent.reset()
+        done = False
+        for i in range(global_config.environment.max_steps):
+            self.step()
+            done = self._last_observation[2]
+            trunc = self._last_observation[3]
+            reward += self._last_observation[1]
+            if done or trunc:
+                break
+
+        self.agent.train(reward)
+        self._logger.info("Episode %10d: Total reward: %4.2f", i, reward)
         return reward
 
     def close(self) -> "EnvWrapper":
