@@ -88,6 +88,7 @@ class AgentConfig(ConfigGroup):
         self.version = 1
         self.memory_size = 10000
         self.epochs = 10
+        self.trainer_config = TrainerConfig()
 
 
 class TrainerConfig(ConfigGroup):
@@ -114,7 +115,6 @@ class Config:
         self.base_config = BaseConfig()
         self.agent1 = AgentConfig()
         self.agent2 = AgentConfig()
-        self.trainer = TrainerConfig()
 
     def from_yaml(self, yaml_path: str):
         """

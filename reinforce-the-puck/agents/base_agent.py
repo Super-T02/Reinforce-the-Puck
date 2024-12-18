@@ -8,16 +8,16 @@ from utils.config import AgentConfig
 class BaseAgent:
     """Base class for all agents."""
 
-    def __init__(self, name: str, trainer: Trainer, config: AgentConfig):
+    def __init__(self, name: str, trainer: callable, config: AgentConfig):
         """
         Initialize the agent.
 
         Args:
             name (str): Name of the agent.
-            trainer (object): The trainer object that trains the agent.
+            trainer (callable): The trainer class.
         """
         self._name = name
-        self._trainer = trainer
+        self._trainer: Trainer = trainer(config.trainer_config)
         self._config = config
         self._feedback_buffer = Memory(self._config.memory_size)
 
@@ -62,7 +62,7 @@ class BaseAgent:
         )
         return self
 
-    def train(self) -> "BaseAgent":
+    def train(self, last_reward: float = np.nan) -> "BaseAgent":
         """
         Trains the agent using the specified trainer.
 
@@ -71,10 +71,21 @@ class BaseAgent:
         running for a specified number of iterations, using the agent's sample
         method and train_step method.
 
+        With the `last_reward` parameter, the reward can also be passed to the statistics.
+
+        Args:
+            last_reward (float, optional): The reward from the last episode. Defaults to np.nan.
+
         Returns:
             BaseAgent: The trained agent instance.
         """
-        self._trainer.train(self, self._config.epochs, self.sample, self.train_step)
+        self._trainer.train(
+            self,
+            self._config.epochs,
+            self.sample,
+            self.train_step,
+            {"reward": last_reward},
+        )
 
     def sample(self, batch_size: int) -> Batch:
         """

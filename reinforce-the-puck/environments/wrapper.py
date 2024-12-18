@@ -57,7 +57,6 @@ class EnvWrapper:
         action = self.agent.act(state)
         self._last_observation = self.env.step(action)
         self.agent.save_experience(state, action, *self._last_observation)
-        self.agent.train()
         return self._last_observation
 
     def reset(self):
@@ -85,6 +84,26 @@ class EnvWrapper:
             done = self._last_observation[2]
             reward += self._last_observation[1]
         self._logger.info("Episode finished. Total reward: %f", reward)
+        return reward
+
+    def run_train_episode(self, i: int) -> float:
+        """Run a single episode of the training.
+
+        Args:
+            i (int): The episode number.
+
+        Returns:
+            float: The total reward of the episode.
+        """
+        reward = 0
+        self.reset()
+        done = False
+        while not done:
+            self.step()
+            done = self._last_observation[2]
+            reward += self._last_observation[1]
+        self.agent.train(reward)
+        self._logger.info("Episode %10d: Total reward: %4.2f", i, reward)
         return reward
 
     def close(self) -> "EnvWrapper":

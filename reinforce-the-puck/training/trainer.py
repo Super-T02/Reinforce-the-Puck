@@ -78,6 +78,7 @@ class Trainer:
         iter_fit: int,
         sample_batch: Callable[[int], Batch],
         training_step: Callable[[BaseAgent, Batch], dict],
+        env_stats: dict = {},
     ) -> List[dict]:
         """
         Trains the agent.
@@ -88,6 +89,7 @@ class Trainer:
             sample_batch (Callable[[int], Batch]):
             A function that samples a batch of data for training (e.g. from replay buffer).
             training_step (Callable[[BaseAgent, Batch], dict]): A function that performs a single training step.
+            env_stats (dict, optional): The last statistics from the previous environmment run. Defaults to {}.
         Returns:
             List[dict]: A list of dictionaries containing the loss values for each iteration.
         """
@@ -98,7 +100,9 @@ class Trainer:
 
         for iteration in range(iter_fit):
             batch = sample_batch(self._batch_size)
-            statistic = self.train_step(agent, batch)
+            statistic = training_step(agent, batch)
+            env_stats.update(statistic)
+            statistic = env_stats
 
             if "loss" not in statistic:
                 raise ValueError(

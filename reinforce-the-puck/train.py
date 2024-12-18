@@ -58,14 +58,7 @@ class TrainCLI:
 
     def load_classes(self):
         """Load the trainer, agent, and environment classes."""
-        self._trainer = Trainer(
-            global_config.trainer.checkpoint_dir,
-            global_config.trainer.learning_rate,
-            global_config.trainer.batch_size,
-            global_config.trainer.log_freq,
-            global_config.trainer.save_checkpoint_freq,
-            global_config.trainer.max_checkpoints,
-        )
+        self._trainer = Trainer
         # TODO: Add support for multiple agents
         # TODO: Use implemented agent
         self._agent = BaseAgent(
@@ -79,25 +72,6 @@ class TrainCLI:
         self.load_config()
         self.load_classes()
 
-    def run_train_episode(self, i: int) -> int:
-        """Run a single episode of the training.
-
-        Args:
-            i (int): The episode number.
-
-        Returns:
-            int: The total reward of the episode.
-        """
-        reward = 0
-        self._environment.reset()
-        done = False
-        while not done:
-            ret = self._environment.step()
-            done = ret[2]
-            reward += ret[1]
-        self._logger.info("Episode %10d: Total reward: %4.2f", i, reward)
-        return reward
-
     def run(self):
         """
         Run the CLI.
@@ -108,7 +82,7 @@ class TrainCLI:
         )
         rewards = np.array(
             [
-                self.run_train_episode(i)
+                self._environment.run_train_episode(i)
                 for i in range(global_config.base_config.num_episodes)
             ]
         )
@@ -120,6 +94,7 @@ class TrainCLI:
         self._logger.info(
             "Min reward: %4.2f [Episode: %10d]", rewards.min(), rewards.argmin()
         )
+        self._environment.close()
 
 
 if __name__ == "__main__":
