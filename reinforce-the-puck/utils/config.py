@@ -91,6 +91,11 @@ class AgentConfig(ConfigGroup):
         self.trainer_config = TrainerConfig()
 
 
+class EnvironmentConfig(ConfigGroup):
+    def __init__(self):
+        self.max_steps = 1000
+
+
 class TrainerConfig(ConfigGroup):
     def __init__(self):
         self.checkpoint_dir = os.path.join(model_dir, "checkpoints")
@@ -113,6 +118,7 @@ class Config:
 
     def __init__(self):
         self.base_config = BaseConfig()
+        self.environment = EnvironmentConfig()
         self.agent1 = AgentConfig()
         self.agent2 = AgentConfig()
 

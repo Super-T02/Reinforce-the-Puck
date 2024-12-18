@@ -33,6 +33,16 @@ class BaseAgent:
         """
         raise NotImplementedError
 
+    def reset(self) -> "BaseAgent":
+        """
+        Reset the agent.
+
+        Returns:
+            BaseAgent: The agent object.
+        """
+        self._feedback_buffer = Memory(self._config.memory_size)
+        return self
+
     def save_experience(
         self,
         state: any,
