@@ -1,3 +1,5 @@
+from typing import Any
+
 import numpy as np
 import torch
 from utils import config
@@ -12,7 +14,7 @@ class Feedforward(torch.nn.Module):
         hidden_sizes: list[int],
         output_size: int,
         activation: any = torch.nn.Tanh,
-        output_activation: any | None = None,
+        output_activation: Any | None = None,
         loss_fn=torch.nn.SmoothL1Loss(),
         device: str = config.DEVICE,
         dtype: torch.dtype = config.DTYPE,
@@ -123,7 +125,7 @@ class QFunction(Feedforward):
         hidden_sizes: list[int],
         output_size: int,
         activation: any = torch.nn.Tanh,
-        output_activation: any | None = None,
+        output_activation: Any | None = None,
         loss_fn: callable = torch.nn.SmoothL1Loss(),
         device: str = config.DEVICE,
         dtype: torch.dtype = config.DTYPE,
