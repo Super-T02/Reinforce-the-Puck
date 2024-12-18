@@ -1,18 +1,15 @@
 """This file contains the CLI for the training process. Input is a yaml file with the configuration for the training."""
 
 import argparse
-import glob
 import logging
 import os
-import re
 
 import numpy as np
-import yaml
 from agents.base_agent import BaseAgent
 from environments.wrapper import EnvWrapper
 from training.trainer import BaseTrainer
 from utils import config_dir, logger
-from utils.config import Config, global_config
+from utils.config import global_config
 
 
 class CLI:
