@@ -1,5 +1,3 @@
-import abc
-
 import numpy as np
 import torch
 from utils import config
@@ -15,8 +13,10 @@ class Feedforward(torch.nn.Module):
         output_size: int,
         activation: any = torch.nn.Tanh,
         output_activation: any | None = None,
+        loss_fn=torch.nn.SmoothL1Loss(),
         device: str = config.DEVICE,
         dtype: torch.dtype = config.DTYPE,
+        **kwargs,
     ):
         """Initialize the Feedforward Neural Network.
 
@@ -26,6 +26,7 @@ class Feedforward(torch.nn.Module):
             output_size (int): Output size.
             activation (any, optional): Activation function. Defaults to torch.nn.Tanh.
             output_activation (any | None, optional): Output activation function. Defaults to None.
+            loss_fn (callable, optional): Loss function. Defaults to torch.nn.SmoothL1Loss().
             device (str, optional): Device to run the model on. Defaults to config.DEVICE.
             dtype (torch.dtype, optional): Data type. Defaults to config.DTYPE.
         """
@@ -35,6 +36,7 @@ class Feedforward(torch.nn.Module):
         self._hidden_sizes = hidden_sizes
         self._output_size = output_size
         self._output_activation = output_activation
+        self._loss_fn = loss_fn
         self._dtype = dtype
         self._device = device
 
@@ -75,46 +77,7 @@ class Feedforward(torch.nn.Module):
         with torch.no_grad():
             return self.forward(x)
 
-
-class Network(Feedforward):
-    """Base Class for Neural Networks."""
-
-    def __init__(
-        self,
-        input_size,
-        hidden_sizes,
-        output_size,
-        activation=torch.nn.Tanh,
-        output_activation=None,
-        loss_fn=torch.nn.SmoothL1Loss(),
-        device=config.DEVICE,
-        dtype=config.DTYPE,
-        **kwargs,
-    ):
-        """Initialize the Network.
-
-        Args:
-            input_size (int): Input size.
-            hidden_sizes (list[int]): List of hidden layer sizes.
-            output_size (int): Output size.
-            activation (any, optional): Activation function. Defaults to torch.nn.Tanh.
-            output_activation (any | None, optional): Output activation function. Defaults to None.
-            loss_fn (callable, optional): Loss function. Defaults to torch.nn.SmoothL1Loss().
-            device (str, optional): Device to run the model on. Defaults to config.DEVICE.
-            dtype (torch.dtype, optional): Data type. Defaults to config
-        """
-        super(Network, self).__init__(
-            input_size,
-            hidden_sizes,
-            output_size,
-            activation,
-            output_activation,
-            device,
-            dtype,
-        )
-        self._loss_fn = loss_fn
-
-    def save(self, path: str) -> "Network":
+    def save(self, path: str) -> "Feedforward":
         """Save the model to a file.
 
         Args:
@@ -126,7 +89,7 @@ class Network(Feedforward):
         torch.save(self.state_dict(), path)
         return self
 
-    def load(self, path: str) -> "Network":
+    def load(self, path: str) -> "Feedforward":
         """Load the model from a file.
 
         Args:
@@ -151,7 +114,7 @@ class Network(Feedforward):
         raise NotImplementedError
 
 
-class QFunction(Network):
+class QFunction(Feedforward):
     """Q-Function Network."""
 
     def __init__(
