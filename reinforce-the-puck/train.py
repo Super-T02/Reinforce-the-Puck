@@ -12,7 +12,7 @@ from utils import config_dir, logger
 from utils.config import global_config
 
 
-class CLI:
+class TrainCLI:
     def __init__(self):
         self._logger = logging.getLogger(__name__)
         self._trainer = None
@@ -124,5 +124,5 @@ class CLI:
 
 if __name__ == "__main__":
     logger.init_logger(os.path.join(config_dir, "logging.yaml"))
-    cli = CLI()
+    cli = TrainCLI()
     cli.run()
