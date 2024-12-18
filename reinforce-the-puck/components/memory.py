@@ -1,5 +1,22 @@
 import numpy as np
+import torch
 from utils.config import global_config
+
+
+class Batch:
+    def __init__(
+        self,
+        observations: torch.Tensor,
+        actions: torch.Tensor,
+        next_observations: torch.Tensor,
+        rewards: torch.Tensor,
+        dones: torch.Tensor,
+    ):
+        self.observations = observations
+        self.actions = actions
+        self.rewards = rewards
+        self.next_observations = next_observations
+        self.dones = dones
 
 
 class Memory:

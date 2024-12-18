@@ -87,6 +87,7 @@ class AgentConfig(ConfigGroup):
         self.name = "BasicOpponent"
         self.version = 1
         self.memory_size = 10000
+        self.epochs = 10
 
 
 class TrainerConfig(ConfigGroup):

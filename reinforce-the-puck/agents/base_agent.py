@@ -1,12 +1,14 @@
-from components.memory import Memory
-from training.trainer import BaseTrainer
+import numpy as np
+import torch
+from components.memory import Batch, Memory
+from training.trainer import Trainer
 from utils.config import AgentConfig
 
 
 class BaseAgent:
     """Base class for all agents."""
 
-    def __init__(self, name: str, trainer: BaseTrainer, config: AgentConfig):
+    def __init__(self, name: str, trainer: Trainer, config: AgentConfig):
         """
         Initialize the agent.
 
@@ -61,9 +63,38 @@ class BaseAgent:
         return self
 
     def train(self) -> "BaseAgent":
-        """Learn from the last iteration.
+        """
+        Trains the agent using the specified trainer.
+
+        This method initiates the training process for the agent by calling the
+        `train` method of the `_trainer` attribute. The training process involves
+        running for a specified number of iterations, using the agent's sample
+        method and train_step method.
 
         Returns:
-            Agent: The agent object.
+            BaseAgent: The trained agent instance.
+        """
+        self._trainer.train(self, self._config.epochs, self.sample, self.train_step)
+
+    def sample(self, batch_size: int) -> Batch:
+        """
+        Sample a batch of experiences from the memory.
+
+        Args:
+            batch_size (int): The number of experiences to sample.
+
+        Returns:
+            Batch: The batch of experiences.
+        """
+        to_torch = lambda x: torch.from_numpy(x.astype(np.float32))
+        sample = self._feedback_buffer.sample(batch_size)
+        return Batch(*[to_torch(x) for i, x in enumerate(sample) if i < 4])
+
+    def train_step(self) -> dict:
+        """
+        Perform a single training step.
+
+        Returns:
+            dict: The training statistics.
         """
         raise NotImplementedError

@@ -7,7 +7,7 @@ import os
 import numpy as np
 from agents.base_agent import BaseAgent
 from environments.wrapper import EnvWrapper
-from training.trainer import BaseTrainer
+from training.trainer import Trainer
 from utils import config_dir, logger
 from utils.config import global_config
 
@@ -58,7 +58,7 @@ class TrainCLI:
 
     def load_classes(self):
         """Load the trainer, agent, and environment classes."""
-        self._trainer = BaseTrainer(
+        self._trainer = Trainer(
             global_config.trainer.checkpoint_dir,
             global_config.trainer.learning_rate,
             global_config.trainer.batch_size,

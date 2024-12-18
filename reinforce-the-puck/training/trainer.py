@@ -4,27 +4,13 @@ import pickle
 from typing import Callable, List
 
 import torch
-from components.networks import Feedforward
+from agents.base_agent import BaseAgent
+from components.memory import Batch
 from evaluation.tensorboard_statistics import TensorboardStatistics
+from utils import logs_dir
 
 
-class Batch:
-    def __init__(
-        self,
-        observations: torch.Tensor,
-        actions: torch.Tensor,
-        rewards: torch.Tensor,
-        next_observations: torch.Tensor,
-        dones: torch.Tensor,
-    ):
-        self.observations = observations
-        self.actions = actions
-        self.rewards = rewards
-        self.next_observations = next_observations
-        self.dones = dones
-
-
-class BaseTrainer:
+class Trainer:
     def __init__(
         self,
         checkpoint_dir: str,
@@ -43,19 +29,19 @@ class BaseTrainer:
         self._checkpoints = []
         self._logger = logging.getLogger(__name__)
 
-    def save_checkpoint(self, model: Feedforward, checkpoint_name: str):
+    def save_checkpoint(self, agent: BaseAgent, checkpoint_name: str):
         """
-        Saves the model's state to a checkpoint file.
+        Saves the agent's state to a checkpoint file.
 
         Args:
-            model (Feedforward): The model to save.
+            agent (BaseAgent): The agent to save.
             checkpoint_name (str): The name of the checkpoint file.
 
         Returns:
             None
         """
         checkpoint_path = os.path.join(self._checkpoint_dir, checkpoint_name + ".pth")
-        model.save(checkpoint_path)
+        agent.save(checkpoint_path)
 
         # Add the new checkpoint to the list
         self._checkpoints.append(checkpoint_path)
@@ -70,19 +56,6 @@ class BaseTrainer:
                     self._logger.error(
                         f"Error deleting checkpoint {oldest_checkpoint}: {e}"
                     )
-
-    def train_step(self, model: Feedforward, batch: Batch) -> dict:
-        """
-        Trains the model for a single step.
-
-        Args:
-            model (Feedforward): The model to train.
-            batch (Batch): The batch of data to train on.
-
-        Returns:
-            dict: A dictionary containing the statistics for the training step (e.g. loss).
-        """
-        raise NotImplementedError
 
     def save_statistics(self, statistics, filename: str):
         """
@@ -100,27 +73,32 @@ class BaseTrainer:
             pickle.dump(statistics, f)
 
     def train(
-        self, model: Feedforward, iter_fit: int, sample_batch: Callable[[int], Batch]
+        self,
+        agent: BaseAgent,
+        iter_fit: int,
+        sample_batch: Callable[[int], Batch],
+        training_step: Callable[[BaseAgent, Batch], dict],
     ) -> List[dict]:
         """
-        Trains the model.
+        Trains the agent.
 
         Args:
-            model (Feedforward): The model to train.
-            iter_fit (int): The number of iterations to fit the model.
+            agent (BaseAgent): The agent to train.
+            iter_fit (int): The number of iterations to fit the agent.
             sample_batch (Callable[[int], Batch]):
             A function that samples a batch of data for training (e.g. from replay buffer).
+            training_step (Callable[[BaseAgent, Batch], dict]): A function that performs a single training step.
         Returns:
             List[dict]: A list of dictionaries containing the loss values for each iteration.
         """
         statistics: List[dict] = []
         tensorboard: TensorboardStatistics = TensorboardStatistics(
-            f"logs/{self.__generate_training_name(iteration)}"
+            os.path.join(logs_dir, self.__generate_training_name(iter_fit))
         )
 
         for iteration in range(iter_fit):
             batch = sample_batch(self._batch_size)
-            statistic = self.train_step(model, batch)
+            statistic = self.train_step(agent, batch)
 
             if "loss" not in statistic:
                 raise ValueError(
@@ -138,7 +116,7 @@ class BaseTrainer:
 
             if iteration % self._save_checkpoint_freq == 0:
                 self.save_checkpoint(
-                    model, f"checkpoint_{self.__generate_training_name(iteration)}"
+                    agent, f"checkpoint_{self.__generate_training_name(iteration)}"
                 )
 
         tensorboard.close()
