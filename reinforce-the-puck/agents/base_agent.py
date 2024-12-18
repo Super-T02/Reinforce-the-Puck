@@ -1,23 +1,23 @@
 from components.memory import Memory
 from training.trainer import BaseTrainer
+from utils.config import AgentConfig
 
 
 class BaseAgent:
     """Base class for all agents."""
 
-    def __init__(self, name: str, trainer: BaseTrainer, config: dict):
+    def __init__(self, name: str, trainer: BaseTrainer, config: AgentConfig):
         """
         Initialize the agent.
 
         Args:
             name (str): Name of the agent.
             trainer (object): The trainer object that trains the agent.
-            config (dict): Configuration parameters for the agent.
         """
         self._name = name
-        self._config = config
         self._trainer = trainer
-        self._feedback_buffer = Memory(config.get("memory_size", 1000))
+        self._config = config
+        self._feedback_buffer = Memory(self._config.memory_size)
 
     def act(self, state) -> any:
         """

@@ -1,0 +1,23 @@
+base_config:
+  device: cuda
+  dtype: float16 # Changed
+  max_memory_size: 100000
+
+agent1:
+  name: BasicOpponent # Changed
+  version: 1
+  memory_size: 10000
+
+agent2:
+  name: BasicNotOpponent
+  version: 19 # Changed
+  memory_size: 1 # Changed
+  dtype: float32 # Should not be used
+
+agent3: # Not specified
+  name: BasicOpponent
+  version: 1
+  memory_size: 10000
+  device: cpu
+  dtype: float32
+  max_memory_size: 100000
