@@ -4,8 +4,8 @@ import pickle
 from typing import Callable, List
 
 import torch
+from components.networks import Feedforward
 from evaluation.tensorboard_statistics import TensorboardStatistics
-from torch.nn import Module
 
 
 class Batch:
@@ -43,12 +43,12 @@ class BaseTrainer:
         self._checkpoints = []
         self._logger = logging.getLogger(__name__)
 
-    def save_checkpoint(self, model: Module, checkpoint_name: str):
+    def save_checkpoint(self, model: Feedforward, checkpoint_name: str):
         """
         Saves the model's state to a checkpoint file.
 
         Args:
-            model (Module): The model to save.
+            model (Feedforward): The model to save.
             checkpoint_name (str): The name of the checkpoint file.
 
         Returns:
@@ -71,12 +71,12 @@ class BaseTrainer:
                         f"Error deleting checkpoint {oldest_checkpoint}: {e}"
                     )
 
-    def train_step(self, model: Module, batch: Batch) -> dict:
+    def train_step(self, model: Feedforward, batch: Batch) -> dict:
         """
         Trains the model for a single step.
 
         Args:
-            model (Module): The model to train.
+            model (Feedforward): The model to train.
             batch (Batch): The batch of data to train on.
 
         Returns:
@@ -100,13 +100,13 @@ class BaseTrainer:
             pickle.dump(statistics, f)
 
     def train(
-        self, model: Module, iter_fit: int, sample_batch: Callable[[int], Batch]
+        self, model: Feedforward, iter_fit: int, sample_batch: Callable[[int], Batch]
     ) -> List[dict]:
         """
         Trains the model.
 
         Args:
-            model (Module): The model to train.
+            model (Feedforward): The model to train.
             iter_fit (int): The number of iterations to fit the model.
             sample_batch (Callable[[int], Batch]):
             A function that samples a batch of data for training (e.g. from replay buffer).

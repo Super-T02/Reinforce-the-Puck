@@ -1,3 +1,4 @@
+from components.memory import Memory
 from training.trainer import BaseTrainer
 
 
@@ -16,6 +17,7 @@ class BaseAgent:
         self._name = name
         self._config = config
         self._trainer = trainer
+        self._feedback_buffer = Memory(config.get("memory_size", 1000))
 
     def act(self, state) -> any:
         """
@@ -53,8 +55,10 @@ class BaseAgent:
         Returns:
             Agent: The agent object.
         """
-        # Todo: Implement when memory is merged
-        raise NotImplementedError
+        self._feedback_buffer.add_transition(
+            [state, action, new_state, reward, done, trunc]
+        )
+        return self
 
     def train(self) -> "BaseAgent":
         """Learn from the last iteration.
