@@ -103,7 +103,7 @@ class BaseTrainer:
         self, model: Feedforward, iter_fit: int, sample_batch: Callable[[int], Batch]
     ) -> List[dict]:
         """
-        Trains the model.
+        Model Training.
 
         Args:
             model (Feedforward): The model to train.
