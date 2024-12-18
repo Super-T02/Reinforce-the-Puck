@@ -57,6 +57,7 @@ class EnvWrapper:
         action = self.agent.act(state)
         self._last_observation = self.env.step(action)
         self.agent.save_experience(state, action, *self._last_observation)
+        self.agent.train()
         return self._last_observation
 
     def reset(self):
@@ -67,7 +68,6 @@ class EnvWrapper:
             state: The initial state of the environment.
         """
         state, _ = self.env.reset()
-        self.agent.reset()
         self._last_observation = (state, 0, False, False, {})
         return state
 

@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-from utils import config
+from utils.config import global_config
 
 
 class Feedforward(torch.nn.Module):
@@ -12,10 +12,10 @@ class Feedforward(torch.nn.Module):
         hidden_sizes: list[int],
         output_size: int,
         activation: any = torch.nn.Tanh,
-        output_activation: any | None = None,
+        output_activation: any = None,
         loss_fn=torch.nn.SmoothL1Loss(),
-        device: str = config.DEVICE,
-        dtype: torch.dtype = config.DTYPE,
+        device: str = global_config.base_config.device,
+        dtype: torch.dtype = global_config.base_config.dtype,
         **kwargs,
     ):
         """Initialize the Feedforward Neural Network.
@@ -25,7 +25,7 @@ class Feedforward(torch.nn.Module):
             hidden_sizes (list[int]): List of hidden layer sizes.
             output_size (int): Output size.
             activation (any, optional): Activation function. Defaults to torch.nn.Tanh.
-            output_activation (any | None, optional): Output activation function. Defaults to None.
+            output_activation (any, optional): Output activation function. Defaults to None.
             loss_fn (callable, optional): Loss function. Defaults to torch.nn.SmoothL1Loss().
             device (str, optional): Device to run the model on. Defaults to config.DEVICE.
             dtype (torch.dtype, optional): Data type. Defaults to config.DTYPE.
@@ -123,10 +123,10 @@ class QFunction(Feedforward):
         hidden_sizes: list[int],
         output_size: int,
         activation: any = torch.nn.Tanh,
-        output_activation: any | None = None,
+        output_activation: any = None,
         loss_fn: callable = torch.nn.SmoothL1Loss(),
-        device: str = config.DEVICE,
-        dtype: torch.dtype = config.DTYPE,
+        device: str = global_config.base_config.device,
+        dtype: torch.dtype = global_config.base_config.dtype,
         **kwargs,
     ):
         """Initialize the Q-Function Network.
@@ -136,7 +136,7 @@ class QFunction(Feedforward):
             hidden_sizes (list[int]): List of hidden layer sizes.
             output_size (int): Output size.
             activation (any, optional): Activation function. Defaults to torch.nn.Tanh.
-            output_activation (any | None, optional): Output activation function. Defaults to None.
+            output_activation (any, optional): Output activation function. Defaults to None.
             loss_fn (callable, optional): Loss function. Defaults to torch.nn.SmoothL1Loss().
             device (str, optional): Device to run the model on. Defaults to config.DEVICE.
             dtype (torch.dtype, optional): Data type. Defaults to config.DTYPE.

@@ -1,11 +1,11 @@
 import numpy as np
-from utils import config
+from utils.config import global_config
 
 
 class Memory:
     """Memory buffer to store transitions."""
 
-    def __init__(self, max_size=config.MAX_MEMORY_SIZE):
+    def __init__(self, max_size=global_config.base_config.max_memory_size):
         """Initialize the Memory object.
 
         Args:

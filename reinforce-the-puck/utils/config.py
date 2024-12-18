@@ -2,6 +2,7 @@ import os
 
 import torch
 import yaml
+from utils import model_dir
 
 global global_config
 
@@ -66,6 +67,7 @@ class BaseConfig(ConfigGroup):
     def __init__(self):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self._dtype = torch.float32
+        self.num_episodes = 1
         self.max_memory_size = 100000
 
     @property
@@ -87,6 +89,16 @@ class AgentConfig(ConfigGroup):
         self.memory_size = 10000
 
 
+class TrainerConfig(ConfigGroup):
+    def __init__(self):
+        self.checkpoint_dir = os.path.join(model_dir, "checkpoints")
+        self.learning_rate = 0.001
+        self.batch_size = 32
+        self.log_freq = 10
+        self.save_checkpoint_freq = 100
+        self.max_checkpoints = 5
+
+
 ####################################################################################################
 # Configuration Class
 ####################################################################################################
@@ -101,6 +113,7 @@ class Config:
         self.base_config = BaseConfig()
         self.agent1 = AgentConfig()
         self.agent2 = AgentConfig()
+        self.trainer = TrainerConfig()
 
     def from_yaml(self, yaml_path: str):
         """
