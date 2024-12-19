@@ -17,12 +17,11 @@ class DDPGAgent(BaseAgent):
 
     def __init__(
         self,
-        trainer: callable,
         observation_space: spaces.box.Box,
         action_space: spaces.box.Box,
         config: DDPGAgentConfig,
     ):
-        super().__init__("DDPG", trainer, observation_space, action_space, config)
+        super().__init__("DDPG", observation_space, action_space, config)
         self._action_noise = OUNoise((self._action_n))
 
         self.Q = QFunction(
