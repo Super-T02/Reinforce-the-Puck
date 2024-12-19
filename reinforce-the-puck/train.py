@@ -74,7 +74,11 @@ class TrainCLI:
             },
         )
         self._agent = self._environment.agent
-        self._episodes = self._args.num_episodes
+        self._episodes = (
+            global_config.training.num_episodes
+            if self._args.num_episodes is None
+            else self._args.num_episodes
+        )
 
     def setup(self):
         """Setup the CLI."""
@@ -86,14 +90,9 @@ class TrainCLI:
         Run the CLI.
         """
         self.setup()
-        self._logger.info(
-            "Starting training [%d]...", global_config.base_config.num_episodes
-        )
+        self._logger.info("Starting training [%d]...", self._episodes)
         rewards = np.array(
-            [
-                self._environment.run_train_episode(i)
-                for i in range(global_config.base_config.num_episodes)
-            ]
+            [self._environment.run_train_episode(i) for i in range(self._episodes)]
         )
         self._logger.info("Training finished.")
         self._logger.info("Mean reward: %4.2f", rewards.mean())

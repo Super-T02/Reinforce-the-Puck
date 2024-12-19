@@ -127,3 +127,5 @@ venv.bak/
 *.synctex.gz
 *.xdv
 report/*.pdf
+logs/*
+models/*
