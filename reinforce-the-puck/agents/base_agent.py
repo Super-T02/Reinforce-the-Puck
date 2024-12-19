@@ -1,14 +1,30 @@
 import numpy as np
 import torch
 from components.memory import Batch, Memory
+from gymnasium import spaces
 from training.trainer import Trainer
 from utils.config import AgentConfig
+
+
+class UnsupportedSpace(Exception):
+    """Exception raised when the Sensor or Action space are not compatible"""
+
+    def __init__(self, message="Unsupported Space"):
+        self.message = message
+        super().__init__(self.message)
 
 
 class BaseAgent:
     """Base class for all agents."""
 
-    def __init__(self, name: str, trainer: callable, config: AgentConfig):
+    def __init__(
+        self,
+        name: str,
+        trainer: callable,
+        observation_space: spaces.box.Box,
+        action_space: spaces.box.Box,
+        config: AgentConfig,
+    ):
         """
         Initialize the agent.
 
@@ -16,10 +32,49 @@ class BaseAgent:
             name (str): Name of the agent.
             trainer (callable): The trainer class.
         """
+        if not isinstance(observation_space, spaces.box.Box):
+            raise UnsupportedSpace(
+                "Observation space {} incompatible "
+                "with {}. (Require: Box)".format(observation_space, self)
+            )
+        if not isinstance(action_space, spaces.box.Box):
+            raise UnsupportedSpace(
+                "Action space {} incompatible with {}."
+                " (Require Box)".format(action_space, self)
+            )
+
         self._name = name
         self._trainer: Trainer = trainer(config.trainer_config)
         self._config = config
+
         self._feedback_buffer = Memory(self._config.memory_size)
+        self._observation_space = observation_space
+        self._action_space = action_space
+        self._obs_dim = self._observation_space.shape[0]
+        self._action_n = self._action_space.shape[0]
+
+    def save(self, path: str) -> None:
+        """
+        Save the agent to a file.
+
+        Args:
+            path (str): The path to the file where the agent will be saved.
+
+        Returns:
+            None
+        """
+        raise NotImplementedError
+
+    def load(self, path: str) -> None:
+        """Load the agent from a file.
+
+        Args:
+            path (str): The path to the file where the agent is saved.
+
+        Returns:
+            None
+        """
+        raise NotImplementedError
 
     def act(self, state) -> any:
         """
@@ -40,8 +95,7 @@ class BaseAgent:
         Returns:
             BaseAgent: The agent object.
         """
-        self._feedback_buffer = Memory(self._config.memory_size)
-        return self
+        raise NotImplementedError
 
     def save_experience(
         self,
@@ -97,6 +151,18 @@ class BaseAgent:
             {"reward": last_reward},
         )
 
+    def to_torch(self, x: np.ndarray) -> torch.Tensor:
+        """
+        Convert a numpy array to a PyTorch tensor.
+
+        Args:
+            x (np.ndarray): The numpy array to convert.
+
+        Returns:
+            torch.Tensor: The PyTorch tensor.
+        """
+        return torch.from_numpy(x.astype(np.float32))
+
     def sample(self, batch_size: int) -> Batch:
         """
         Sample a batch of experiences from the memory.
@@ -107,13 +173,20 @@ class BaseAgent:
         Returns:
             Batch: The batch of experiences.
         """
-        to_torch = lambda x: torch.from_numpy(x.astype(np.float32))
         sample = self._feedback_buffer.sample(batch_size)
-        return Batch(*[to_torch(x) for i, x in enumerate(sample) if i < 4])
+        state = self.to_torch(np.vstack(sample[:, 0]))
+        action = self.to_torch(np.vstack(sample[:, 1]))
+        next_state = self.to_torch(np.vstack(sample[:, 2]))
+        reward = self.to_torch(np.vstack(sample[:, 3]))
+        done = self.to_torch(np.vstack(sample[:, 4]))
+        return Batch(state, action, next_state, reward, done)
 
-    def train_step(self) -> dict:
+    def train_step(self, batch: Batch) -> dict:
         """
         Perform a single training step.
+
+        Args:
+            batch (Batch): The batch of experiences.
 
         Returns:
             dict: The training statistics.

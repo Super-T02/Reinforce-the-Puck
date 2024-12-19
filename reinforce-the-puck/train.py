@@ -6,6 +6,7 @@ import os
 
 import numpy as np
 from agents.base_agent import BaseAgent
+from agents.ddpg import DDPGAgent
 from environments.wrapper import EnvWrapper
 from training.trainer import Trainer
 from utils import config_dir, logger
@@ -60,11 +61,19 @@ class TrainCLI:
         """Load the trainer, agent, and environment classes."""
         self._trainer = Trainer
         # TODO: Add support for multiple agents
-        # TODO: Use implemented agent
-        self._agent = BaseAgent(
-            global_config.agent1.name, self._trainer, global_config.agent1
+        type2agent = {
+            "ddpg": DDPGAgent,
+        }
+        # @Jona: Kp ob das hier so schön ist
+        self._environment = EnvWrapper(
+            self._args.environment,
+            type2agent[global_config.agent1.type],
+            {
+                "trainer": self._trainer,
+                "config": global_config.agent1,
+            },
         )
-        self._environment = EnvWrapper(self._args.environment, self._agent)
+        self._agent = self._environment.agent
         self._episodes = self._args.num_episodes
 
     def setup(self):

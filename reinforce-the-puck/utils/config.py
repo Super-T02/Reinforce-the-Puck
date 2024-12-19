@@ -84,11 +84,29 @@ class BaseConfig(ConfigGroup):
 
 class AgentConfig(ConfigGroup):
     def __init__(self):
+        self.type = "none"
         self.name = "BasicOpponent"
         self.version = 1
-        self.memory_size = 10000
         self.epochs = 10
+        self.memory_size = 10000
         self.trainer_config = TrainerConfig()
+
+
+class DDPGAgentConfig(AgentConfig):
+    def __init__(self):
+        super().__init__()
+        self.type = "ddpg"
+        self.eps = 0.2  # Noise level
+        self.epochs = 100
+        self.memory_size = 100000
+        self.discount = 0.95
+        self.trainer_config.batch_size = 128
+        self.trainer_config.learning_rate_actor = 0.00001
+        self.trainer_config.learning_rate_critic = 0.0001
+        self.actor_hidden_sizes = [128, 128]
+        self.critic_hidden_sizes = [128, 128, 64]
+        self.update_target_every = 100
+        self.use_target_net = True
 
 
 class EnvironmentConfig(ConfigGroup):
@@ -116,6 +134,10 @@ class Config:
     Main configuration class to load and manage YAML configurations.
     """
 
+    TYPE2AGENT = {
+        "ddpg": DDPGAgentConfig(),
+    }
+
     def __init__(self):
         self.base_config = BaseConfig()
         self.environment = EnvironmentConfig()
@@ -136,6 +158,9 @@ class Config:
             data = yaml.safe_load(file)
 
         for group_name, group_config in data.items():
+            if group_name in ["agent1", "agent2"]:
+                setattr(self, group_name, self.TYPE2AGENT[group_config["type"]])
+
             if hasattr(self, group_name):
                 group = getattr(self, group_name)
                 if isinstance(group, ConfigGroup):

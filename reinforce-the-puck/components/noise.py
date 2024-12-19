@@ -3,7 +3,6 @@ import abc
 import numpy as np
 
 
-@abc.ABC
 class AbstractNoise:
     """Abstract class for noise."""
 
