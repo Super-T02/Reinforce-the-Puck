@@ -10,16 +10,21 @@ class EnvWrapper:
     A general-purpose environment wrapper for Gymnasium environments.
     """
 
-    def __init__(self, env_name: str, agent: BaseAgent):
+    def __init__(self, env_name: str, agent_class: BaseAgent, kwargs_agent: dict = {}):
         """
         Initialize the environment wrapper.
 
         Args:
             env_name (str): Name of the Gymnasium environment.
-            agent (object): The agent object that interacts with the environment.
+            agent (callable): The agent class that interacts with the environment.
+            kwargs_agent (dict): Keyword arguments for the agent.
         """
         self.env = gym.make(env_name)
-        self.agent = agent
+        self.agent = agent_class(
+            **kwargs_agent,
+            observation_space=self.env.observation_space,
+            action_space=self.env.action_space
+        )
         self.observation_space = self.env.observation_space
         self.action_space = self.env.action_space
         self._last_observation = (None, 0, False, False, {})
@@ -108,7 +113,7 @@ class EnvWrapper:
             if done or trunc:
                 break
 
-        self.agent.train(reward)
+        self.agent.train(reward.item())
         self._logger.info("Episode %10d: Total reward: %4.2f", i, reward)
         return reward
 

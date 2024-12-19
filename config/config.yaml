@@ -3,3 +3,6 @@
 base_config:
   dtype: float32
   num_episodes: 1
+
+agent1:
+  type: ddpg

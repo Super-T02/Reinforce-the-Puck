@@ -3,33 +3,24 @@ import os
 import pickle
 from typing import Callable, List
 
-import torch
-from agents.base_agent import BaseAgent
 from components.memory import Batch
 from evaluation.tensorboard_statistics import TensorboardStatistics
 from utils import logs_dir
+from utils.config import TrainerConfig
 
 
 class Trainer:
-    def __init__(
-        self,
-        checkpoint_dir: str,
-        learning_rate: float,
-        batch_size: int,
-        log_freq: int,
-        save_checkpoint_freq: int,
-        max_checkpoints: int = 5,
-    ):
-        self._checkpoint_dir = checkpoint_dir
-        self._learning_rate = learning_rate
-        self._batch_size = batch_size
-        self._log_freq = log_freq
-        self._save_checkpoint_freq = save_checkpoint_freq
-        self._max_checkpoints = max_checkpoints
+    def __init__(self, trainer_config: TrainerConfig):
+        self._checkpoint_dir = trainer_config.checkpoint_dir
+        self._learning_rate = trainer_config.learning_rate
+        self._batch_size = trainer_config.batch_size
+        self._log_freq = trainer_config.log_freq
+        self._save_checkpoint_freq = trainer_config.save_checkpoint_freq
+        self._max_checkpoints = trainer_config.max_checkpoints
         self._checkpoints = []
         self._logger = logging.getLogger(__name__)
 
-    def save_checkpoint(self, agent: BaseAgent, checkpoint_name: str):
+    def save_checkpoint(self, agent, checkpoint_name: str):
         """
         Saves the agent's state to a checkpoint file.
 
@@ -69,15 +60,15 @@ class Trainer:
             None
         """
 
-        with open(filename, "w") as f:
+        with open(filename, "wb") as f:
             pickle.dump(statistics, f)
 
     def train(
         self,
-        agent: BaseAgent,
+        agent: any,
         iter_fit: int,
         sample_batch: Callable[[int], Batch],
-        training_step: Callable[[BaseAgent, Batch], dict],
+        training_step: Callable[[any, Batch], dict],
         env_stats: dict = {},
     ) -> List[dict]:
         """
@@ -100,7 +91,7 @@ class Trainer:
 
         for iteration in range(iter_fit):
             batch = sample_batch(self._batch_size)
-            statistic = training_step(agent, batch)
+            statistic = training_step(batch)
             env_stats.update(statistic)
             statistic = env_stats
 
@@ -126,7 +117,7 @@ class Trainer:
         tensorboard.close()
         return self.__convert_dicts_to_lists(statistics)["loss"]
 
-    def __convert_dicts_to_lists(data):
+    def __convert_dicts_to_lists(self, data):
         """
         Convert a list of dictionaries into a dictionary of lists.
         This function takes a list of dictionaries and converts it into a dictionary
