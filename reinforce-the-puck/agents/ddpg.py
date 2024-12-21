@@ -22,6 +22,7 @@ class DDPGAgent(BaseAgent):
         config: DDPGAgentConfig,
     ):
         super().__init__("DDPG", observation_space, action_space, config)
+        self._config: DDPGAgentConfig = config
         self._action_noise = OUNoise((self._action_n))
 
         self.Q = QFunction(
@@ -138,6 +139,12 @@ class DDPGAgent(BaseAgent):
             path (str): The path to the file where the agent is saved.
         """
         self.restore_state(torch.load(path))
+
+    def train(self, last_reward=np.nan):
+        """Train the agent."""
+        if self._train_iterations % self._config.update_target_every == 0:
+            self._copy_nets()
+        return super().train(last_reward)
 
     def train_step(self, batch: Batch) -> dict:
         """Perform a single training step.
