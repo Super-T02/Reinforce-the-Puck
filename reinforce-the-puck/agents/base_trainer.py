@@ -3,13 +3,14 @@ import os
 import pickle
 from typing import Callable, List
 
+import numpy as np
 from components.memory import Batch
 from evaluation.tensorboard_statistics import TensorboardStatistics
 from utils import logs_dir
 from utils.config import TrainerConfig
 
 
-class Trainer:
+class BaseTrainer:
     def __init__(self, trainer_config: TrainerConfig):
         self._checkpoint_dir = trainer_config.checkpoint_dir
         self._learning_rate = trainer_config.learning_rate
@@ -17,10 +18,18 @@ class Trainer:
         self._log_freq = trainer_config.log_freq
         self._save_checkpoint_freq = trainer_config.save_checkpoint_freq
         self._max_checkpoints = trainer_config.max_checkpoints
+        self._epochs = trainer_config.epochs
         self._checkpoints = []
         self._logger = logging.getLogger(__name__)
 
-    def save_checkpoint(self, agent, checkpoint_name: str):
+        self._tensorboard: TensorboardStatistics = TensorboardStatistics(
+            os.path.join(
+                os.path.join(logs_dir, "tensorboard"),
+                self.__generate_training_name(self._epochs),
+            )
+        )
+
+    def save_checkpoint(self, checkpoint_name: str):
         """
         Saves the agent's state to a checkpoint file.
 
@@ -32,7 +41,7 @@ class Trainer:
             None
         """
         checkpoint_path = os.path.join(self._checkpoint_dir, checkpoint_name + ".pth")
-        agent.save(checkpoint_path)
+        self.save(checkpoint_path)
 
         # Add the new checkpoint to the list
         self._checkpoints.append(checkpoint_path)
@@ -48,7 +57,7 @@ class Trainer:
                         f"Error deleting checkpoint {oldest_checkpoint}: {e}"
                     )
 
-    def save_statistics(self, statistics, filename: str):
+    def save_statistics(self, statistics: dict, filename: str):
         """
         Save the training statistics to a file.
 
@@ -60,38 +69,20 @@ class Trainer:
             None
         """
 
-        with open(filename, "wb") as f:
+        with open(os.path.join(logs_dir, filename), "wb") as f:
             pickle.dump(statistics, f)
 
-    def train(
-        self,
-        agent: any,
-        iter_fit: int,
-        sample_batch: Callable[[int], Batch],
-        training_step: Callable[[any, Batch], dict],
-        env_stats: dict = {},
-    ) -> List[dict]:
+    def train(self, last_reward: float = np.nan) -> List[dict]:
         """
-        Trains the agent.
+        Train the agent for a specified number of iterations.
+        """
 
-        Args:
-            agent (BaseAgent): The agent to train.
-            iter_fit (int): The number of iterations to fit the agent.
-            sample_batch (Callable[[int], Batch]):
-            A function that samples a batch of data for training (e.g. from replay buffer).
-            training_step (Callable[[BaseAgent, Batch], dict]): A function that performs a single training step.
-            env_stats (dict, optional): The last statistics from the previous environmment run. Defaults to {}.
-        Returns:
-            List[dict]: A list of dictionaries containing the loss values for each iteration.
-        """
         statistics: List[dict] = []
-        tensorboard: TensorboardStatistics = TensorboardStatistics(
-            os.path.join(logs_dir, self.__generate_training_name(iter_fit))
-        )
+        env_stats = {"reward": last_reward}
 
-        for iteration in range(iter_fit):
-            batch = sample_batch(self._batch_size)
-            statistic = training_step(batch)
+        for iteration in range(self._epochs):
+            batch = self.sample(self._batch_size)
+            statistic = self.train_step(batch)
             env_stats.update(statistic)
             statistic = env_stats
 
@@ -104,20 +95,19 @@ class Trainer:
             if iteration % self._log_freq == 0:
                 self.save_statistics(
                     self.__convert_dicts_to_lists(statistics),
-                    f"loss_{self.__generate_training_name(iteration)}",
+                    f"stats_{self.__generate_training_name(iteration)}",
                 )
                 self._logger.info(f"Iteration {iteration}: {statistic}")
-                tensorboard.write_tensorboard_statistics(iteration, statistic)
+                self._tensorboard.write_tensorboard_statistics(iteration, statistic)
 
             if iteration % self._save_checkpoint_freq == 0:
                 self.save_checkpoint(
-                    agent, f"checkpoint_{self.__generate_training_name(iteration)}"
+                    f"checkpoint_{self.__generate_training_name(iteration)}"
                 )
 
-        tensorboard.close()
         return self.__convert_dicts_to_lists(statistics)["loss"]
 
-    def __convert_dicts_to_lists(self, data):
+    def __convert_dicts_to_lists(self, data) -> dict:
         """
         Convert a list of dictionaries into a dictionary of lists.
         This function takes a list of dictionaries and converts it into a dictionary
@@ -138,13 +128,55 @@ class Trainer:
 
     def __generate_training_name(self, iter: int) -> str:
         """
-        Helper function that generates a training name based on the current training parameters and iteration.
+        Helper function that generates a training name based on the current training parameters, iteration and timestamp.
 
         Args:
             iter (int): The current iteration number.
 
         Returns:
-            str: A string representing the training name, formatted with the learning rate,
+            str: A string representing the training name, formatted with the timestamp, learning rate,
                  batch size, log frequency, save checkpoint frequency, and iteration steps.
         """
         return f"{self._learning_rate}_{self._batch_size}_{self._log_freq}_{self._save_checkpoint_freq}_{iter}-steps"
+
+    def train_step(self, batch: Batch):
+        """
+        Perform a single training step.
+
+        Args:
+            batch (Batch): The batch of experiences.
+
+        Returns:
+            dict: The training statistics.
+        """
+        raise NotImplementedError
+
+    def sample(self, batch_size: int) -> Batch:
+        """
+        Sample a batch of experiences for training.
+
+        Args:
+            batch_size (int): The number of experiences to sample.
+
+        Returns:
+            Batch: A batch of sampled experiences.
+
+        Raises:
+            NotImplementedError: This method should be overridden by subclasses.
+        """
+        raise NotImplementedError
+
+    def save(self, path: str) -> None:
+        """
+        Save the current state to the specified path.
+
+        Args:
+            path (str): The file path where the state should be saved.
+
+        Raises:
+            NotImplementedError: This method should be implemented by subclasses.
+        """
+        raise NotImplementedError
+
+    def __del__(self):
+        self._tensorboard.close()

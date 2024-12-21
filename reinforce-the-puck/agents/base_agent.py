@@ -1,8 +1,8 @@
 import numpy as np
 import torch
+from agents.base_trainer import BaseTrainer
 from components.memory import Batch, Memory
 from gymnasium import spaces
-from training.trainer import Trainer
 from utils.config import AgentConfig
 
 
@@ -14,13 +14,12 @@ class UnsupportedSpace(Exception):
         super().__init__(self.message)
 
 
-class BaseAgent:
+class BaseAgent(BaseTrainer):
     """Base class for all agents."""
 
     def __init__(
         self,
         name: str,
-        trainer: callable,
         observation_space: spaces.box.Box,
         action_space: spaces.box.Box,
         config: AgentConfig,
@@ -43,8 +42,8 @@ class BaseAgent:
                 " (Require Box)".format(action_space, self)
             )
 
+        super().__init__(config.trainer_config)
         self._name = name
-        self._trainer: Trainer = trainer(config.trainer_config)
         self._config = config
 
         self._feedback_buffer = Memory(self._config.memory_size)
@@ -126,31 +125,6 @@ class BaseAgent:
         )
         return self
 
-    def train(self, last_reward: float = np.nan) -> "BaseAgent":
-        """
-        Trains the agent using the specified trainer.
-
-        This method initiates the training process for the agent by calling the
-        `train` method of the `_trainer` attribute. The training process involves
-        running for a specified number of iterations, using the agent's sample
-        method and train_step method.
-
-        With the `last_reward` parameter, the reward can also be passed to the statistics.
-
-        Args:
-            last_reward (float, optional): The reward from the last episode. Defaults to np.nan.
-
-        Returns:
-            BaseAgent: The trained agent instance.
-        """
-        self._trainer.train(
-            self,
-            self._config.epochs,
-            self.sample,
-            self.train_step,
-            {"reward": last_reward},
-        )
-
     def to_torch(self, x: np.ndarray) -> torch.Tensor:
         """
         Convert a numpy array to a PyTorch tensor.
@@ -180,15 +154,3 @@ class BaseAgent:
         reward = self.to_torch(np.vstack(sample[:, 3]))
         done = self.to_torch(np.vstack(sample[:, 4]))
         return Batch(state, action, next_state, reward, done)
-
-    def train_step(self, batch: Batch) -> dict:
-        """
-        Perform a single training step.
-
-        Args:
-            batch (Batch): The batch of experiences.
-
-        Returns:
-            dict: The training statistics.
-        """
-        raise NotImplementedError

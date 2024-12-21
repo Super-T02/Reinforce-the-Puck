@@ -97,7 +97,6 @@ class DDPGAgentConfig(AgentConfig):
         super().__init__()
         self.type = "ddpg"
         self.eps = 0.2  # Noise level
-        self.epochs = 100
         self.memory_size = 100000
         self.discount = 0.95
         self.trainer_config.batch_size = 128
@@ -122,6 +121,7 @@ class TrainerConfig(ConfigGroup):
         self.log_freq = 10
         self.save_checkpoint_freq = 100
         self.max_checkpoints = 5
+        self.epochs = 100
 
 
 ####################################################################################################
@@ -180,4 +180,4 @@ class Config:
         }
 
 
-global_config = Config()
+global_config: Config = Config()

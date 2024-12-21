@@ -8,7 +8,6 @@ import numpy as np
 from agents.base_agent import BaseAgent
 from agents.ddpg import DDPGAgent
 from environments.wrapper import EnvWrapper
-from training.trainer import Trainer
 from utils import config_dir, logger
 from utils.config import global_config
 
@@ -16,7 +15,6 @@ from utils.config import global_config
 class TrainCLI:
     def __init__(self):
         self._logger = logging.getLogger(__name__)
-        self._trainer = None
         self._agent = None
         self._environment = None
         self._parser = argparse.ArgumentParser(description="Train the agent.")
@@ -58,8 +56,7 @@ class TrainCLI:
         self._logger.info("Configuration: \n%s", global_config.to_dict())
 
     def load_classes(self):
-        """Load the trainer, agent, and environment classes."""
-        self._trainer = Trainer
+        """Load the agent, and environment classes."""
         # TODO: Add support for multiple agents
         type2agent = {
             "ddpg": DDPGAgent,
@@ -69,7 +66,6 @@ class TrainCLI:
             self._args.environment,
             type2agent[global_config.agent1.type],
             {
-                "trainer": self._trainer,
                 "config": global_config.agent1,
             },
         )
