@@ -49,8 +49,16 @@ class BaseAgent(BaseTrainer):
         self._feedback_buffer = Memory(self._config.memory_size)
         self._observation_space = observation_space
         self._action_space = action_space
-        self._obs_dim = self._observation_space.shape[1]
-        self._action_n = self._action_space.shape[1]
+        self._obs_dim = (
+            self._observation_space.shape[1]
+            if len(self._observation_space.shape) == 3
+            else self._observation_space.shape[0]
+        )
+        self._action_n = (
+            self._action_space.shape[1]
+            if len(self._action_space.shape) == 3
+            else self._action_space.shape[0]
+        )
 
     def save(self, path: str) -> None:
         """

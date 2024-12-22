@@ -4,5 +4,12 @@ base_config:
   dtype: float32
   num_episodes: 1
 
+environment:
+  num_envs: 10
+  run_time: 2
+
 agent1:
   type: ddpg
+  update_target_every: 20
+  trainer_config:
+    batch_size: 32

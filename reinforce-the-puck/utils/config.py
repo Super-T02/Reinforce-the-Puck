@@ -91,6 +91,11 @@ class AgentConfig(ConfigGroup):
         self.memory_size = 10000
         self.trainer_config = TrainerConfig()
 
+    def update_from_dict(self, config_dict):
+        target = {k: v for k, v in config_dict.items() if k != "trainer_config"}
+        super().update_from_dict(target)
+        self.trainer_config.update_from_dict(config_dict.get("trainer_config", {}))
+
 
 class DDPGAgentConfig(AgentConfig):
     def __init__(self):
@@ -111,7 +116,8 @@ class DDPGAgentConfig(AgentConfig):
 class EnvironmentConfig(ConfigGroup):
     def __init__(self):
         self.max_steps = 1000
-        self.num_envs = 1
+        self.num_envs = 5
+        self.run_time = 0.2  # seconds
         self.vectorization_mode = "sync"
 
 

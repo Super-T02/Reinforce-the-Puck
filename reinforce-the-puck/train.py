@@ -7,7 +7,7 @@ import os
 import numpy as np
 from agents.base_agent import BaseAgent
 from agents.ddpg import DDPGAgent
-from environments.wrapper import EnvWrapper
+from environments.wrapper import EnvWrapper, VectorizedEnvWrapper
 from utils import config_dir, logger
 from utils.config import global_config
 
@@ -62,7 +62,7 @@ class TrainCLI:
             "ddpg": DDPGAgent,
         }
         # @Jona: Kp ob das hier so schön ist
-        self._environment = EnvWrapper(
+        self._environment = VectorizedEnvWrapper(
             self._args.environment,
             type2agent[global_config.agent1.type],
             {
