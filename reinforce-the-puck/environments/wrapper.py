@@ -96,13 +96,16 @@ class EnvWrapper:
         Returns:
             float: The total reward received in the episode.
         """
-        done = False
+        dones = np.zeros(global_config.environment.num_envs, dtype=bool)
+        truncs = np.zeros(global_config.environment.num_envs, dtype=bool)
         self._logger.info("Running one episode...")
-        reward = 0
-        while not done:
+        rewards = 0
+        while not np.all(np.logical_or(dones, truncs)):
             self.step()
-            done = self._last_observations[2]
-            reward += self._last_observations[1]
+            dones = self._last_observations[2]
+            truncs = self._last_observations[3]
+            rewards += self._last_observations[1]
+        reward = rewards.mean()
         self._logger.info("Episode finished. Total reward: %f", reward)
         return reward
 
@@ -127,9 +130,9 @@ class EnvWrapper:
             if np.all(np.logical_or(dones, truncs)):
                 break
 
-        r = rewards.mean()
-        self.agent.train(r)
-        self._logger.info("Episode %10d: Total reward: %4.2f", i, r)
+        reward = rewards.mean()
+        self.agent.train(reward)
+        self._logger.info("Episode %10d: Total reward: %4.2f", i, reward)
         return rewards.mean()
 
     def close(self) -> "EnvWrapper":
