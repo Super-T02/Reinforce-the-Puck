@@ -1,3 +1,4 @@
+import logging
 import os
 
 from torch.utils.tensorboard import SummaryWriter
@@ -7,6 +8,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 class TensorboardStatistics:
     def __init__(self, tb_log_dir: str):
+        self._logger = logging.getLogger(__name__)
         if not os.path.exists(tb_log_dir):
             os.makedirs(tb_log_dir)
 
@@ -38,7 +40,7 @@ class TensorboardStatistics:
             if isinstance(value, (int, float)):  # Ensure value is a scalar
                 self.writer.add_scalar(key, value, self._global_steps)
             else:
-                pass
+                self._logger.error(f"Invalid value type for key '{key}': {type(value)}")
         self._global_steps += 1  # use own global step counter, because the step parameter is reset for each episode
 
     def close(self):

@@ -7,7 +7,7 @@ from components.memory import Batch
 from components.networks import Feedforward, QFunction
 from components.noise import OUNoise
 from gymnasium import spaces
-from utils.config import AgentConfig, DDPGAgentConfig
+from utils.config import DDPGAgentConfig
 
 
 class DDPGAgent(BaseAgent):
@@ -62,7 +62,9 @@ class DDPGAgent(BaseAgent):
         high, low = torch.from_numpy(self._action_space.high), torch.from_numpy(
             self._action_space.low
         )
-        output_activation = lambda x: (torch.nn.Tanh()(x) + 1) * (high - low) / 2 + low
+        output_activation = lambda x: (torch.nn.Tanh()(x) + 1) * (
+            torch.mean(high - low)
+        ) / 2 + torch.mean(low)
         return output_activation
 
     def _create_policy_net(self) -> Feedforward:
@@ -175,5 +177,5 @@ class DDPGAgent(BaseAgent):
         actor_loss.backward()
         self.policy_optimizer.step()
 
-        losses = {"loss": q_loss.item(), "actor_loss": actor_loss.item()}
+        losses = {"loss": q_loss.cpu().item(), "actor_loss": actor_loss.cpu().item()}
         return losses

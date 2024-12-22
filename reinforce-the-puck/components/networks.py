@@ -44,10 +44,15 @@ class Feedforward(torch.nn.Module):
 
         layer_sizes = [self._input_size] + self._hidden_sizes
         self._layers = torch.nn.ModuleList(
-            [torch.nn.Linear(i, o) for i, o in zip(layer_sizes[:-1], layer_sizes[1:])]
+            [
+                torch.nn.Linear(i, o).to(self._device)
+                for i, o in zip(layer_sizes[:-1], layer_sizes[1:])
+            ]
         )
-        self._activations = [activation() for _ in self._layers]
-        self._readout = torch.nn.Linear(self._hidden_sizes[-1], self._output_size)
+        self._activations = [activation().to(self._device) for _ in self._layers]
+        self._readout = torch.nn.Linear(self._hidden_sizes[-1], self._output_size).to(
+            self._device
+        )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Forward pass through the network.
@@ -58,12 +63,13 @@ class Feedforward(torch.nn.Module):
         Returns:
             torch.Tensor: Output tensor.
         """
+        x = x.to(self._device)
         for layer, activation_fun in zip(self._layers, self._activations):
             x = activation_fun(layer(x))
         if self._output_activation is not None:
-            return self._output_activation(self._readout(x))
+            return self._output_activation(self._readout(x)).cpu()
         else:
-            return self._readout(x)
+            return self._readout(x).cpu()
 
     def predict(self, x: torch.Tensor | np.ndarray) -> torch.Tensor:
         """Predict the output for a given input.
@@ -77,7 +83,8 @@ class Feedforward(torch.nn.Module):
         if isinstance(x, np.ndarray):
             x = torch.tensor(x, dtype=self._dtype)
         with torch.no_grad():
-            return self.forward(x)
+            x = x.to(self._device)
+            return self.forward(x).cpu()
 
     def save(self, path: str) -> "Feedforward":
         """Save the model to a file.
@@ -165,7 +172,9 @@ class QFunction(Feedforward):
         Returns:
             object: Loss object.
         """
-        return self._loss_fn(self.forward(x), y)
+        x_hat = self.forward(x).to(self._device)
+        y = y.to(self._device)
+        return self._loss_fn(x_hat, y).cpu()
 
     def Qvalues(
         self, observations: torch.Tensor, actions: torch.Tensor
@@ -193,4 +202,4 @@ class QFunction(Feedforward):
         Returns:
             torch.Tensor: Input tensor.
         """
-        return torch.cat((observations, actions), dim=-1)
+        return torch.cat((observations, actions), dim=-1).to(self._device)

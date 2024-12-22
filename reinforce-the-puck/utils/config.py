@@ -111,12 +111,14 @@ class DDPGAgentConfig(AgentConfig):
 class EnvironmentConfig(ConfigGroup):
     def __init__(self):
         self.max_steps = 1000
+        self.num_envs = 1
+        self.vectorization_mode = "sync"
 
 
 class TrainerConfig(ConfigGroup):
     def __init__(self):
         self.checkpoint_dir = os.path.join(model_dir, "checkpoints")
-        self.learning_rate = 0.001
+        self.learning_rate = 0.0001
         self.batch_size = 32
         self.log_freq = 10
         self.save_checkpoint_freq = 100

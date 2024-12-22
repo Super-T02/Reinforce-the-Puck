@@ -1,6 +1,7 @@
 import logging
 
 import gymnasium as gym
+import numpy as np
 from agents.base_agent import BaseAgent
 from utils.config import global_config
 
@@ -19,7 +20,11 @@ class EnvWrapper:
             agent (callable): The agent class that interacts with the environment.
             kwargs_agent (dict): Keyword arguments for the agent.
         """
-        self.env = gym.make(env_name)
+        self.env = gym.make_vec(
+            env_name,
+            num_envs=global_config.environment.num_envs,
+            vectorization_mode=global_config.environment.vectorization_mode,
+        )
         self.agent = agent_class(
             **kwargs_agent,
             observation_space=self.env.observation_space,
@@ -27,7 +32,7 @@ class EnvWrapper:
         )
         self.observation_space = self.env.observation_space
         self.action_space = self.env.action_space
-        self._last_observation = (None, 0, False, False, {})
+        self._last_observations = (None, 0, False, False, {})
         self._logger = logging.getLogger(__name__)
 
         self.reset()
@@ -40,7 +45,7 @@ class EnvWrapper:
         Returns:
             tuple[any, float, bool, bool, dict[str, any]]: The last observation from the environment.
         """
-        return self._last_observation
+        return self._last_observations
 
     def reset(self) -> any:
         """
@@ -59,11 +64,20 @@ class EnvWrapper:
         Returns:
             tuple[any, float, bool, bool, dict[str, any]]: (next_state, reward, done, truncated, info)
         """
-        state = self._last_observation[0]
-        action = self.agent.act(state)
-        self._last_observation = self.env.step(action)
-        self.agent.save_experience(state, action, *self._last_observation)
-        return self._last_observation
+        states = self._last_observations[0]
+        actions = self.agent.act(states)
+        self._last_observations = self.env.step(actions)
+        for i in range(global_config.environment.num_envs):
+            self.agent.save_experience(
+                states[i],
+                actions[i],
+                self._last_observations[0][i],
+                self._last_observations[1][i],
+                self._last_observations[2][i],
+                self._last_observations[3][i],
+                self._last_observations[4],
+            )
+        return self._last_observations
 
     def reset(self):
         """
@@ -73,7 +87,7 @@ class EnvWrapper:
             state: The initial state of the environment.
         """
         state, _ = self.env.reset()
-        self._last_observation = (state, 0, False, False, {})
+        self._last_observations = (state, 0, False, False, {})
         return state
 
     def run(self) -> float:
@@ -87,8 +101,8 @@ class EnvWrapper:
         reward = 0
         while not done:
             self.step()
-            done = self._last_observation[2]
-            reward += self._last_observation[1]
+            done = self._last_observations[2]
+            reward += self._last_observations[1]
         self._logger.info("Episode finished. Total reward: %f", reward)
         return reward
 
@@ -101,21 +115,22 @@ class EnvWrapper:
         Returns:
             float: The total reward of the episode.
         """
-        reward = 0
+        rewards = np.zeros(global_config.environment.num_envs, dtype=np.float32)
         self.reset()
         self.agent.reset()
-        done = False
+        dones = np.zeros(global_config.environment.num_envs, dtype=bool)
         for _ in range(global_config.environment.max_steps):
             self.step()
-            done = self._last_observation[2]
-            trunc = self._last_observation[3]
-            reward += self._last_observation[1]
-            if done or trunc:
+            dones = self._last_observations[2]
+            truncs = self._last_observations[3]
+            rewards += self._last_observations[1]
+            if np.all(np.logical_or(dones, truncs)):
                 break
 
-        self.agent.train(reward.item())
-        self._logger.info("Episode %10d: Total reward: %4.2f", i, reward)
-        return reward
+        r = rewards.mean()
+        self.agent.train(r)
+        self._logger.info("Episode %10d: Total reward: %4.2f", i, r)
+        return rewards.mean()
 
     def close(self) -> "EnvWrapper":
         """Close the environment.

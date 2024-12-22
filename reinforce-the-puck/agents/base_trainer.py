@@ -1,8 +1,7 @@
 import logging
 import os
 import pickle
-import statistics
-from typing import Callable, List
+from typing import List
 
 import numpy as np
 from components.memory import Batch
@@ -80,8 +79,7 @@ class BaseTrainer:
         """
         self._train_iterations += 1
         statistics: List[dict] = []
-        env_stats = {"reward": last_reward}
-
+        env_stats = {"reward": float(last_reward)}
         for iteration in range(self._epochs):
             batch = self.sample(self._batch_size)
             statistic = self.train_step(batch)
