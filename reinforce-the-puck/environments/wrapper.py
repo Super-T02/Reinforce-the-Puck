@@ -10,7 +10,13 @@ class EnvWrapper:
     A general-purpose environment wrapper for Gymnasium environments.
     """
 
-    def __init__(self, env_name: str, agent_class: BaseAgent, kwargs_agent: dict = {}):
+    def __init__(
+        self,
+        env_name: str,
+        agent_class: BaseAgent,
+        max_steps: int,
+        kwargs_agent: dict = {},
+    ):
         """
         Initialize the environment wrapper.
 
@@ -29,7 +35,8 @@ class EnvWrapper:
         self.action_space = self.env.action_space
         self._last_observation = (None, 0, False, False, {})
         self._logger = logging.getLogger(__name__)
-
+        self._max_steps = max_steps
+        print("Running on env: ", env_name)
         self.reset()
 
     @property
@@ -105,7 +112,7 @@ class EnvWrapper:
         self.reset()
         self.agent.reset()
         done = False
-        for i in range(global_config.environment.max_steps):
+        for i in range(self._max_steps):
             self.step()
             done = self._last_observation[2]
             trunc = self._last_observation[3]
@@ -113,7 +120,9 @@ class EnvWrapper:
             if done or trunc:
                 break
 
-        self.agent.train(reward.item())
+        self.agent.train(
+            reward if isinstance(reward, float) else reward.item()
+        )  # backwards compatibility (some rewards are floats, some are tensors)
         self._logger.info("Episode %10d: Total reward: %4.2f", i, reward)
         return reward
 

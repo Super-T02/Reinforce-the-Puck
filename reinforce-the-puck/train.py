@@ -47,7 +47,7 @@ class TrainCLI:
             "--env",
             dest="environment",
             type=str,
-            default="Pendulum-v1",
+            default=None,
             required=False,
             help="Name of the environment to train the agent.",
         )
@@ -59,6 +59,15 @@ class TrainCLI:
             default=None,
             required=False,
             help="Number of episodes to train the agent.",
+        )
+
+        self._parser.add_argument(
+            "-m",
+            "--max_steps",
+            type=int,
+            default=None,
+            required=False,
+            help="Maximum number of steps per episode.",
         )
 
         self._parser.add_argument(
@@ -86,9 +95,26 @@ class TrainCLI:
         }
 
         for agent_config in global_config.get_agents():
+            env = next(
+                (
+                    env
+                    for env in global_config.get_environments()
+                    if agent_config.env_id == env.id
+                ),
+                None,
+            )
+            env_name = (
+                env.env_name
+                if self._args.environment is None
+                else self._args.environment
+            )
+            max_steps = (
+                env.max_steps if self._args.max_steps is None else self._args.max_steps
+            )
             training_run = TrainingRun(
                 environment=EnvWrapper(
-                    env_name=self._args.environment,
+                    env_name=env_name,
+                    max_steps=max_steps,
                     agent_class=type2agent[agent_config.type],
                     kwargs_agent={
                         "config": agent_config,
