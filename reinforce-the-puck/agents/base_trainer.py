@@ -21,6 +21,7 @@ class BaseTrainer:
         self._save_checkpoint_freq = trainer_config.save_checkpoint_freq
         self._max_checkpoints = trainer_config.max_checkpoints
         self._epochs = trainer_config.epochs
+        self._log_name = trainer_config.log_name
         self._checkpoints = []
         self._logger = logging.getLogger(__name__)
         self._train_iterations = 0
@@ -142,7 +143,7 @@ class BaseTrainer:
             str: A string representing the training name, formatted with the timestamp, learning rate,
                  batch size, log frequency, save checkpoint frequency, and iteration steps.
         """
-        return f"{self._learning_rate}_{self._batch_size}_{self._log_freq}_{self._save_checkpoint_freq}_{iter}-steps"
+        return f"{self._log_name}_{self._learning_rate}_{self._batch_size}_{self._log_freq}_{self._save_checkpoint_freq}_{iter}-steps"
 
     def train_step(self, batch: Batch):
         """

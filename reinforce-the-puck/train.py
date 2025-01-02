@@ -12,11 +12,34 @@ from utils import config_dir, logger
 from utils.config import global_config
 
 
+class TrainingRun:
+    def __init__(self, environment: EnvWrapper, agent: BaseAgent, num_episodes: int):
+        self._environment = environment
+        self._agent = agent
+        self._num_episodes = num_episodes
+        self._logger = logging.getLogger(__name__)
+
+    def run(self):
+        self._logger.info("Starting training [%d]...", self._num_episodes)
+        rewards = np.array(
+            [self._environment.run_train_episode(i) for i in range(self._num_episodes)]
+        )
+        self._logger.info("Training finished.")
+        self._logger.info("Mean reward: %4.2f", rewards.mean())
+        self._logger.info(
+            "Max reward: %4.2f [Episode: %10d]", rewards.max(), rewards.argmax()
+        )
+        self._logger.info(
+            "Min reward: %4.2f [Episode: %10d]", rewards.min(), rewards.argmin()
+        )
+        self._environment.close()
+        return rewards
+
+
 class TrainCLI:
     def __init__(self):
         self._logger = logging.getLogger(__name__)
-        self._agent = None
-        self._environment = None
+        self.training_runs: list[TrainingRun] = []
         self._parser = argparse.ArgumentParser(description="Train the agent.")
 
         self._parser.add_argument(
@@ -24,7 +47,7 @@ class TrainCLI:
             "--env",
             dest="environment",
             type=str,
-            default="Pendulum-v1",
+            default=None,
             required=False,
             help="Name of the environment to train the agent.",
         )
@@ -36,6 +59,15 @@ class TrainCLI:
             default=None,
             required=False,
             help="Number of episodes to train the agent.",
+        )
+
+        self._parser.add_argument(
+            "-m",
+            "--max_steps",
+            type=int,
+            default=None,
+            required=False,
+            help="Maximum number of steps per episode.",
         )
 
         self._parser.add_argument(
@@ -61,20 +93,39 @@ class TrainCLI:
         type2agent = {
             "ddpg": DDPGAgent,
         }
-        # @Jona: Kp ob das hier so schön ist
-        self._environment = EnvWrapper(
-            self._args.environment,
-            type2agent[global_config.agent1.type],
-            {
-                "config": global_config.agent1,
-            },
-        )
-        self._agent = self._environment.agent
-        self._episodes = (
-            global_config.training.num_episodes
-            if self._args.num_episodes is None
-            else self._args.num_episodes
-        )
+
+        for agent_config in global_config.get_agents():
+            env = next(
+                (
+                    env
+                    for env in global_config.get_environments()
+                    if agent_config.env_id == env.id
+                ),
+                None,
+            )
+            env_name = (
+                env.env_name
+                if self._args.environment is None
+                else self._args.environment
+            )
+            max_steps = (
+                env.max_steps if self._args.max_steps is None else self._args.max_steps
+            )
+            training_run = TrainingRun(
+                environment=EnvWrapper(
+                    env_name=env_name,
+                    max_steps=max_steps,
+                    agent_class=type2agent[agent_config.type],
+                    kwargs_agent={
+                        "config": agent_config,
+                    },
+                ),
+                agent=agent_config,
+                num_episodes=agent_config.specialized_config.num_episodes
+                if self._args.num_episodes is None
+                else self._args.num_episodes,
+            )
+            self.training_runs.append(training_run)
 
     def setup(self):
         """Setup the CLI."""
@@ -86,19 +137,9 @@ class TrainCLI:
         Run the CLI.
         """
         self.setup()
-        self._logger.info("Starting training [%d]...", self._episodes)
-        rewards = np.array(
-            [self._environment.run_train_episode(i) for i in range(self._episodes)]
-        )
-        self._logger.info("Training finished.")
-        self._logger.info("Mean reward: %4.2f", rewards.mean())
-        self._logger.info(
-            "Max reward: %4.2f [Episode: %10d]", rewards.max(), rewards.argmax()
-        )
-        self._logger.info(
-            "Min reward: %4.2f [Episode: %10d]", rewards.min(), rewards.argmin()
-        )
-        self._environment.close()
+
+        for training_run in self.training_runs:
+            rewards = training_run.run()
 
 
 if __name__ == "__main__":

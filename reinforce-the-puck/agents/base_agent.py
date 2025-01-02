@@ -154,3 +154,6 @@ class BaseAgent(BaseTrainer):
         reward = self.to_torch(np.vstack(sample[:, 3]))
         done = self.to_torch(np.vstack(sample[:, 4]))
         return Batch(state, action, next_state, reward, done)
+
+    def __del__(self):
+        return super().__del__()

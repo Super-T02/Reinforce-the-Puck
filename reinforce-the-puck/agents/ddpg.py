@@ -177,3 +177,6 @@ class DDPGAgent(BaseAgent):
 
         losses = {"loss": q_loss.item(), "actor_loss": actor_loss.item()}
         return losses
+
+    def __del__(self):
+        return super().__del__()

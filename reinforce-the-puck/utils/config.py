@@ -36,14 +36,17 @@ class ConfigGroup:
     """
 
     def update_from_dict(self, config_dict: dict):
-        """Update the configuration group from a dictionary.
-
-        Args:
-            config_dict (dict): Dictionary with the new configuration values.
-        """
         for key, value in config_dict.items():
+            # just update the attribute if it exists
             if hasattr(self, key):
-                setattr(self, key, value)
+                current_attr = getattr(self, key)
+
+                # if the current attribute is a ConfigGroup and the value is a dictionary, then update recursively
+                if isinstance(current_attr, ConfigGroup) and isinstance(value, dict):
+                    current_attr.update_from_dict(value)
+                else:
+                    # otherwise, just update the attribute
+                    setattr(self, key, value)
 
     def to_dict(self) -> dict:
         """Convert the configuration group to a dictionary.
@@ -88,8 +91,12 @@ class AgentConfig(ConfigGroup):
         self.name = "BasicOpponent"
         self.version = 1
         self.epochs = 10
+        self.env_id = 0
         self.memory_size = 10000
-        self.trainer_config = TrainerConfig()
+        self.trainer_config: TrainerConfig = TrainerConfig()
+        self.specialized_config: BaseConfig = (
+            BaseConfig()
+        )  # todo: ggf extra config erstellen
 
 
 class DDPGAgentConfig(AgentConfig):
@@ -111,6 +118,8 @@ class DDPGAgentConfig(AgentConfig):
 class EnvironmentConfig(ConfigGroup):
     def __init__(self):
         self.max_steps = 1000
+        self.env_name = "unnamed"
+        self.id = -1
 
 
 class TrainerConfig(ConfigGroup):
@@ -122,6 +131,8 @@ class TrainerConfig(ConfigGroup):
         self.save_checkpoint_freq = 100
         self.max_checkpoints = 5
         self.epochs = 100
+        self.log_name = "unnamed"
+        self.id = -1
 
 
 ####################################################################################################
@@ -135,14 +146,27 @@ class Config:
     """
 
     TYPE2AGENT = {
-        "ddpg": DDPGAgentConfig(),
+        "ddpg": DDPGAgentConfig,
     }
 
     def __init__(self):
         self.base_config = BaseConfig()
-        self.environment = EnvironmentConfig()
-        self.agent1 = AgentConfig()
-        self.agent2 = AgentConfig()
+
+    def get_agents(self) -> list[AgentConfig]:
+        agents = [attr for attr in dir(self) if attr.startswith("agent")]
+        return [
+            getattr(self, agent)
+            for agent in agents
+            if isinstance(getattr(self, agent), AgentConfig)
+        ]
+
+    def get_environments(self) -> list[EnvironmentConfig]:
+        envs = [attr for attr in dir(self) if attr.startswith("env")]
+        return [
+            getattr(self, env)
+            for env in envs
+            if isinstance(getattr(self, env), EnvironmentConfig)
+        ]
 
     def from_yaml(self, yaml_path: str):
         """
@@ -158,8 +182,12 @@ class Config:
             data = yaml.safe_load(file)
 
         for group_name, group_config in data.items():
-            if group_name in ["agent1", "agent2"]:
-                setattr(self, group_name, self.TYPE2AGENT[group_config["type"]])
+            if group_name.startswith("agent"):
+                agent_config = self.TYPE2AGENT[group_config["type"]]
+                setattr(self, group_name, agent_config())
+            if group_name.startswith("env"):
+                env_config = EnvironmentConfig()
+                setattr(self, group_name, env_config)
 
             if hasattr(self, group_name):
                 group = getattr(self, group_name)
