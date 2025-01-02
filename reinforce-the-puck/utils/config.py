@@ -193,7 +193,6 @@ class Config:
                 group = getattr(self, group_name)
                 if isinstance(group, ConfigGroup):
                     group.update_from_dict(group_config)
-                    print(f"Updated {group_name} from YAML")
 
     def to_dict(self) -> dict:
         """
