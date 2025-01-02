@@ -10,7 +10,7 @@ env1:
   max_steps: 1000
 
 env2:
-  env_name: MountainCarContinuous-v0
+  env_name: LunarLander-v3
   id: 1
   max_steps: 1000
 
@@ -36,6 +36,27 @@ agent1:
     num_episodes: 500
 
 agent2:
+  type: td3
+  env_id: 1
+  eps: 1
+  discount: 0.95
+  actor_hidden_sizes: [128, 128]
+  critic_hidden_sizes: [128, 128, 64]
+  policy_delay: 3
+  update_target_every: -1
+  tao: 0.005
+  noise_sigma: 0.2
+  noise_clip: 0.5
+  memory_size: 100000
+  trainer_config:
+    learning_rate_actor: 0.001
+    learning_rate_critic: 0.001
+    log_name: td3_agent2
+    batch_size: 64
+  specialized_config:
+    num_episodes: 500
+
+agentLuna1:
   type: td3
   env_id: 1
   eps: 1

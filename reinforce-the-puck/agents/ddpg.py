@@ -102,6 +102,9 @@ class DDPGAgent(BaseAgent):
             action: The selected action.
         """
         action = self.policy.predict(state) + self._config.eps * self._action_noise()
+        if type(action) == torch.Tensor:
+            action = action.detach().numpy()
+        action = np.clip(action, self._action_space.low, self._action_space.high)
         return action
 
     def state(self) -> tuple:

@@ -25,7 +25,12 @@ class EnvWrapper:
             agent (callable): The agent class that interacts with the environment.
             kwargs_agent (dict): Keyword arguments for the agent.
         """
-        self.env = gym.make(env_name)
+        try:
+            self.env = gym.make(env_name, continuous=True)
+        except:
+            logging.error("Environment not compatible with the agent.")
+            self.env = gym.make(env_name)
+
         self.agent = agent_class(
             **kwargs_agent,
             observation_space=self.env.observation_space,
