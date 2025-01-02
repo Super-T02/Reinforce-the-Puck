@@ -7,6 +7,7 @@ import os
 import numpy as np
 from agents.base_agent import BaseAgent
 from agents.ddpg import DDPGAgent
+from agents.td3 import TD3Agent
 from environments.wrapper import EnvWrapper
 from utils import config_dir, logger
 from utils.config import global_config
@@ -90,9 +91,7 @@ class TrainCLI:
     def load_classes(self):
         """Load the agent, and environment classes."""
         # TODO: Add support for multiple agents
-        type2agent = {
-            "ddpg": DDPGAgent,
-        }
+        type2agent = {"ddpg": DDPGAgent, "td3": TD3Agent}
 
         for agent_config in global_config.get_agents():
             env = next(
@@ -121,9 +120,11 @@ class TrainCLI:
                     },
                 ),
                 agent=agent_config,
-                num_episodes=agent_config.specialized_config.num_episodes
-                if self._args.num_episodes is None
-                else self._args.num_episodes,
+                num_episodes=(
+                    agent_config.specialized_config.num_episodes
+                    if self._args.num_episodes is None
+                    else self._args.num_episodes
+                ),
             )
             self.training_runs.append(training_run)
 

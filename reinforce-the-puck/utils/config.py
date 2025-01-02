@@ -115,6 +115,17 @@ class DDPGAgentConfig(AgentConfig):
         self.use_target_net = True
 
 
+class TD3AgentConfig(DDPGAgentConfig):
+    def __init__(self):
+        super().__init__()
+        self.type = "td3"
+        self.eps = 1.0
+        self.noise_sigma = 0.2
+        self.noise_clip = 0.5
+        self.policy_delay = 3
+        self.tao = 0.005
+
+
 class EnvironmentConfig(ConfigGroup):
     def __init__(self):
         self.max_steps = 1000
@@ -147,6 +158,7 @@ class Config:
 
     TYPE2AGENT = {
         "ddpg": DDPGAgentConfig,
+        "td3": TD3AgentConfig,
     }
 
     def __init__(self):

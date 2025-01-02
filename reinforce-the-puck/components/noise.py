@@ -87,3 +87,82 @@ class OUNoise(AbstractNoise):
             str: String representation of the noise.
         """
         return f"OUNoise(shape={self._shape}, theta={self._theta}, dt={self._dt})"
+
+
+class GaussianNoise(AbstractNoise):
+    """Gaussian noise."""
+
+    def __init__(self, shape: tuple[int], sigma: float = 0.1):
+        """Initialize the GaussianNoise object.
+
+        Args:
+            shape (tuple[int]): Shape of the noise.
+            sigma (float, optional): Sigma value. Defaults to 0.1.
+        """
+        self._shape = shape
+        self._sigma = sigma
+
+    def __call__(self) -> np.ndarray:
+        """Call the noise.
+
+        Returns:
+            np.ndarray: Noise value.
+        """
+        return np.random.normal(0, self._sigma, self._shape)
+
+    def reset(self) -> "GaussianNoise":
+        """Reset the noise.
+
+        Returns:
+            GaussianNoise: Noise object.
+        """
+        return self
+
+    def __repr__(self) -> str:
+        """Return the string representation of the noise.
+
+        Returns:
+            str: String representation of the noise.
+        """
+        return f"GaussianNoise(shape={self._shape}, sigma={self._sigma})"
+
+
+class ClippedGaussianNoise(AbstractNoise):
+    """Clipped Gaussian noise."""
+
+    def __init__(self, shape: tuple[int], sigma: float = 0.1, clip: float = 0.5):
+        """Initialize the ClippedGaussianNoise object.
+
+        Args:
+            shape (tuple[int]): Shape of the noise.
+            sigma (float, optional): Sigma value. Defaults to 0.1.
+            clip (float, optional): Clip value. Defaults to 0.5.
+        """
+        self._shape = shape
+        self._sigma = sigma
+        self._clip = clip
+
+    def __call__(self) -> np.ndarray:
+        """Call the noise.
+
+        Returns:
+            np.ndarray: Noise value.
+        """
+        noise = np.random.normal(0, self._sigma, self._shape)
+        return np.clip(noise, -self._clip, self._clip)
+
+    def reset(self) -> "ClippedGaussianNoise":
+        """Reset the noise.
+
+        Returns:
+            ClippedGaussianNoise: Noise object.
+        """
+        return self
+
+    def __repr__(self) -> str:
+        """Return the string representation of the noise.
+
+        Returns:
+            str: String representation of the noise.
+        """
+        return f"ClippedGaussianNoise(shape={self._shape}, sigma={self._sigma}, clip={self._clip})"

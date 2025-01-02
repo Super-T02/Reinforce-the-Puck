@@ -102,9 +102,10 @@ class BaseTrainer:
                     self.__convert_dicts_to_lists(statistics),
                     f"stats_{self.__generate_training_name(iteration)}",
                 )
-                
-                self._tensorboard.write_tensorboard_statistics(iteration, statistic)
 
+                self._tensorboard.write_tensorboard_statistics_async(
+                    iteration, statistic
+                )
 
             if iteration % self._save_checkpoint_freq == 0:
                 self.save_checkpoint(
