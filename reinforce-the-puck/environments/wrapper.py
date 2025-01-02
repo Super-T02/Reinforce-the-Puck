@@ -105,7 +105,7 @@ class EnvWrapper:
         self.reset()
         self.agent.reset()
         done = False
-        for i in range(global_config.environment.max_steps):
+        for _ in range(global_config.environment.max_steps):
             self.step()
             done = self._last_observation[2]
             trunc = self._last_observation[3]

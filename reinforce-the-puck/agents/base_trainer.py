@@ -1,6 +1,7 @@
 import logging
 import os
 import pickle
+import statistics
 from typing import Callable, List
 
 import aiofiles
@@ -22,6 +23,7 @@ class BaseTrainer:
         self._epochs = trainer_config.epochs
         self._checkpoints = []
         self._logger = logging.getLogger(__name__)
+        self._train_iterations = 0
 
         self._tensorboard: TensorboardStatistics = TensorboardStatistics(
             os.path.join(
@@ -78,7 +80,7 @@ class BaseTrainer:
         """
         Train the agent for a specified number of iterations.
         """
-
+        self._train_iterations += 1
         statistics: List[dict] = []
         env_stats = {"reward": last_reward}
 
@@ -99,10 +101,9 @@ class BaseTrainer:
                     self.__convert_dicts_to_lists(statistics),
                     f"stats_{self.__generate_training_name(iteration)}",
                 )
-                self._logger.info(f"Iteration {iteration}: {statistic}")
-                self._tensorboard.write_tensorboard_statistics_async(
-                    iteration, statistic
-                )
+                
+                self._tensorboard.write_tensorboard_statistics(iteration, statistic)
+
 
             if iteration % self._save_checkpoint_freq == 0:
                 self.save_checkpoint(
