@@ -4,6 +4,7 @@ import pickle
 import statistics
 from typing import Callable, List
 
+import aiofiles
 import numpy as np
 from components.memory import Batch
 from evaluation.tensorboard_statistics import TensorboardStatistics
@@ -59,7 +60,7 @@ class BaseTrainer:
                         f"Error deleting checkpoint {oldest_checkpoint}: {e}"
                     )
 
-    def save_statistics(self, statistics: dict, filename: str):
+    async def save_statistics_async(self, statistics: dict, filename: str):
         """
         Save the training statistics to a file.
 
@@ -71,8 +72,9 @@ class BaseTrainer:
             None
         """
 
-        with open(os.path.join(logs_dir, filename), "wb") as f:
-            pickle.dump(statistics, f)
+        file_path = os.path.join(logs_dir, filename)
+        async with aiofiles.open(file_path, "wb") as f:
+            await f.write(pickle.dumps(statistics))
 
     def train(self, last_reward: float = np.nan) -> List[dict]:
         """
@@ -95,11 +97,13 @@ class BaseTrainer:
 
             statistics.append(statistic)
             if iteration % self._log_freq == 0:
-                self.save_statistics(
+                self.save_statistics_async(
                     self.__convert_dicts_to_lists(statistics),
                     f"stats_{self.__generate_training_name(iteration)}",
                 )
+                
                 self._tensorboard.write_tensorboard_statistics(iteration, statistic)
+
 
             if iteration % self._save_checkpoint_freq == 0:
                 self.save_checkpoint(
