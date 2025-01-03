@@ -99,6 +99,23 @@ class AgentConfig(ConfigGroup):
         )  # todo: ggf extra config erstellen
 
 
+class SACAgentConfig(AgentConfig):
+    def __init__(self):
+        super().__init__()
+        self.type = "sac"
+        self.eps = 0.2  # Noise level
+        self.memory_size = 100000
+        self.discount = 0.95
+        self.alpha = 0.2
+        self.trainer_config.batch_size = 128
+        self.trainer_config.learning_rate_actor = 0.00001
+        self.trainer_config.learning_rate_critic = 0.0001
+        self.actor_hidden_sizes = [128, 128]
+        self.critic_hidden_sizes = [128, 128, 64]
+        self.update_target_every = 100
+        self.use_target_net = True
+
+
 class DDPGAgentConfig(AgentConfig):
     def __init__(self):
         super().__init__()
