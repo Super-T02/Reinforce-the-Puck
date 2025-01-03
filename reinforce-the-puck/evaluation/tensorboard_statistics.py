@@ -1,3 +1,4 @@
+import json
 import os
 from queue import Queue
 from threading import Thread
@@ -55,6 +56,17 @@ class TensorboardStatistics:
         Add statistics to the queue for asynchronous logging.
         """
         self._log_queue.put((step, statistics))
+
+    def save_hyper_parameters(self, hyper_parameters: dict):
+        """
+        Save the hyper parameters to the TensorBoard and a JSON file.
+        """
+        for key, value in hyper_parameters.items():
+            self.writer.add_text(f"{key}", str(value))
+
+        fname = os.path.join(self.writer.log_dir, "hyper_parameters.json")
+        os.makedirs(os.path.dirname(fname), exist_ok=True)
+        json.dump(hyper_parameters, open(fname, "w"), indent=4)
 
     def close(self):
         """

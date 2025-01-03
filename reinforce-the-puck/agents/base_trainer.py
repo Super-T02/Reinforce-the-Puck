@@ -87,12 +87,8 @@ class BaseTrainer:
         env_stats = {"reward": last_reward}
 
         if not self._is_config_logged:
-            config = self.__get_train_config()
-            self._tensorboard.write_tensorboard_statistics_async(-1, config)
-            self.save_statistics_async(
-                self.__convert_dicts_to_lists([config]),
-                f"params_{self.__generate_training_name(0)}",
-            )
+            config = self._get_train_config()
+            self._tensorboard.save_hyper_parameters(config)
             self._is_config_logged = True
 
         for iteration in range(self._epochs):
@@ -196,7 +192,7 @@ class BaseTrainer:
         """
         raise NotImplementedError
 
-    def __get_train_config(self) -> dict:
+    def _get_train_config(self) -> dict:
         """Get the training configuration as a dictionary."""
         self._logger.warning(
             "The get_train_config method is not overwritten by the subclass. Not all training parameters are saved."
