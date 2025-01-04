@@ -21,24 +21,15 @@ agent1:
   env_id: 0
   trainer_config:
     learning_rate: 0.001
-    log_name: agent1
+    log_name: agent_ddpg
     batch_size: 64
   specialized_config:
-    num_episodes: 3 # This will override the num_episodes in the base_config
+    num_episodes: 1 # This will override the num_episodes in the base_config
 
 agent2:
-  type: ddpg
+  type: sac
   env_id: 0
   trainer_config:
     learning_rate: 0.0001
-    log_name: agent2
-    batch_size: 64
-
-
-agent3:
-  type: ddpg
-  env_id: 1
-  trainer_config:
-    learning_rate: 0.0001
-    log_name: agent3
+    log_name: agent_sac
     batch_size: 64

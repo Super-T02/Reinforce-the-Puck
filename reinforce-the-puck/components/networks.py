@@ -199,6 +199,8 @@ class QFunction(Feedforward):
 
 
 class StochasticPolicyNetwork(Feedforward):
+    """Stochastic Policy Network."""
+
     def __init__(
         self,
         input_size: int,
@@ -255,6 +257,17 @@ class StochasticPolicyNetwork(Feedforward):
             return self.forward(x)
 
     def sample(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        """
+        Samples an action and its log probability from a normal distribution parameterized by the network's output.
+
+        Args:
+            x (torch.Tensor): Input tensor to the network.
+
+        Returns:
+            tuple[torch.Tensor, torch.Tensor]: A tuple containing:
+                - action (torch.Tensor): The sampled action after applying the tanh function.
+                - log_prob (torch.Tensor): The log probability of the sampled action.
+        """
         mean, log_std = self.forward(x)
         std = log_std.exp()
         normal_dist = dist.Normal(mean, std)
