@@ -84,6 +84,11 @@ class BaseConfig(ConfigGroup):
             return
         self._dtype = dtype_map.get(value.lower(), torch.float32)
 
+    def to_dict(self):
+        dict_ = super().to_dict()
+        dict_["_dtype"] = str(self.dtype)
+        return dict_
+
 
 class AgentConfig(ConfigGroup):
     def __init__(self):
@@ -97,6 +102,12 @@ class AgentConfig(ConfigGroup):
         self.specialized_config: BaseConfig = (
             BaseConfig()
         )  # todo: ggf extra config erstellen
+
+    def to_dict(self):
+        dict_ = super().to_dict()
+        dict_["trainer_config"] = self.trainer_config.to_dict()
+        dict_["specialized_config"] = self.specialized_config.to_dict()
+        return dict_
 
 
 class SACAgentConfig(AgentConfig):
