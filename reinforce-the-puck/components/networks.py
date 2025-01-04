@@ -233,11 +233,16 @@ class StochasticPolicyNetwork(Feedforward):
         self._log_std_layer = nn.Linear(self._hidden_sizes[-1], self._output_size)
 
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
-        x = super().forward(x)
+        # Pass through the Feedforward hidden layers (up to the last hidden layer)
+        for layer, activation_fun in zip(self._layers, self._activations):
+            x = activation_fun(layer(x))
+
+        # Compute mean and log standard deviation
         mean = self._mean_layer(x)
         log_std = torch.clamp(
             self._log_std_layer(x), self.log_std_min, self.log_std_max
         )
+
         return mean, log_std
 
     def predict(
@@ -268,6 +273,8 @@ class StochasticPolicyNetwork(Feedforward):
                 - action (torch.Tensor): The sampled action after applying the tanh function.
                 - log_prob (torch.Tensor): The log probability of the sampled action.
         """
+        if isinstance(x, np.ndarray):
+            x = torch.tensor(x, dtype=self._dtype)
         mean, log_std = self.forward(x)
         std = log_std.exp()
         normal_dist = dist.Normal(mean, std)

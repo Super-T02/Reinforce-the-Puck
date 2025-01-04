@@ -23,6 +23,13 @@ class SACAgent(BaseAgent):
         super().__init__("SAC", observation_space, action_space, config)
         self._config: SACAgentConfig = config
 
+        self.log_alpha = torch.nn.Parameter(
+            torch.log(torch.tensor(config.alpha, dtype=torch.float32))
+        )
+
+        self.alpha_optimizer = torch.optim.Adam([self.log_alpha], lr=1e-3)
+        self._target_entropy = -np.prod(action_space.shape)
+
         self.policy = self._create_policy_net()  # Actor network
 
         self.Q1 = QFunction(
@@ -93,7 +100,7 @@ class SACAgent(BaseAgent):
             input_size=self._obs_dim,
             hidden_sizes=self._config.actor_hidden_sizes,
             output_size=self._action_n,
-            activation_fun=torch.nn.ReLU(),
+            activation=torch.nn.ReLU,
             output_activation=self._policy_activation(),
         )
 
@@ -117,7 +124,7 @@ class SACAgent(BaseAgent):
         Returns:
             action: The selected action.
         """
-        action = self.policy.sample(state)
+        action, _ = self.policy.predict(state)
         return action
 
     def state(self) -> tuple:
@@ -183,7 +190,7 @@ class SACAgent(BaseAgent):
 
         # compute the target Q value
         with torch.no_grad():
-            next_actions, next_log_probs = self.policy.predict(batch.next_observations)
+            next_actions, next_log_probs = self.policy.sample(batch.next_observations)
 
             # select minimum Q value
             target_q1 = self.Q1_target.Qvalues(batch.next_observations, next_actions)
@@ -195,10 +202,13 @@ class SACAgent(BaseAgent):
             )
 
         # update Q networks
-        current_q1 = self.Q1.Qvalues(batch.observations, batch.actions)
-        current_q2 = self.Q2.Qvalues(batch.observations, batch.actions)
-        q1_loss = self.Q1.get_loss(current_q1, target_q)
-        q2_loss = self.Q2.get_loss(current_q2, target_q)
+
+        q1_loss = self.Q1.get_loss(
+            torch.cat([batch.observations, batch.actions], dim=1), target_q
+        )
+        q2_loss = self.Q2.get_loss(
+            torch.cat([batch.observations, batch.actions], dim=1), target_q
+        )
         q_loss = q1_loss + q2_loss  # update both Q networks
 
         self.Q1_optimizer.zero_grad()
@@ -219,23 +229,20 @@ class SACAgent(BaseAgent):
         policy_loss.backward()
         self.policy_optimizer.step()
 
-        # alpha update
-        # if self._auto_alpha:
-        #     alpha_loss = -(
-        #         self.log_alpha * (log_probs.detach() + self._target_entropy)
-        #     ).mean()
-        #     self.alpha_optimizer.zero_grad()
-        #     alpha_loss.backward()
-        #     self.alpha_optimizer.step()
-        #     # update alpha
-        #     self.alpha = self.log_alpha.exp().item()
-        # else:
-        #     alpha_loss = torch.tensor(0.0)
+        alpha_loss = -(
+            self.log_alpha * (log_probs.detach() + self._target_entropy)
+        ).mean()
+        self.alpha_optimizer.zero_grad()
+        alpha_loss.backward()
+        self.alpha_optimizer.step()
+
+        # update alpha
+        self.alpha = self.log_alpha.exp().item()
 
         losses = {
-            "q_loss": q_loss.item(),
-            "policy_loss": policy_loss.item(),
-            # "alpha_loss": alpha_loss.item() if self._auto_alpha else 0.0,
+            "loss": q_loss.item(),
+            "actor_loss": policy_loss.item(),
+            "alpha_loss": alpha_loss.item(),
         }
         return losses
 

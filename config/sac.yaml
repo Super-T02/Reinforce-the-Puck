@@ -1,0 +1,27 @@
+# Please refer to the documentation for more information on the configuration file.
+
+base_config:
+  dtype: float32
+  num_episodes: 100
+
+env1:
+  env_name: Pendulum-v1
+  env_type: gym
+  id: 0
+  max_steps: 1000
+
+env2:
+  env_name: MountainCarContinuous-v0
+  env_type: gym
+  id: 1
+  max_steps: 1000
+
+agent1:
+  type: sac
+  env_id: 0
+  trainer_config:
+    learning_rate: 0.0001
+    log_name: agent_sac
+    batch_size: 64
+  specialized_config:
+    num_episodes: 100

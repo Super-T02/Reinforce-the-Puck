@@ -1,6 +1,10 @@
 {
   "configurations": [
     {
+      "args": [
+        "--config_path",
+        "config/sac.yaml"
+      ],
       "console": "integratedTerminal",
       "cwd": "${workspaceFolder}",
       "env": {
