@@ -114,7 +114,6 @@ class SACAgentConfig(AgentConfig):
     def __init__(self):
         super().__init__()
         self.type = "sac"
-        self.eps = 0.2  # Noise level
         self.tau = 0.005  # Target network update rate (Soft update)
         self.memory_size = 100000
         self.discount = 0.95
@@ -125,7 +124,10 @@ class SACAgentConfig(AgentConfig):
         self.actor_hidden_sizes = [128, 128]
         self.critic_hidden_sizes = [128, 128, 64]
         self.update_target_every = 100
-        self.use_target_net = True
+        self.log_std_min = -20
+        self.log_std_max = 2
+        self.alpha_lr = 0.0003
+        self.alpha_tuning = True
 
 
 class DDPGAgentConfig(AgentConfig):

@@ -226,6 +226,7 @@ class StochasticPolicyNetwork(Feedforward):
             dtype,
             **kwargs,
         )
+
         self.log_std_min = log_std_min
         self.log_std_max = log_std_max
 
@@ -277,7 +278,10 @@ class StochasticPolicyNetwork(Feedforward):
             x = torch.tensor(x, dtype=self._dtype)
         mean, log_std = self.forward(x)
         std = log_std.exp()
+
         normal_dist = dist.Normal(mean, std)
+
+        # reparameterization trick
         z = normal_dist.rsample()
         action = torch.tanh(z)
         log_prob = normal_dist.log_prob(z).sum(dim=-1, keepdim=True)

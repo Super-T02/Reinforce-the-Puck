@@ -6,7 +6,7 @@ from agents.base_agent import BaseAgent
 from components.memory import Batch
 from components.networks import QFunction, StochasticPolicyNetwork
 from gymnasium import spaces
-from utils.config import AgentConfig, SACAgentConfig
+from utils.config import AgentConfig, SACAgentConfig, global_config
 
 
 class SACAgent(BaseAgent):
@@ -23,12 +23,25 @@ class SACAgent(BaseAgent):
         super().__init__("SAC", observation_space, action_space, config)
         self._config: SACAgentConfig = config
 
-        self.log_alpha = torch.nn.Parameter(
-            torch.log(torch.tensor(config.alpha, dtype=torch.float32))
-        )
+        """enhancement of original paper which uses fixed alpha (hyperparameter)
 
-        self.alpha_optimizer = torch.optim.Adam([self.log_alpha], lr=1e-3)
-        self._target_entropy = -np.prod(action_space.shape)
+        https://arxiv.org/pdf/1812.05905
+        We extend SAC to incorporate a
+        number of modifications that accelerate training and improve stability with respect
+        to the hyperparameters, including a constrained formulation that automatically
+        tunes the temperature hyperparamete
+
+        """
+
+        if self._config.alpha_tuning:
+            self._log_alpha = torch.zeros(1, requires_grad=True)
+
+            self.alpha_optimizer = torch.optim.Adam(
+                [self._log_alpha], lr=self._config.alpha_lr
+            )
+
+            # use the hyperparameter from the original paper: https://arxiv.org/pdf/1812.05905 (See D Hyperparameters)
+            self._target_entropy = -np.prod(action_space.shape)
 
         self.policy = self._create_policy_net()  # Actor network
 
@@ -102,6 +115,8 @@ class SACAgent(BaseAgent):
             output_size=self._action_n,
             activation=torch.nn.ReLU,
             output_activation=self._policy_activation(),
+            log_std_min=self._config.log_std_min,
+            log_std_max=self._config.log_std_max,
         )
 
     def _copy_nets(self) -> None:
@@ -109,7 +124,7 @@ class SACAgent(BaseAgent):
         self.Q1_target.load_state_dict(self.Q1.state_dict())
         self.Q2_target.load_state_dict(self.Q2.state_dict())
 
-    def _soft_update(self, source, target, tau=0.005):
+    def _soft_update(self, source, target, tau: float) -> None:
         """Soft update the target network parameters.
         Soft Updates vs Hard Updates see See Appendix E. Additional Baseline Results in https://arxiv.org/pdf/1801.01290
         """
@@ -133,7 +148,7 @@ class SACAgent(BaseAgent):
         Returns:
             tuple: The state of the agent.
         """
-        return (self.Q1.state_dict(), self.Q2.state_dict, self.policy.state_dict())
+        return (self.Q1.state_dict(), self.Q2.state_dict(), self.policy.state_dict())
 
     def restore_state(self, state: tuple) -> None:
         """Restore the state of the agent.
@@ -223,26 +238,29 @@ class SACAgent(BaseAgent):
         q2_pred = self.Q2.Qvalues(batch.observations, actions_pred)
         q_pred_min = torch.min(q1_pred, q2_pred)
 
-        policy_loss = (q_pred_min - self.alpha * log_probs).mean()
+        # optimize the policy to maximize the Q value and entropy
+        # or minimize the negative Q value and the entropy
+        # E[-(Q(s, π(s)) - α * log π(s))]
+        policy_loss = -(q_pred_min - self.alpha * log_probs).mean()
 
         self.policy_optimizer.zero_grad()
         policy_loss.backward()
         self.policy_optimizer.step()
 
-        alpha_loss = -(
-            self.log_alpha * (log_probs.detach() + self._target_entropy)
-        ).mean()
-        self.alpha_optimizer.zero_grad()
-        alpha_loss.backward()
-        self.alpha_optimizer.step()
+        if self._config.alpha_tuning:
+            alpha_loss = -(
+                self._log_alpha * (log_probs.detach() + self._target_entropy).detach()
+            ).mean()
+            self.alpha_optimizer.zero_grad()
+            alpha_loss.backward()
+            self.alpha_optimizer.step()
 
-        # update alpha
-        self.alpha = self.log_alpha.exp().item()
+            self.alpha = self._log_alpha.exp().item()
 
         losses = {
             "loss": q_loss.item(),
             "actor_loss": policy_loss.item(),
-            "alpha_loss": alpha_loss.item(),
+            "alpha_loss": alpha_loss.item() if self._config.alpha_tuning else 0,
         }
         return losses
 
