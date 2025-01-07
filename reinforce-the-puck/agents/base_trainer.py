@@ -1,8 +1,8 @@
+import datetime
 import logging
 import os
 import pickle
-import statistics
-from typing import Callable, List
+from typing import List
 
 import aiofiles
 import numpy as np
@@ -25,6 +25,7 @@ class BaseTrainer:
         self._checkpoints = []
         self._logger = logging.getLogger(__name__)
         self._train_iterations = 0
+        self._is_config_logged = False
 
         self._tensorboard: TensorboardStatistics = TensorboardStatistics(
             os.path.join(
@@ -85,6 +86,11 @@ class BaseTrainer:
         statistics: List[dict] = []
         env_stats = {"reward": last_reward}
 
+        if not self._is_config_logged:
+            config = self._get_train_config()
+            self._tensorboard.save_hyper_parameters(config)
+            self._is_config_logged = True
+
         for iteration in range(self._epochs):
             batch = self.sample(self._batch_size)
             statistic = self.train_step(batch)
@@ -133,7 +139,7 @@ class BaseTrainer:
         result = {key: [d[key] for d in data] for key in data[0]}
         return result
 
-    def __generate_training_name(self, iter: int) -> str:
+    def __generate_training_name(self, i: int) -> str:
         """
         Helper function that generates a training name based on the current training parameters, iteration and timestamp.
 
@@ -144,7 +150,8 @@ class BaseTrainer:
             str: A string representing the training name, formatted with the timestamp, learning rate,
                  batch size, log frequency, save checkpoint frequency, and iteration steps.
         """
-        return f"{self._log_name}_{self._learning_rate}_{self._batch_size}_{self._log_freq}_{self._save_checkpoint_freq}_{iter}-steps"
+        time_stamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        return f"{time_stamp}_{self._log_name}_{i}-steps"
 
     def train_step(self, batch: Batch):
         """
@@ -184,6 +191,21 @@ class BaseTrainer:
             NotImplementedError: This method should be implemented by subclasses.
         """
         raise NotImplementedError
+
+    def _get_train_config(self) -> dict:
+        """Get the training configuration as a dictionary."""
+        self._logger.warning(
+            "The get_train_config method is not overwritten by the subclass. Not all training parameters are saved."
+        )
+        return {
+            "learning_rate": self._learning_rate,
+            "batch_size": self._batch_size,
+            "log_freq": self._log_freq,
+            "save_checkpoint_freq": self._save_checkpoint_freq,
+            "max_checkpoints": self._max_checkpoints,
+            "epochs": self._epochs,
+            "log_name": self._log_name,
+        }
 
     def __del__(self):
         self._tensorboard.close()

@@ -2,6 +2,8 @@ from typing import Any
 
 import numpy as np
 import torch
+import torch.distributions as dist
+import torch.nn as nn
 from utils.config import global_config
 
 
@@ -194,3 +196,98 @@ class QFunction(Feedforward):
             torch.Tensor: Input tensor.
         """
         return torch.cat((observations, actions), dim=-1)
+
+
+class StochasticPolicyNetwork(Feedforward):
+    """Stochastic Policy Network."""
+
+    def __init__(
+        self,
+        input_size: int,
+        hidden_sizes: list[int],
+        output_size: int,
+        activation: any = torch.nn.Tanh,
+        output_activation: Any | None = None,
+        loss_fn: callable = torch.nn.SmoothL1Loss(),
+        device: str = None,
+        dtype: torch.dtype = None,
+        log_std_min: float = -20,
+        log_std_max: float = 2,
+        **kwargs,
+    ):
+        super().__init__(
+            input_size,
+            hidden_sizes,
+            output_size,
+            activation,
+            output_activation,
+            loss_fn,
+            device,
+            dtype,
+            **kwargs,
+        )
+
+        self.log_std_min = log_std_min
+        self.log_std_max = log_std_max
+
+        self._mean_layer = nn.Linear(self._hidden_sizes[-1], self._output_size)
+        self._log_std_layer = nn.Linear(self._hidden_sizes[-1], self._output_size)
+
+    def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        # Pass through the Feedforward hidden layers (up to the last hidden layer)
+        for layer, activation_fun in zip(self._layers, self._activations):
+            x = activation_fun(layer(x))
+
+        # Compute mean and log standard deviation
+        mean = self._mean_layer(x)
+        log_std = torch.clamp(
+            self._log_std_layer(x), self.log_std_min, self.log_std_max
+        )
+
+        return mean, log_std
+
+    def predict(
+        self, x: torch.Tensor | np.ndarray
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        """
+        Predicts the output for the given input tensor or numpy array.
+        Args:
+            x (torch.Tensor | np.ndarray): Input data, either as a PyTorch tensor or a NumPy array.
+        Returns:
+            tuple[torch.Tensor, torch.Tensor]: The predicted output as a tuple of PyTorch tensors.
+        """
+
+        if isinstance(x, np.ndarray):
+            x = torch.tensor(x, dtype=self._dtype)
+        with torch.no_grad():
+            return self.forward(x)
+
+    def sample(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        """
+        Samples an action and its log probability from a normal distribution parameterized by the network's output.
+
+        Args:
+            x (torch.Tensor): Input tensor to the network.
+
+        Returns:
+            tuple[torch.Tensor, torch.Tensor]: A tuple containing:
+                - action (torch.Tensor): The sampled action after applying the tanh function.
+                - log_prob (torch.Tensor): The log probability of the sampled action.
+        """
+        if isinstance(x, np.ndarray):
+            x = torch.tensor(x, dtype=self._dtype)
+        mean, log_std = self.forward(x)
+        std = log_std.exp()
+
+        normal_dist = dist.Normal(mean, std)
+
+        # reparameterization trick
+        z = normal_dist.rsample()
+        action = torch.tanh(z)
+        log_prob = normal_dist.log_prob(z).sum(dim=-1, keepdim=True)
+        log_prob -= torch.log(1 - action.pow(2) + 1e-6).sum(dim=-1, keepdim=True)
+        return action, log_prob
+
+    def mean(self, x: torch.Tensor) -> torch.Tensor:
+        mean, _ = self.forward(x)
+        return torch.tanh(mean)

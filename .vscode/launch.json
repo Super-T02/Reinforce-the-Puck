@@ -1,0 +1,21 @@
+{
+  "configurations": [
+    {
+      "args": [
+        "--config_path",
+        "config/sac.yaml"
+      ],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      },
+      "name": "Python: Reinforce the Puck",
+      "program": "${workspaceFolder}/reinforce-the-puck/train.py",
+      "python": "C:/Users/jonas/miniconda3/envs/rl_proj/python.exe",
+      "request": "launch",
+      "type": "debugpy"
+    }
+  ],
+  "version": "0.2.0"
+}
