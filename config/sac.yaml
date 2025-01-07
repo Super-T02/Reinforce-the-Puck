@@ -10,16 +10,10 @@ env1:
   id: 0
   max_steps: 1000
 
-env2:
-  env_name: MountainCarContinuous-v0
-  env_type: gym
-  id: 1
-  max_steps: 1000
-
 agent1:
   type: sac
   env_id: 0
-  tau: 0.001 # Target network update rate (Soft update)
+  tau: 0.005 # Target network update rate (Soft update)
   memory_size: 100000
   discount: 0.97 # Discount factor
   alpha: 0.02 # Entropy regularization (inital value -> alpha tuning)
@@ -30,8 +24,8 @@ agent1:
   critic_hidden_sizes: [128, 128, 64]
   alpha_tuning: True
   trainer_config:
-    learning_rate_actor: 0.0005
-    learning_rate_critic: 0.00001
+    learning_rate_actor: 0.001
+    learning_rate_critic: 0.001
     log_name: agent_sac
     batch_size: 64
   specialized_config:
