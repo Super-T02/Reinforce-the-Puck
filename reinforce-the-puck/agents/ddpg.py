@@ -20,23 +20,14 @@ class DDPGAgent(BaseAgent):
         observation_space: spaces.box.Box,
         action_space: spaces.box.Box,
         config: DDPGAgentConfig,
+        name: str = "DDPG",
     ):
-        super().__init__("DDPG", observation_space, action_space, config)
+        super().__init__(name, observation_space, action_space, config)
         self._config: DDPGAgentConfig = config
         self._action_noise = OUNoise((self._action_n))
 
-        self.Q = QFunction(
-            input_size=self._obs_dim + self._action_n,
-            output_size=1,
-            hidden_sizes=config.critic_hidden_sizes,
-            learning_rate=config.trainer_config.learning_rate_critic,
-        )
-        self.Q_target = QFunction(
-            input_size=self._obs_dim + self._action_n,
-            output_size=1,
-            hidden_sizes=config.critic_hidden_sizes,
-            learning_rate=0,
-        )
+        self.Q = self._create_q_net(1, config.trainer_config.learning_rate_critic)
+        self.Q_target = self._create_q_net(1)
 
         self.policy = self._create_policy_net()
         self.policy_target = self._create_policy_net()
@@ -52,6 +43,23 @@ class DDPGAgent(BaseAgent):
             eps=0.000001,
         )
         self.epoch = 0
+
+    def _create_q_net(self, out: int, lr: float = 0.0) -> QFunction:
+        """Create the Q network.
+
+        Args:
+            out (int): The output size of the network.
+            lr (float): The learning rate of the network
+
+        Returns:
+            QFunction: The Q network.
+        """
+        return QFunction(
+            input_size=self._obs_dim + self._action_n,
+            output_size=out,
+            hidden_sizes=self._config.critic_hidden_sizes,
+            learning_rate=lr,
+        )
 
     def _policy_activation(self) -> callable:
         """Activation function for the policy network.
@@ -94,6 +102,9 @@ class DDPGAgent(BaseAgent):
             action: The selected action.
         """
         action = self.policy.predict(state) + self._config.eps * self._action_noise()
+        if type(action) == torch.Tensor:
+            action = action.detach().numpy()
+        action = np.clip(action, self._action_space.low, self._action_space.high)
         return action
 
     def state(self) -> tuple:
@@ -142,7 +153,9 @@ class DDPGAgent(BaseAgent):
 
     def train(self, last_reward=np.nan):
         """Train the agent."""
-        if self._train_iterations % self._config.update_target_every == 0:
+        d = self._config.update_target_every
+
+        if d > 0 and self._train_iterations % d == 0:
             self._copy_nets()
         return super().train(last_reward)
 
@@ -155,28 +168,74 @@ class DDPGAgent(BaseAgent):
         Returns:
             dict: The training statistics.
         """
-        target_q = batch.rewards + self._config.discount * (
+        critic_loss = self._optimize_critic(batch)
+        actor_loss = self._optimize_actor(batch)
+
+        losses = {"loss": critic_loss.item(), "actor_loss": actor_loss.item()}
+        return losses
+
+    def _compute_target_q(self, batch: Batch) -> torch.Tensor:
+        """Calculate the target Q values.
+
+        Args:
+            batch (Batch): The training batch.
+
+        Returns:
+            torch.Tensor: The target Q values.
+        """
+        return batch.rewards + self._config.discount * (
             1 - batch.dones
         ) * self.Q_target.Qvalues(
             batch.next_observations,
             self.policy_target.forward(batch.next_observations).detach(),
         )
+
+    def _compute_q_loss(self, batch: Batch) -> torch.Tensor:
+        """Compute the Q loss.
+
+        Args:
+            batch (Batch): The training batch.
+
+        Returns:
+            torch.Tensor: The Q loss.
+        """
+        target_q = self._compute_target_q(batch)
         q_loss = self.Q.get_loss(
             torch.cat([batch.observations, batch.actions], dim=1), target_q
         )
+        return q_loss
+
+    def _optimize_critic(self, batch: Batch) -> torch.Tensor:
+        """Optimize the Q network.
+
+        Args:
+            batch (Batch): The training batch.
+
+        Returns:
+            torch.Tensor: The critic loss.
+        """
+        q_loss = self._compute_q_loss(batch)
 
         self.Q_optimizer.zero_grad()
         q_loss.backward()
         self.Q_optimizer.step()
+        return q_loss
 
+    def _optimize_actor(self, batch: Batch) -> torch.Tensor:
+        """Optimize the policy network.
+
+        Args:
+            batch (Batch): The training batch.
+
+        Returns:
+            torch.Tensor: The actor loss.
+        """
         self.policy_optimizer.zero_grad()
         actions_pred = self.policy.forward(batch.observations)
         actor_loss = -self.Q.Qvalues(batch.observations, actions_pred).mean()
         actor_loss.backward()
         self.policy_optimizer.step()
-
-        losses = {"loss": q_loss.item(), "actor_loss": actor_loss.item()}
-        return losses
+        return actor_loss
 
     def __del__(self):
         return super().__del__()
