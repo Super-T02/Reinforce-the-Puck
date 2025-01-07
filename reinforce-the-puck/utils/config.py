@@ -110,6 +110,26 @@ class AgentConfig(ConfigGroup):
         return dict_
 
 
+class SACAgentConfig(AgentConfig):
+    def __init__(self):
+        super().__init__()
+        self.type = "sac"
+        self.tau = 0.005  # Target network update rate (Soft update)
+        self.memory_size = 100000
+        self.discount = 0.95
+        self.alpha = 0.2  # Entropy regularization
+        self.trainer_config.batch_size = 128
+        self.trainer_config.learning_rate_actor = 0.00001
+        self.trainer_config.learning_rate_critic = 0.0001
+        self.actor_hidden_sizes = [128, 128]
+        self.critic_hidden_sizes = [128, 128, 64]
+        self.update_target_every = 100
+        self.log_std_min = -20
+        self.log_std_max = 2
+        self.alpha_lr = 0.0003
+        self.alpha_tuning = True
+
+
 class DDPGAgentConfig(AgentConfig):
     def __init__(self):
         super().__init__()
@@ -158,6 +178,7 @@ class Config:
 
     TYPE2AGENT = {
         "ddpg": DDPGAgentConfig,
+        "sac": SACAgentConfig,
     }
 
     def __init__(self):

@@ -7,6 +7,7 @@ import os
 import numpy as np
 from agents.base_agent import BaseAgent
 from agents.ddpg import DDPGAgent
+from agents.sac import SACAgent
 from environments.wrapper import EnvWrapper
 from utils import config_dir, logger
 from utils.config import global_config
@@ -90,9 +91,7 @@ class TrainCLI:
     def load_classes(self):
         """Load the agent, and environment classes."""
         # TODO: Add support for multiple agents
-        type2agent = {
-            "ddpg": DDPGAgent,
-        }
+        type2agent = {"ddpg": DDPGAgent, "sac": SACAgent}
 
         for agent_config in global_config.get_agents():
             env = next(
