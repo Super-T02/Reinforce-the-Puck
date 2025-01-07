@@ -1,8 +1,8 @@
-import json
 import os
 from queue import Queue
 from threading import Thread
 
+import yaml
 from torch.utils.tensorboard import SummaryWriter
 
 
@@ -59,14 +59,14 @@ class TensorboardStatistics:
 
     def save_hyper_parameters(self, hyper_parameters: dict):
         """
-        Save the hyper parameters to the TensorBoard and a JSON file.
+        Save the hyper parameters to the TensorBoard and a yaml file.
         """
         for key, value in hyper_parameters.items():
             self.writer.add_text(f"{key}", str(value))
 
-        fname = os.path.join(self.writer.log_dir, "hyper_parameters.json")
+        fname = os.path.join(self.writer.log_dir, "hyper_parameters.yaml")
         os.makedirs(os.path.dirname(fname), exist_ok=True)
-        json.dump(hyper_parameters, open(fname, "w"), indent=4)
+        yaml.dump(hyper_parameters, open(fname, "w"))
 
     def close(self):
         """

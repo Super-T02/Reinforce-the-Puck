@@ -1,9 +1,9 @@
 import argparse
 import curses
-import json
 import os
 import shutil
 
+import yaml
 from tabulate import tabulate
 from utils import logs_dir
 
@@ -42,10 +42,10 @@ def tabular_hyperparameters(dict_):
 def show_hyperparameters(run_name):
     """Shows hyperparameters of a specific run."""
     run_path = os.path.join(LOGS_DIR, run_name)
-    hyperparameters_file = os.path.join(run_path, "hyper_parameters.json")
+    hyperparameters_file = os.path.join(run_path, "hyper_parameters.yaml")
     if os.path.exists(hyperparameters_file):
         with open(hyperparameters_file, "r") as f:
-            hyperparameters = json.load(f)
+            hyperparameters = yaml.safe_load(f)
         return tabular_hyperparameters(hyperparameters)
     else:
         return [f"Run '{hyperparameters_file}' doesn't exist."]
