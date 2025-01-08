@@ -1,4 +1,5 @@
 import os
+from itertools import chain
 
 import numpy as np
 import torch
@@ -37,12 +38,23 @@ class DDPGAgent(BaseAgent):
             lr=config.trainer_config.learning_rate_actor,
             eps=0.000001,
         )
-        self.Q_optimizer = torch.optim.Adam(
-            self.Q.parameters(),
-            lr=config.trainer_config.learning_rate_critic,
+        self.Q_optimizer = self._create_q_optim([self.Q])
+        self.epoch = 0
+
+    def _create_q_optim(self, q_nets: list[QFunction]) -> torch.optim.Optimizer:
+        """Create the optimizer for the Q networks.
+
+        Args:
+            q_nets (list[QFunction]): The Q networks.
+
+        Returns:
+            torch.optim.Optimizer: The optimizer.
+        """
+        return torch.optim.Adam(
+            chain(*[q.parameters() for q in q_nets]),
+            lr=self._config.trainer_config.learning_rate_critic,
             eps=0.000001,
         )
-        self.epoch = 0
 
     def _create_q_net(self, out: int, lr: float = 0.0) -> QFunction:
         """Create the Q network.
@@ -101,7 +113,9 @@ class DDPGAgent(BaseAgent):
         Returns:
             action: The selected action.
         """
-        action = self.policy.predict(state) + self._config.eps * self._action_noise()
+        action = (
+            self.policy_target.predict(state) + self._config.eps * self._action_noise()
+        )
         if type(action) == torch.Tensor:
             action = action.detach().numpy()
         action = np.clip(action, self._action_space.low, self._action_space.high)
