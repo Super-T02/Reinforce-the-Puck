@@ -50,6 +50,7 @@ class Feedforward(torch.nn.Module):
         )
         self._activations = [activation() for _ in self._layers]
         self._readout = torch.nn.Linear(self._hidden_sizes[-1], self._output_size)
+        self.to(self._device)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Forward pass through the network.
@@ -60,6 +61,7 @@ class Feedforward(torch.nn.Module):
         Returns:
             torch.Tensor: Output tensor.
         """
+        x = x.to(self._device)
         for layer, activation_fun in zip(self._layers, self._activations):
             x = activation_fun(layer(x))
         if self._output_activation is not None:
@@ -78,8 +80,9 @@ class Feedforward(torch.nn.Module):
         """
         if isinstance(x, np.ndarray):
             x = torch.tensor(x, dtype=self._dtype)
+        x = x.to(self._device)
         with torch.no_grad():
-            return self.forward(x)
+            return self.forward(x).cpu()
 
     def save(self, path: str) -> "Feedforward":
         """Save the model to a file.
@@ -167,6 +170,8 @@ class QFunction(Feedforward):
         Returns:
             object: Loss object.
         """
+        x = x.to(self._device)
+        y = y.to(self._device)
         return self._loss_fn(self.forward(x), y)
 
     def Qvalues(
@@ -181,7 +186,9 @@ class QFunction(Feedforward):
         Returns:
             torch.Tensor: Q-Values tensor.
         """
-        return self.forward(self.prepare(observations, actions))
+        observations = observations.to(self._device)
+        actions = actions.to(self._device)
+        return self.forward(self.prepare(observations, actions)).cpu()
 
     def prepare(
         self, observations: torch.Tensor, actions: torch.Tensor

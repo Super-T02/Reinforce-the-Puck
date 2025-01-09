@@ -8,7 +8,7 @@ from components.memory import Batch
 from components.networks import Feedforward, QFunction
 from components.noise import OUNoise
 from gymnasium import spaces
-from utils.config import AgentConfig, DDPGAgentConfig
+from utils.config import AgentConfig, DDPGAgentConfig, global_config
 
 
 class DDPGAgent(BaseAgent):
@@ -79,9 +79,9 @@ class DDPGAgent(BaseAgent):
         Returns:
             callable: The activation function.
         """
-        high, low = torch.from_numpy(self._action_space.high), torch.from_numpy(
-            self._action_space.low
-        )
+        high, low = torch.from_numpy(self._action_space.high).to(
+            global_config.base_config.device
+        ), torch.from_numpy(self._action_space.low).to(global_config.base_config.device)
         output_activation = lambda x: (torch.nn.Tanh()(x) + 1) * (high - low) / 2 + low
         return output_activation
 
