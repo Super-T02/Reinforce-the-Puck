@@ -5,7 +5,7 @@ START_TIME=$(date +%s)
 
 # Print Help if first argument is -h or --help
 if [[ "$1" == "-h" || "$1" == "--help" ]]; then
-  echo "Usage: $0 [CONFIG_FILE]"
+  echo "Usage: $0 [CONFIG_FILE] [MAX_PROCESSES]"
   echo "Run training for all agents specified in the configuration file."
   echo "If CONFIG_FILE is not provided, the default config file is used."
   echo "Additional arguments can be passed to specify the number of cores to use."
