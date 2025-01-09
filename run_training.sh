@@ -1,11 +1,20 @@
 CONFIG_FILE="config/config.yaml"
+NUM_CORES=$(nproc)
+MAX_PROCESSES=$((NUM_CORES - 1))
+START_TIME=$(date +%s)
 
 # Print Help if first argument is -h or --help
 if [[ "$1" == "-h" || "$1" == "--help" ]]; then
   echo "Usage: $0 [CONFIG_FILE]"
   echo "Run training for all agents specified in the configuration file."
   echo "If CONFIG_FILE is not provided, the default config file is used."
+  echo "Additional arguments can be passed to specify the number of cores to use."
   exit 0
+fi
+
+# Get number of cores
+if [[ -n "$2" ]]; then
+  MAX_PROCESSES="$2"
 fi
 
 # Get first argument as config file
@@ -40,6 +49,27 @@ echo "Splitting configuration file into agent-specific configs..."
 AGENTS=$(yq 'keys[]' "$CONFIG_FILE" | grep '^"agent.*"$' | sed 's/"//g')
 echo "Found agents: $AGENTS"
 
+# Determine the number of concurrent processes
+if [[ $MAX_PROCESSES -lt 1 ]]; then
+  MAX_PROCESSES=1
+fi
+
+if [[ $MAX_PROCESSES -gt $NUM_CORES ]]; then
+  echo "Warning: Number of cores ($NUM_CORES) is less than the specified number of processes ($MAX_PROCESSES)"
+  MAX_PROCESSES=$NUM_CORES
+fi
+echo "Max concurrent processes: $MAX_PROCESSES"
+
+# Create a semaphore to limit the number of concurrent processes
+SEMAPHORE=$(mktemp -u)
+mkfifo "$SEMAPHORE"
+exec 3<>"$SEMAPHORE"
+rm "$SEMAPHORE"
+
+for ((i = 0; i < MAX_PROCESSES; i++)); do
+  echo >&3
+done
+
 # Loop through each agent and create a specific config
 for AGENT in $AGENTS; do
   # Create a new config file for the agent
@@ -51,13 +81,19 @@ for AGENT in $AGENTS; do
   echo "$AGENT:" >> "$AGENT_CONFIG_FILE"
   echo "$AGENT_PARAMS" | yq -y '.' | sed 's/^/  /' >> "$AGENT_CONFIG_FILE"
   echo "Created config for $AGENT: $AGENT_CONFIG_FILE"
+  # Wait 5 seconds to
+  sleep 1
 
   # Run the training script with the agent-specific config
-  echo "Running training for agent: $AGENT"
-  python reinforce-the-puck/train.py -c "$AGENT_CONFIG_FILE" &
+  (
+    read -u 3
+    python reinforce-the-puck/train.py -c "$AGENT_CONFIG_FILE"
+    echo >&3
+  ) &
 done
 
-echo "All agent-specific configs are stored in: $TEMP_DIR"
 wait
 echo "All agents have finished training!"
+END_TIME=$(date +%s)
+echo "Total time taken: $((END_TIME - START_TIME)) seconds"
 cleanup

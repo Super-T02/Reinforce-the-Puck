@@ -1,0 +1,108 @@
+# Please refer to the documentation for more information on the configuration file.
+
+base_config:
+  dtype: float32
+  num_episodes: 1
+
+env1:
+  env_name: Pendulum-v1
+  env_type: gym
+  id: 0
+  max_steps: 1000
+
+env2:
+  env_name: MountainCarContinuous-v0
+  env_type: gym
+  id: 1
+  max_steps: 1000
+
+agent1:
+  type: ddpg
+  env_id: 0
+  trainer_config:
+    learning_rate: 0.001
+    log_name: test
+    batch_size: 64
+  specialized_config:
+    num_episodes: 10 # This will override the num_episodes in the base_config
+agent2:
+  type: ddpg
+  env_id: 0
+  trainer_config:
+    learning_rate: 0.001
+    log_name: test
+    batch_size: 64
+  specialized_config:
+    num_episodes: 10 # This will override the num_episodes in the base_config
+agent3:
+  type: ddpg
+  env_id: 0
+  trainer_config:
+    learning_rate: 0.001
+    log_name: test
+    batch_size: 64
+  specialized_config:
+    num_episodes: 10 # This will override the num_episodes in the base_config
+agent4:
+  type: ddpg
+  env_id: 0
+  trainer_config:
+    learning_rate: 0.001
+    log_name: test
+    batch_size: 64
+  specialized_config:
+    num_episodes: 10 # This will override the num_episodes in the base_config
+agent5:
+  type: ddpg
+  env_id: 0
+  trainer_config:
+    learning_rate: 0.001
+    log_name: test
+    batch_size: 64
+  specialized_config:
+    num_episodes: 10 # This will override the num_episodes in the base_config
+agent6:
+  type: ddpg
+  env_id: 0
+  trainer_config:
+    learning_rate: 0.001
+    log_name: test
+    batch_size: 64
+  specialized_config:
+    num_episodes: 10 # This will override the num_episodes in the base_config
+agent7:
+  type: ddpg
+  env_id: 0
+  trainer_config:
+    learning_rate: 0.001
+    log_name: test
+    batch_size: 64
+  specialized_config:
+    num_episodes: 10 # This will override the num_episodes in the base_config
+agent8:
+  type: ddpg
+  env_id: 0
+  trainer_config:
+    learning_rate: 0.001
+    log_name: test
+    batch_size: 64
+  specialized_config:
+    num_episodes: 10 # This will override the num_episodes in the base_config
+agent9:
+  type: ddpg
+  env_id: 0
+  trainer_config:
+    learning_rate: 0.001
+    log_name: test
+    batch_size: 64
+  specialized_config:
+    num_episodes: 10 # This will override the num_episodes in the base_config
+agent10:
+  type: ddpg
+  env_id: 0
+  trainer_config:
+    learning_rate: 0.001
+    log_name: test
+    batch_size: 64
+  specialized_config:
+    num_episodes: 10 # This will override the num_episodes in the base_config
