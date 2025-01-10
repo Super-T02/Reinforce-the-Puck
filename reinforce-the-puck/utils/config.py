@@ -98,6 +98,7 @@ class AgentConfig(ConfigGroup):
     def __init__(self):
         self.type = "none"
         self.name = "BasicOpponent"
+        self.checkpoint = None
         self.version = 1
         self.epochs = 10
         self.eval_freq = 100

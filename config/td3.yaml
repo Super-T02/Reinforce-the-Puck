@@ -16,6 +16,7 @@ env2:
 
 agent1:
   type: td3
+  checkpoint: null
   env_id: 0
   eps: 1
   discount: 0.95
@@ -37,6 +38,7 @@ agent1:
 
 agent2:
   type: td3
+  checkpoint: null
   env_id: 1
   eps: 1
   discount: 0.99

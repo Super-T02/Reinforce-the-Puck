@@ -65,8 +65,8 @@ class TD3Agent(DDPGAgent):
         self.Q2.load_state_dict(state[2])
         super().restore_state(state)
 
-    def save_state(self):
-        return (*super().save_state(), self.Q2.state_dict())
+    def state(self):
+        return (*super().state(), self.Q2.state_dict())
 
     def train_step(self, batch):
         """Perform a single training step.

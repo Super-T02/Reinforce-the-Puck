@@ -15,7 +15,12 @@ from utils.config import AgentConfig, global_config
 
 
 class TrainingRun:
-    def __init__(self, environment: EnvWrapper, agent: AgentConfig, num_episodes: int):
+    def __init__(
+        self,
+        environment: EnvWrapper,
+        agent: AgentConfig,
+        num_episodes: int,
+    ):
         self._environment = environment
         self._agent_config = agent
         self._num_episodes = num_episodes
@@ -143,6 +148,7 @@ class TrainCLI:
             env = EnvWrapper(
                 env_name=env_name,
                 max_steps=max_steps,
+                checkpoint=agent_config.checkpoint,
                 agent_class=type2agent[agent_config.type],
                 kwargs_agent={
                     "config": agent_config,

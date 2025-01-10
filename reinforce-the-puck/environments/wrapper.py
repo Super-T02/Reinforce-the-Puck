@@ -1,7 +1,9 @@
 import logging
+import os
 
 import gymnasium as gym
 from agents.base_agent import BaseAgent
+from utils import model_dir
 
 
 class EnvWrapper:
@@ -15,6 +17,7 @@ class EnvWrapper:
         agent_class: BaseAgent,
         max_steps: int,
         kwargs_agent: dict = {},
+        checkpoint: str = None,
     ):
         """
         Initialize the environment wrapper.
@@ -23,6 +26,7 @@ class EnvWrapper:
             env_name (str): Name of the Gymnasium environment.
             agent (callable): The agent class that interacts with the environment.
             kwargs_agent (dict): Keyword arguments for the agent.
+            checkpoint (str): The path to the checkpoint file.
         """
         try:
             self.env = gym.make(env_name, continuous=True)
@@ -33,7 +37,7 @@ class EnvWrapper:
         self.agent: BaseAgent = agent_class(
             **kwargs_agent,
             observation_space=self.env.observation_space,
-            action_space=self.env.action_space
+            action_space=self.env.action_space,
         )
         self.observation_space = self.env.observation_space
         self.action_space = self.env.action_space
@@ -41,7 +45,16 @@ class EnvWrapper:
         self._logger = logging.getLogger(__name__)
         self._max_steps = max_steps
         self.name = env_name
+        self._load_model(checkpoint)
         self.reset()
+
+    def _load_model(self, checkpoint: str):
+        """Load the model from a checkpoint file."""
+        if checkpoint is not None:
+            filepath = os.path.join(model_dir, checkpoint)
+            if not os.path.exists(filepath):
+                raise FileNotFoundError(f"Checkpoint file not found: {checkpoint}")
+            self.agent.load(filepath)
 
     @property
     def last_observation(self) -> tuple[any, float, bool, bool, dict[str, any]]:
