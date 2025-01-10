@@ -52,6 +52,10 @@ class BaseAgent(BaseTrainer):
         self._obs_dim = self._observation_space.shape[0]
         self._action_n = self._action_space.shape[0]
 
+    def get_config(self) -> AgentConfig:
+        """Return the agent's configuration."""
+        return self._config
+
     def save(self, path: str) -> None:
         """
         Save the agent to a file.

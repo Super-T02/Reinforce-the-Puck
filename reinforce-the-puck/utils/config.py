@@ -1,5 +1,7 @@
 import os
+import random
 
+import numpy as np
 import torch
 import yaml
 from utils import model_dir
@@ -60,6 +62,16 @@ class ConfigGroup:
             if not k.startswith("__") and k not in ["update_from_dict", "to_dict"]
         }
 
+    def to_yaml(self, yaml_path: str):
+        """
+        Save the configuration to a YAML file.
+
+        Args:
+            yaml_path (str): The path to the YAML file.
+        """
+        with open(yaml_path, "w") as file:
+            yaml.dump(self.to_dict(), file)
+
 
 ####################################################################################################
 # Configuration Groups
@@ -94,6 +106,36 @@ class BaseConfig(ConfigGroup):
         return dict_
 
 
+class MutationConfig(ConfigGroup):
+    def __init__(self):
+        self.enabled = True
+        self.means = [0, 0, 0]
+        self.vars = [0.1, 0.1, 0.1]
+        self.mins = [0.000001, 16, 1000]
+        self.maxs = [0.1, 256, 100000]
+        self.prob = 0.3
+        self.parameters = ["learning_rate", "batch_size", "memory_size"]
+
+    def get_min(self, i):
+        val = self.mins[i]
+        if val == "inf":
+            return np.inf
+        elif val == "-inf":
+            return -np.inf
+        return val
+
+    def get_max(self, i):
+        val = self.maxs[i]
+        if val == "inf":
+            return float("inf")
+        elif val == "-inf":
+            return -float("inf")
+        return val
+
+    def clip(self, value, i):
+        return min(self.get_max(i), max(self.get_min(i), value))
+
+
 class AgentConfig(ConfigGroup):
     def __init__(self):
         self.type = "none"
@@ -105,6 +147,8 @@ class AgentConfig(ConfigGroup):
         self.eval_episodes = 10
         self.env_id = 0
         self.memory_size = 10000
+        self.num_runs = 1
+        self.mutation_config: MutationConfig = MutationConfig()
         self.trainer_config: TrainerConfig = TrainerConfig()
 
         self.specialized_config: BaseConfig = (
@@ -120,7 +164,58 @@ class AgentConfig(ConfigGroup):
         dict_ = super().to_dict()
         dict_["trainer_config"] = self.trainer_config.to_dict()
         dict_["specialized_config"] = self.specialized_config.to_dict()
+        dict_["mutation_config"] = self.mutation_config.to_dict()
         return dict_
+
+    def mutate(self):
+        for i, param in enumerate(self.mutation_config.parameters):
+            param_value = getattr(
+                self, param, getattr(self.trainer_config, param, None)
+            )
+            if param_value is None:
+                continue
+            if random.random() < self.mutation_config.prob:
+                mutation_rate = self.mutation_config.means[i]
+                mutationstds = self.mutation_config.vars[i]
+                self._mutate_param(param, param_value, mutation_rate, mutationstds, i)
+
+    def _mutate_param(self, param, param_value, mutation_rate, mutationstds, i):
+        """Mutate a parameter value.
+
+        Args:
+            param (str): The parameter name.
+            param_value (int | float): The parameter value.
+            mutation_rate (float | list): The mutation rate.
+            mutationstds (float | list): The mutation standard deviation
+
+        Raises:
+            ValueError: If the parameter type is not supported.
+        """
+        if param not in self.mutation_config.parameters:
+            return
+
+        mutation_rate = (
+            random.choice(self.mutation_config.means)
+            if isinstance(mutation_rate, list)
+            else mutation_rate
+        )
+        mutationstds = (
+            random.choice(self.mutation_config.vars)
+            if isinstance(mutationstds, list)
+            else mutationstds
+        )
+        value = None
+        if isinstance(param_value, int):
+            value = param_value + int(np.random.normal(mutation_rate, mutationstds))
+        elif isinstance(param_value, float):
+            value = param_value * (1 + np.random.normal(mutation_rate, mutationstds))
+        else:
+            raise ValueError(f"Unsupported type for mutation: {type(param_value)}")
+        goal = self
+        if not param in self.to_dict().keys():
+            goal = self.trainer_config
+        value = self.mutation_config.clip(value, i)
+        setattr(goal, param, value)
 
 
 class SACAgentConfig(AgentConfig):
@@ -273,6 +368,16 @@ class Config:
             for k, v in self.__dict__.items()
             if not k.startswith("__") and k not in ["from_yaml", "to_dict"]
         }
+
+    def to_yaml(self, yaml_path: str):
+        """
+        Save the configuration to a YAML file.
+
+        Args:
+            yaml_path (str): The path to the YAML file.
+        """
+        with open(yaml_path, "w") as file:
+            yaml.dump(self.to_dict(), file)
 
 
 global_config: Config = Config()

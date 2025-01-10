@@ -18,17 +18,33 @@ class TrainingRun:
     def __init__(
         self,
         environment: EnvWrapper,
-        agent: AgentConfig,
+        agent_config: AgentConfig,
         num_episodes: int,
     ):
         self._environment = environment
-        self._agent_config = agent
+        self._agent_config = agent_config
         self._num_episodes = num_episodes
         self._logger = logging.getLogger(__name__)
         self._best_agent = None
         self._best_reward = -np.inf
 
-    def run(self):
+    def run(self, num_runs: int = 1):
+        """Run the training process.
+        1. Train the agent.
+        2. Evaluate the agent.
+        3. Save the best agent.
+        4. Mutate the agent.
+        """
+        for i in range(num_runs):
+            self.train()
+            self.evaluate()
+            self.save_best_agent()
+            if not self._agent_config.mutation_config.enabled:
+                break
+            self._mutate() if i < num_runs - 1 else None
+
+    def train(self):
+        """Train the agent in the environment."""
         self._logger.info("Starting training [%d]...", self._num_episodes)
         rewards = []
         for i in range(self._num_episodes):
@@ -37,15 +53,6 @@ class TrainingRun:
                 self.evaluate()
         rewards = np.array(rewards)
         self._logger.info("Training finished.")
-        self._logger.info("Mean reward: %4.2f", rewards.mean())
-        self._logger.info(
-            "Max reward: %4.2f [Episode: %10d]", rewards.max(), rewards.argmax()
-        )
-        self._logger.info(
-            "Min reward: %4.2f [Episode: %10d]", rewards.min(), rewards.argmin()
-        )
-        self.evaluate()
-        self.save_best_agent()
 
     def evaluate(self):
         """Evaluate the agent in the environment."""
@@ -56,19 +63,36 @@ class TrainingRun:
         mean_reward = np.mean(rewards)
         if mean_reward > self._best_reward:
             self._best_reward = mean_reward
-            self._best_agent = copy.copy(self._environment.agent)
+            self._best_agent = self._environment.agent
             self.save_best_agent()
 
     def save_best_agent(self):
         """Save the best agent to a file."""
+        self._agent_config = self._best_agent.get_config()
         self._best_agent.save(
             os.path.join(
                 model_dir,
                 self._environment.name,
                 self._agent_config.type,
-                self._best_agent.get_name() + "_best_agent.pth",
+                self._best_agent.get_name(),
+                "best_agent.pth",
             )
         )
+        self._agent_config.to_yaml(
+            os.path.join(
+                model_dir,
+                self._environment.name,
+                self._agent_config.type,
+                self._best_agent.get_name(),
+                "best_config.yaml",
+            )
+        )
+
+    def _mutate(self):
+        """Mutate the agent."""
+        self._logger.info("Mutating the agent...")
+        self._agent_config.mutate()
+        self._environment.change_agent_config(self._agent_config)
 
 
 class TrainCLI:
@@ -156,7 +180,7 @@ class TrainCLI:
             )
             training_run = TrainingRun(
                 environment=env,
-                agent=agent_config,
+                agent_config=agent_config,
                 num_episodes=(
                     agent_config.specialized_config.num_episodes
                     if self._args.num_episodes is None
@@ -164,7 +188,7 @@ class TrainCLI:
                 ),
             )
             # self.training_runs.append(training_run)
-            training_run.run()
+            training_run.run(agent_config.num_runs)
 
     def setup(self):
         """Setup the CLI."""

@@ -28,15 +28,24 @@ agent1:
   noise_sigma: 0.2
   noise_clip: 0.5
   memory_size: 100000
-  num_runs: 1
+  num_runs: 10
   mutation_config:
-    enabled: false
-    means: []
-    mins: []
-    maxs: []
-    vars: []
-    prob: 0
-    parameters: []
+    enabled: true
+    means: [0, 0, 0, 0, 0, 0, 0]
+    vars: [0.1, 0.1, 0.3, 0.1, 0.05, 0.1, 0.1]
+    maxs: ["inf", "inf", "inf", "inf", 0.99999999, "inf", "inf"]
+    mins: [0.00000001, 0.00000001, 16, 0, 0.00000001, 0, 0]
+    prob: 0.7
+    parameters:
+      [
+        "learning_rate_actor",
+        "learning_rate_critic",
+        "batch_size",
+        "tao",
+        "discount",
+        "noise_sigma",
+        "noise_clip",
+      ]
   trainer_config:
     learning_rate_actor: 0.001
     learning_rate_critic: 0.001
@@ -59,22 +68,31 @@ agent2:
   noise_sigma: 0.2
   noise_clip: 0.5
   memory_size: 1000000
-  num_runs: 1
+  num_runs: 5
   mutation_config:
-    enabled: false
-    means: []
-    mins: []
-    maxs: []
-    vars: []
-    prob: 0
-    parameters: []
+    enabled: true
+    means: [0, 0, 0, 0, 0, 0, 0]
+    vars: [0.1, 0.1, 0.3, 0.1, 0.05, 0.1, 0.1]
+    maxs: ["inf", "inf", "inf", "inf", 0.99999999, "inf", "inf"]
+    mins: [0.00000001, 0.00000001, 16, 0, 0.00000001, 0, 0]
+    prob: 0.7
+    parameters:
+      [
+        "learning_rate_actor",
+        "learning_rate_critic",
+        "batch_size",
+        "tao",
+        "discount",
+        "noise_sigma",
+        "noise_clip",
+      ]
   trainer_config:
     learning_rate_actor: 0.0003
     learning_rate_critic: 0.0003
     log_name: td3_luna
     batch_size: 128
   specialized_config:
-    num_episodes: 750
+    num_episodes: 500
 
 agent3:
   type: td3
@@ -90,19 +108,28 @@ agent3:
   noise_sigma: 0.2
   noise_clip: 0.5
   memory_size: 1000000
-  num_runs: 1
+  num_runs: 5
   mutation_config:
-    enabled: false
-    means: []
-    mins: []
-    maxs: []
-    vars: []
-    prob: 0
-    parameters: []
+    enabled: true
+    means: [0, 0, 0, 0, 0, 0, 0]
+    vars: [0.1, 0.1, 0.3, 0.1, 0.05, 0.1, 0.1]
+    maxs: ["inf", "inf", "inf", "inf", 0.99999999, "inf", "inf"]
+    mins: [0.00000001, 0.00000001, 16, 0, 0.00000001, 0, 0]
+    prob: 0.7
+    parameters:
+      [
+        "learning_rate_actor",
+        "learning_rate_critic",
+        "batch_size",
+        "tao",
+        "discount",
+        "noise_sigma",
+        "noise_clip",
+      ]
   trainer_config:
     learning_rate_actor: 0.0003
     learning_rate_critic: 0.0003
     log_name: td3_luna_smaller
     batch_size: 128
   specialized_config:
-    num_episodes: 750
+    num_episodes: 500

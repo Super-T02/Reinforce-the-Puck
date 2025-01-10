@@ -19,6 +19,13 @@ env2:
 agent1:
   type: ddpg
   env_id: 0
+  num_runs: 1
+  mutation_config:
+    enabled: false
+    means: []
+    vars: []
+    prob: 0
+    parameters: []
   trainer_config:
     learning_rate: 0.001
     log_name: agent_ddpg
