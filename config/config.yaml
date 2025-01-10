@@ -24,4 +24,4 @@ agent1:
     log_name: agent_ddpg
     batch_size: 64
   specialized_config:
-    num_episodes: 1000 # This will override the num_episodes in the base_config
+    num_episodes: 2 # This will override the num_episodes in the base_config

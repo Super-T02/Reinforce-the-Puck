@@ -8,7 +8,7 @@ from components.memory import Batch
 from components.networks import Feedforward, QFunction
 from components.noise import OUNoise
 from gymnasium import spaces
-from utils.config import AgentConfig, DDPGAgentConfig
+from utils.config import AgentConfig, DDPGAgentConfig, global_config
 
 
 class DDPGAgent(BaseAgent):
@@ -71,6 +71,7 @@ class DDPGAgent(BaseAgent):
             output_size=out,
             hidden_sizes=self._config.critic_hidden_sizes,
             learning_rate=lr,
+            device=self._config.specialized_config.device,
         )
 
     def _policy_activation(self) -> callable:
@@ -79,8 +80,10 @@ class DDPGAgent(BaseAgent):
         Returns:
             callable: The activation function.
         """
-        high, low = torch.from_numpy(self._action_space.high), torch.from_numpy(
-            self._action_space.low
+        high, low = torch.from_numpy(self._action_space.high).to(
+            self._config.specialized_config.device
+        ), torch.from_numpy(self._action_space.low).to(
+            self._config.specialized_config.device
         )
         output_activation = lambda x: (torch.nn.Tanh()(x) + 1) * (high - low) / 2 + low
         return output_activation
@@ -97,6 +100,7 @@ class DDPGAgent(BaseAgent):
             output_size=self._action_n,
             activation_fun=torch.nn.ReLU(),
             output_activation=self._policy_activation(),
+            device=self._config.specialized_config.device,
         )
 
     def _copy_nets(self) -> None:
