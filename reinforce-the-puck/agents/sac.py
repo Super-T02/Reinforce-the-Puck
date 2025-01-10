@@ -143,7 +143,7 @@ class SACAgent(BaseAgent):
             action: The selected action.
         """
         action, _ = self.policy.predict(state)
-        return action
+        return action.detach().numpy()
 
     def state(self) -> tuple:
         """Get the state of the agent.
