@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 from agents.ddpg import DDPGAgent
 from components.networks import Feedforward
@@ -18,11 +19,16 @@ class TD3Agent(DDPGAgent):
         self._action_noise = ClippedGaussianNoise(
             (self._action_n,), config.noise_sigma, config.noise_clip
         )
+        self._target_smoothing_noise = ClippedGaussianNoise(
+            (self._action_n,), 0.1, config.noise_clip
+        )
 
         # Create 2nd Q network
         self.Q2 = self._create_q_net(1, config.trainer_config.learning_rate_critic)
         self.Q2_target = self._create_q_net(1)
         self._last_actor_loss = torch.nan
+        self._copy_nets()
+        self.Q_optimizer = self._create_q_optim([self.Q, self.Q2])
 
     def _copy_nets(self):
         super()._copy_nets()
@@ -103,6 +109,10 @@ class TD3Agent(DDPGAgent):
             torch.Tensor: The target Q values.
         """
         next_actions = self.act(batch.next_observations)
+        noise = self._target_smoothing_noise()
+        next_actions = np.clip(
+            next_actions + noise, self._action_space.low, self._action_space.high
+        )
         next_actions = torch.tensor(next_actions, dtype=global_config.base_config.dtype)
         q1 = self.Q_target.Qvalues(batch.next_observations, next_actions)
         q2 = self.Q2_target.Qvalues(batch.next_observations, next_actions)

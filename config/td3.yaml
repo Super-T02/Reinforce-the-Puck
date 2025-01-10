@@ -30,8 +30,8 @@ agent1:
   trainer_config:
     learning_rate_actor: 0.001
     learning_rate_critic: 0.001
-    log_name: td3_agent1
-    batch_size: 64
+    log_name: td3_pendulum
+    batch_size: 128
   specialized_config:
     num_episodes: 500
 
@@ -39,40 +39,19 @@ agent2:
   type: td3
   env_id: 1
   eps: 1
-  discount: 0.95
-  actor_hidden_sizes: [128, 128]
-  critic_hidden_sizes: [128, 128, 64]
-  policy_delay: 3
+  discount: 0.99
+  actor_hidden_sizes: [256, 128]
+  critic_hidden_sizes: [256, 128, 64]
+  policy_delay: 2
   update_target_every: -1
   tao: 0.005
   noise_sigma: 0.2
   noise_clip: 0.5
-  memory_size: 100000
+  memory_size: 1000000
   trainer_config:
-    learning_rate_actor: 0.001
-    learning_rate_critic: 0.001
-    log_name: td3_agent2
-    batch_size: 64
+    learning_rate_actor: 0.0003
+    learning_rate_critic: 0.0003
+    log_name: td3_luna
+    batch_size: 128
   specialized_config:
-    num_episodes: 500
-
-agentLuna1:
-  type: td3
-  env_id: 1
-  eps: 1
-  discount: 0.95
-  actor_hidden_sizes: [128, 128]
-  critic_hidden_sizes: [128, 128, 64]
-  policy_delay: 3
-  update_target_every: -1
-  tao: 0.005
-  noise_sigma: 0.2
-  noise_clip: 0.5
-  memory_size: 100000
-  trainer_config:
-    learning_rate_actor: 0.001
-    learning_rate_critic: 0.001
-    log_name: td3_agent2
-    batch_size: 64
-  specialized_config:
-    num_episodes: 500
+    num_episodes: 1000

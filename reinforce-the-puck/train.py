@@ -7,8 +7,8 @@ import os
 import numpy as np
 from agents.base_agent import BaseAgent
 from agents.ddpg import DDPGAgent
-from agents.td3 import TD3Agent
 from agents.sac import SACAgent
+from agents.td3 import TD3Agent
 from environments.wrapper import EnvWrapper
 from utils import config_dir, logger
 from utils.config import global_config
@@ -128,21 +128,23 @@ class TrainCLI:
                     else self._args.num_episodes
                 ),
             )
-            self.training_runs.append(training_run)
+            # self.training_runs.append(training_run)
+            training_run.run()
 
     def setup(self):
         """Setup the CLI."""
         self.load_config()
-        self.load_classes()
+        # self.load_classes()
 
     def run(self):
         """
         Run the CLI.
         """
         self.setup()
+        self.load_classes()  # Aka run
 
-        for training_run in self.training_runs:
-            rewards = training_run.run()
+        # for training_run in self.training_runs:
+        #     rewards = training_run.run()
 
 
 if __name__ == "__main__":
