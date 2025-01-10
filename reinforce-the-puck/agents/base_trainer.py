@@ -169,6 +169,10 @@ class BaseTrainer:
         """Get the directory where the logs are stored."""
         return self._tensorboard.writer.log_dir
 
+    def get_name(self) -> str:
+        """Get the name of the agent."""
+        return self.__generate_training_name(0)
+
     def train_step(self, batch: Batch):
         """
         Perform a single training step.

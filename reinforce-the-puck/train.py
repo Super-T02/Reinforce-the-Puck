@@ -1,6 +1,7 @@
 """This file contains the CLI for the training process. Input is a yaml file with the configuration for the training."""
 
 import argparse
+import copy
 import logging
 import os
 
@@ -9,7 +10,7 @@ from agents.ddpg import DDPGAgent
 from agents.sac import SACAgent
 from agents.td3 import TD3Agent
 from environments.wrapper import EnvWrapper
-from utils import config_dir, logger
+from utils import config_dir, logger, model_dir
 from utils.config import AgentConfig, global_config
 
 
@@ -19,6 +20,8 @@ class TrainingRun:
         self._agent_config = agent
         self._num_episodes = num_episodes
         self._logger = logging.getLogger(__name__)
+        self._best_agent = None
+        self._best_reward = -np.inf
 
     def run(self):
         self._logger.info("Starting training [%d]...", self._num_episodes)
@@ -37,6 +40,7 @@ class TrainingRun:
             "Min reward: %4.2f [Episode: %10d]", rewards.min(), rewards.argmin()
         )
         self.evaluate()
+        self.save_best_agent()
 
     def evaluate(self):
         """Evaluate the agent in the environment."""
@@ -44,6 +48,22 @@ class TrainingRun:
         rewards = self._environment.evaluate(self._agent_config.eval_episodes)
         self._logger.info("Evaluation finished.")
         self._environment.agent.save_eval_result(rewards)
+        mean_reward = np.mean(rewards)
+        if mean_reward > self._best_reward:
+            self._best_reward = mean_reward
+            self._best_agent = copy.copy(self._environment.agent)
+            self.save_best_agent()
+
+    def save_best_agent(self):
+        """Save the best agent to a file."""
+        self._best_agent.save(
+            os.path.join(
+                model_dir,
+                self._environment.name,
+                self._agent_config.type,
+                self._best_agent.get_name() + "_best_agent.pth",
+            )
+        )
 
 
 class TrainCLI:

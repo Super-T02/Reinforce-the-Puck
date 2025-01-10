@@ -40,6 +40,7 @@ class EnvWrapper:
         self._last_observation = (None, 0, False, False, {})
         self._logger = logging.getLogger(__name__)
         self._max_steps = max_steps
+        self.name = env_name
         self.reset()
 
     @property
