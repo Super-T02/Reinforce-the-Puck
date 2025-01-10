@@ -79,6 +79,10 @@ class BaseConfig(ConfigGroup):
 
     @dtype.setter
     def dtype(self, value: str | torch.dtype):
+        if value is None:
+            self._dtype = None
+            return
+
         if isinstance(value, torch.dtype):
             self._dtype = value
             return
@@ -99,9 +103,15 @@ class AgentConfig(ConfigGroup):
         self.env_id = 0
         self.memory_size = 10000
         self.trainer_config: TrainerConfig = TrainerConfig()
+
         self.specialized_config: BaseConfig = (
             BaseConfig()
-        )  # todo: ggf extra config erstellen
+        )  # Set all public attributes to None to enable inheritance from BaseConfig (See from_yaml)
+        for attr in dir(self.specialized_config):
+            if not attr.startswith("_") and not callable(
+                getattr(self.specialized_config, attr)
+            ):
+                setattr(self.specialized_config, attr, None)
 
     def to_dict(self):
         dict_ = super().to_dict()
@@ -187,11 +197,7 @@ class Config:
     Main configuration class to load and manage YAML configurations.
     """
 
-    TYPE2AGENT = {
-        "ddpg": DDPGAgentConfig,
-        "td3": TD3AgentConfig,
-        "sac": SACAgentConfig
-    }
+    TYPE2AGENT = {"ddpg": DDPGAgentConfig, "td3": TD3AgentConfig, "sac": SACAgentConfig}
 
     def __init__(self):
         self.base_config = BaseConfig()
@@ -237,6 +243,20 @@ class Config:
                 group = getattr(self, group_name)
                 if isinstance(group, ConfigGroup):
                     group.update_from_dict(group_config)
+
+        # impl inheritance for specialized_config from base_config
+        agent_configs = self.get_agents()
+        for agent_config in agent_configs:
+            for attr in dir(agent_config.specialized_config):
+                if not attr.startswith("_") and not callable(
+                    getattr(agent_config.specialized_config, attr)
+                ):
+                    if getattr(agent_config.specialized_config, attr) is None:
+                        setattr(
+                            agent_config.specialized_config,
+                            attr,
+                            getattr(self.base_config, attr),
+                        )
 
     def to_dict(self) -> dict:
         """
