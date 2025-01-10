@@ -1,3 +1,4 @@
+import multiprocessing
 import os
 from queue import Queue
 from threading import Thread
@@ -28,6 +29,7 @@ class TensorboardStatistics:
         self._stop_signal = False
         self._worker_thread = Thread(target=self._log_worker, daemon=True)
         self._worker_thread.start()
+        self._lock = multiprocessing.Lock()
 
     def _log_worker(self):
         """Worker thread for processing log entries."""
@@ -55,7 +57,8 @@ class TensorboardStatistics:
         """
         Add statistics to the queue for asynchronous logging.
         """
-        self._log_queue.put((step, statistics))
+        with self._lock:
+            self._log_queue.put((step, statistics))
 
     def save_hyper_parameters(self, hyper_parameters: dict):
         """

@@ -2,7 +2,6 @@ import logging
 
 import gymnasium as gym
 from agents.base_agent import BaseAgent
-from utils.config import global_config
 
 
 class EnvWrapper:
@@ -31,7 +30,7 @@ class EnvWrapper:
             logging.error("Environment not compatible with the agent.")
             self.env = gym.make(env_name)
 
-        self.agent = agent_class(
+        self.agent: BaseAgent = agent_class(
             **kwargs_agent,
             observation_space=self.env.observation_space,
             action_space=self.env.action_space
@@ -63,7 +62,7 @@ class EnvWrapper:
         state, _ = self.env.reset()
         return state
 
-    def step(self) -> tuple[any, float, bool, bool, dict[str, any]]:
+    def step(self, save=True) -> tuple[any, float, bool, bool, dict[str, any]]:
         """
         Take an simulation step in the environment.
 
@@ -73,7 +72,8 @@ class EnvWrapper:
         state = self._last_observation[0]
         action = self.agent.act(state)
         self._last_observation = self.env.step(action)
-        self.agent.save_experience(state, action, *self._last_observation)
+        if save:
+            self.agent.save_experience(state, action, *self._last_observation)
         return self._last_observation
 
     def reset(self):
@@ -94,12 +94,13 @@ class EnvWrapper:
             float: The total reward received in the episode.
         """
         done = False
-        self._logger.info("Running one episode...")
         reward = 0
-        while not done:
+        for _ in range(self._max_steps):
             self.step()
-            done = self._last_observation[2]
             reward += self._last_observation[1]
+            done = self._last_observation[2]
+            if done:
+                break
         self._logger.info("Episode finished. Total reward: %f", reward)
         return reward
 
@@ -130,6 +131,22 @@ class EnvWrapper:
         )  # backwards compatibility (some rewards are floats, some are tensors)
         self._logger.info("Episode %10d: Total reward: %4.2f", i, reward)
         return reward
+
+    def evaluate(self, n_episodes: int) -> list[float]:
+        """Evaluate the agent in the environment.
+
+        Args:
+            n_episodes (int): The number of episodes to evaluate.
+
+        Returns:
+            list[float]: A list of rewards received in each episode.
+        """
+        rewards = []
+        for i in range(n_episodes):
+            self.reset()
+            self.agent.reset()
+            rewards.append(self.run())
+        return rewards
 
     def close(self) -> "EnvWrapper":
         """Close the environment.

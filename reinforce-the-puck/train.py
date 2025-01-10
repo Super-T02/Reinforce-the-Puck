@@ -5,27 +5,29 @@ import logging
 import os
 
 import numpy as np
-from agents.base_agent import BaseAgent
 from agents.ddpg import DDPGAgent
 from agents.sac import SACAgent
 from agents.td3 import TD3Agent
 from environments.wrapper import EnvWrapper
 from utils import config_dir, logger
-from utils.config import global_config
+from utils.config import AgentConfig, global_config
 
 
 class TrainingRun:
-    def __init__(self, environment: EnvWrapper, agent: BaseAgent, num_episodes: int):
+    def __init__(self, environment: EnvWrapper, agent: AgentConfig, num_episodes: int):
         self._environment = environment
-        self._agent = agent
+        self._agent_config = agent
         self._num_episodes = num_episodes
         self._logger = logging.getLogger(__name__)
 
     def run(self):
         self._logger.info("Starting training [%d]...", self._num_episodes)
-        rewards = np.array(
-            [self._environment.run_train_episode(i) for i in range(self._num_episodes)]
-        )
+        rewards = []
+        for i in range(self._num_episodes):
+            rewards += [self._environment.run_train_episode(i)]
+            if i % self._agent_config.eval_freq == 0:
+                self.evaluate()
+        rewards = np.array(rewards)
         self._logger.info("Training finished.")
         self._logger.info("Mean reward: %4.2f", rewards.mean())
         self._logger.info(
@@ -34,8 +36,14 @@ class TrainingRun:
         self._logger.info(
             "Min reward: %4.2f [Episode: %10d]", rewards.min(), rewards.argmin()
         )
-        self._environment.close()
-        return rewards
+        self.evaluate()
+
+    def evaluate(self):
+        """Evaluate the agent in the environment."""
+        self._logger.info("Starting evaluation...")
+        rewards = self._environment.evaluate(self._agent_config.eval_episodes)
+        self._logger.info("Evaluation finished.")
+        self._environment.agent.save_eval_result(rewards)
 
 
 class TrainCLI:
@@ -112,15 +120,16 @@ class TrainCLI:
             max_steps = (
                 env.max_steps if self._args.max_steps is None else self._args.max_steps
             )
+            env = EnvWrapper(
+                env_name=env_name,
+                max_steps=max_steps,
+                agent_class=type2agent[agent_config.type],
+                kwargs_agent={
+                    "config": agent_config,
+                },
+            )
             training_run = TrainingRun(
-                environment=EnvWrapper(
-                    env_name=env_name,
-                    max_steps=max_steps,
-                    agent_class=type2agent[agent_config.type],
-                    kwargs_agent={
-                        "config": agent_config,
-                    },
-                ),
+                environment=env,
                 agent=agent_config,
                 num_episodes=(
                     agent_config.specialized_config.num_episodes

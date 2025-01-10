@@ -1,6 +1,8 @@
 import logging
+import os
 
 import numpy as np
+import yaml
 from agents.base_agent import BaseAgent
 from environments.wrapper import EnvWrapper
 
@@ -42,3 +44,21 @@ def run_agent_on_environment(
     observations = np.asarray(observations)
     actions = np.asarray(actions)
     return observations, actions, rewards
+
+
+def evaluate(rewards: list[float], path: str) -> tuple:
+    """Creates evaluations based on the rewards and saves them to a file."""
+    mean_reward = np.mean(rewards)
+    max_reward = np.max(rewards)
+    min_reward = np.min(rewards)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w") as f:
+        yaml.dump(
+            {
+                "mean_reward": mean_reward,
+                "max_reward": max_reward,
+                "min_reward": min_reward,
+            },
+            f,
+        )
+    return mean_reward, max_reward, min_reward

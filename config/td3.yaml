@@ -33,7 +33,7 @@ agent1:
     log_name: td3_pendulum
     batch_size: 128
   specialized_config:
-    num_episodes: 500
+    num_episodes: 200
 
 agent2:
   type: td3
@@ -54,4 +54,4 @@ agent2:
     log_name: td3_luna
     batch_size: 128
   specialized_config:
-    num_episodes: 1000
+    num_episodes: 200

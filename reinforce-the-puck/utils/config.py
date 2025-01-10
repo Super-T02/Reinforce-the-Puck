@@ -100,6 +100,8 @@ class AgentConfig(ConfigGroup):
         self.name = "BasicOpponent"
         self.version = 1
         self.epochs = 10
+        self.eval_freq = 100
+        self.eval_episodes = 10
         self.env_id = 0
         self.memory_size = 10000
         self.trainer_config: TrainerConfig = TrainerConfig()
