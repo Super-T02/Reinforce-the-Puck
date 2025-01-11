@@ -15,6 +15,7 @@ class EnvWrapper:
         env_name: str,
         agent_class: BaseAgent,
         max_steps: int,
+        do_render: False,
         kwargs_agent: dict = {},
     ):
         """
@@ -26,10 +27,16 @@ class EnvWrapper:
             kwargs_agent (dict): Keyword arguments for the agent.
         """
         try:
-            self.env = gym.make(env_name, continuous=True)
+            if do_render:
+                self.env = gym.make(env_name, continuous=True, render_mode="human")
+            else:
+                self.env = gym.make(env_name, continuous=True)
         except:
             logging.error("Environment not compatible with the agent.")
-            self.env = gym.make(env_name)
+            if do_render:
+                self.env = gym.make(env_name, render_mode="human")
+            else:
+                self.env = gym.make(env_name)
 
         self.agent = agent_class(
             **kwargs_agent,
@@ -130,6 +137,10 @@ class EnvWrapper:
         )  # backwards compatibility (some rewards are floats, some are tensors)
         self._logger.info("Episode %10d: Total reward: %4.2f", i, reward)
         return reward
+
+    def render(self):
+        """Render the environment."""
+        self.env.render()
 
     def close(self) -> "EnvWrapper":
         """Close the environment.
