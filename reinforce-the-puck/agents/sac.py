@@ -254,6 +254,12 @@ class SACAgent(BaseAgent):
             target_q2 = self.Q2_target.Qvalues(batch.next_observations, next_actions)
             target_q_min = torch.min(target_q1, target_q2)
 
+            """"
+            The soft Q-function parameters can be trained to minimize the soft Bellman residual
+            In (Haarnoja et al., 2018c) we introduced an additional function approximator for the value function, but later found it to be unnecessary
+            --> no value function
+            https://arxiv.org/pdf/1812.05905
+            """
             target_q = batch.rewards + self._config.discount * (1 - batch.dones) * (
                 target_q_min - self.alpha * next_log_probs  # entropy term
             )

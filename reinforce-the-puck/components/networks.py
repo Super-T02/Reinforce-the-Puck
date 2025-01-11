@@ -245,7 +245,10 @@ class StochasticPolicyNetwork(Feedforward):
         for layer, activation_fun in zip(self._layers, self._activations):
             x = activation_fun(layer(x))
 
-        # Compute mean and log standard deviation
+        """
+        C. Enforcing Action Boun
+        https://arxiv.org/pdf/1801.01290
+        """
         mean = self._mean_layer(x)
         log_std = torch.clamp(
             self._log_std_layer(x), self.log_std_min, self.log_std_max
