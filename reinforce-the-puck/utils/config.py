@@ -113,7 +113,7 @@ class MutationConfig(ConfigGroup):
         self.vars = [0.1, 0.1, 0.1]
         self.mins = [0.000001, 16, 1000]
         self.maxs = [0.1, 256, 100000]
-        self.prob = 0.3
+        self.prob = [0.3, 0.3, 0.3]
         self.parameters = ["learning_rate", "batch_size", "memory_size"]
 
     def get_min(self, i):
@@ -178,11 +178,11 @@ class AgentConfig(ConfigGroup):
                 )
                 if param_value is None:
                     continue
-                if random.random() < self.mutation_config.prob:
-                    mutation_rate = self.mutation_config.means[i]
-                    mutationstds = self.mutation_config.vars[i]
+                if random.random() < self.mutation_config.prob[i]:
+                    mutation_mean = self.mutation_config.means[i]
+                    mutationvar = self.mutation_config.vars[i]
                     self._mutate_param(
-                        param, param_value, mutation_rate, mutationstds, i
+                        param, param_value, mutation_mean, mutationvar, i
                     )
                     num_mutations += 1
             runs += 1
@@ -191,7 +191,7 @@ class AgentConfig(ConfigGroup):
                     "Mutation failed to happen, check probabilities (or you are very unlucky)"
                 )
 
-    def _mutate_param(self, param, param_value, mutation_rate, mutationstds, i):
+    def _mutate_param(self, param, param_value, mutation_mean, mutationvars, i):
         """Mutate a parameter value.
 
         Args:
@@ -206,21 +206,21 @@ class AgentConfig(ConfigGroup):
         if param not in self.mutation_config.parameters:
             return
 
-        mutation_rate = (
+        mutation_mean = (
             random.choice(self.mutation_config.means)
-            if isinstance(mutation_rate, list)
-            else mutation_rate
+            if isinstance(mutation_mean, list)
+            else mutation_mean
         )
-        mutationstds = (
+        mutationvars = (
             random.choice(self.mutation_config.vars)
-            if isinstance(mutationstds, list)
-            else mutationstds
+            if isinstance(mutationvars, list)
+            else mutationvars
         )
         value = None
         if isinstance(param_value, int):
-            value = param_value + int(np.random.normal(mutation_rate, mutationstds))
+            value = param_value + int(np.random.normal(mutation_mean, mutationvars))
         elif isinstance(param_value, float):
-            value = param_value * (1 + np.random.normal(mutation_rate, mutationstds))
+            value = param_value + np.random.normal(mutation_mean, mutationvars)
         else:
             raise ValueError(f"Unsupported type for mutation: {type(param_value)}")
         goal = self

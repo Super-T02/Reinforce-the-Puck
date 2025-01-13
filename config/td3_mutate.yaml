@@ -35,7 +35,7 @@ agent1:
     vars: [0.1, 0.1, 0.3, 0.1, 0.05, 0.1, 0.1]
     maxs: ["inf", "inf", "inf", "inf", 0.99999999, "inf", "inf"]
     mins: [0.00000001, 0.00000001, 16, 0, 0.00000001, 0, 0]
-    prob: 0.7
+    prob: [0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7]
     parameters:
       [
         "learning_rate_actor",
@@ -52,7 +52,7 @@ agent1:
     log_name: td3_pendulum
     batch_size: 128
   specialized_config:
-    num_episodes: 500
+    num_episodes: 1
 
 agent2:
   type: td3
@@ -75,7 +75,7 @@ agent2:
     vars: [0.1, 0.1, 0.3, 0.1, 0.05, 0.1, 0.1]
     maxs: ["inf", "inf", "inf", "inf", 0.99999999, "inf", "inf"]
     mins: [0.00000001, 0.00000001, 16, 0, 0.00000001, 0, 0]
-    prob: 0.7
+    prob: [0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7]
     parameters:
       [
         "learning_rate_actor",
@@ -92,7 +92,7 @@ agent2:
     log_name: td3_luna
     batch_size: 128
   specialized_config:
-    num_episodes: 500
+    num_episodes: 1
 
 agent3:
   type: td3
@@ -115,7 +115,7 @@ agent3:
     vars: [0.1, 0.1, 0.3, 0.1, 0.05, 0.1, 0.1]
     maxs: ["inf", "inf", "inf", "inf", 0.99999999, "inf", "inf"]
     mins: [0.00000001, 0.00000001, 16, 0, 0.00000001, 0, 0]
-    prob: 0.7
+    prob: [0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7]
     parameters:
       [
         "learning_rate_actor",
@@ -132,4 +132,4 @@ agent3:
     log_name: td3_luna_smaller
     batch_size: 128
   specialized_config:
-    num_episodes: 500
+    num_episodes: 1

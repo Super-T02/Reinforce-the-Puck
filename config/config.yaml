@@ -24,7 +24,7 @@ agent1:
     enabled: false
     means: []
     vars: []
-    prob: 0
+    prob: []
     parameters: []
   trainer_config:
     learning_rate: 0.001
