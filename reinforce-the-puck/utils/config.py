@@ -168,16 +168,22 @@ class AgentConfig(ConfigGroup):
         return dict_
 
     def mutate(self):
-        for i, param in enumerate(self.mutation_config.parameters):
-            param_value = getattr(
-                self, param, getattr(self.trainer_config, param, None)
-            )
-            if param_value is None:
-                continue
-            if random.random() < self.mutation_config.prob:
-                mutation_rate = self.mutation_config.means[i]
-                mutationstds = self.mutation_config.vars[i]
-                self._mutate_param(param, param_value, mutation_rate, mutationstds, i)
+        """Mutate the agent configuration."""
+        num_mutations = 0
+        while num_mutations < 1:
+            for i, param in enumerate(self.mutation_config.parameters):
+                param_value = getattr(
+                    self, param, getattr(self.trainer_config, param, None)
+                )
+                if param_value is None:
+                    continue
+                if random.random() < self.mutation_config.prob:
+                    mutation_rate = self.mutation_config.means[i]
+                    mutationstds = self.mutation_config.vars[i]
+                    self._mutate_param(
+                        param, param_value, mutation_rate, mutationstds, i
+                    )
+                    num_mutations += 1
 
     def _mutate_param(self, param, param_value, mutation_rate, mutationstds, i):
         """Mutate a parameter value.
