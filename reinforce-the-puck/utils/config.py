@@ -108,7 +108,7 @@ class BaseConfig(ConfigGroup):
 
 class MutationConfig(ConfigGroup):
     def __init__(self):
-        self.enabled = True
+        self.enabled = False
         self.means = [0, 0, 0]
         self.vars = [0.1, 0.1, 0.1]
         self.mins = [0.000001, 16, 1000]
