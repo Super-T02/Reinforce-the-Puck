@@ -1,8 +1,9 @@
 import logging
+import os
 
 import gymnasium as gym
 from agents.base_agent import BaseAgent
-from utils.config import global_config
+from utils import model_dir
 
 
 class EnvWrapper:
@@ -15,8 +16,9 @@ class EnvWrapper:
         env_name: str,
         agent_class: BaseAgent,
         max_steps: int,
-        do_render: False,
+        do_render: bool = False,
         kwargs_agent: dict = {},
+        checkpoint: str = None,
     ):
         """
         Initialize the environment wrapper.
@@ -25,6 +27,7 @@ class EnvWrapper:
             env_name (str): Name of the Gymnasium environment.
             agent (callable): The agent class that interacts with the environment.
             kwargs_agent (dict): Keyword arguments for the agent.
+            checkpoint (str): The path to the checkpoint file.
         """
         try:
             if do_render:
@@ -37,18 +40,39 @@ class EnvWrapper:
                 self.env = gym.make(env_name, render_mode="human")
             else:
                 self.env = gym.make(env_name)
-
-        self.agent = agent_class(
+        self._agent_class = agent_class
+        self.agent: BaseAgent = self._agent_class(
             **kwargs_agent,
             observation_space=self.env.observation_space,
-            action_space=self.env.action_space
+            action_space=self.env.action_space,
         )
         self.observation_space = self.env.observation_space
         self.action_space = self.env.action_space
         self._last_observation = (None, 0, False, False, {})
         self._logger = logging.getLogger(__name__)
         self._max_steps = max_steps
+        self.name = env_name
+        self._load_model(checkpoint)
         self.reset()
+
+    def _load_model(self, checkpoint: str):
+        """Load the model from a checkpoint file."""
+        if checkpoint is not None:
+            filepath = os.path.join(model_dir, checkpoint)
+            if not os.path.exists(filepath):
+                raise FileNotFoundError(f"Checkpoint file not found: {checkpoint}")
+            self.agent.load(filepath)
+
+    def change_agent_config(self, config: dict):
+        """Change the agent configuration."""
+        del self.agent
+        self.agent = self._agent_class(
+            config=config,
+            observation_space=self.observation_space,
+            action_space=self.action_space,
+        )
+        self.reset()
+        self._logger.info("Agent configuration changed.")
 
     @property
     def last_observation(self) -> tuple[any, float, bool, bool, dict[str, any]]:
@@ -70,7 +94,7 @@ class EnvWrapper:
         state, _ = self.env.reset()
         return state
 
-    def step(self) -> tuple[any, float, bool, bool, dict[str, any]]:
+    def step(self, save=True) -> tuple[any, float, bool, bool, dict[str, any]]:
         """
         Take an simulation step in the environment.
 
@@ -80,7 +104,8 @@ class EnvWrapper:
         state = self._last_observation[0]
         action = self.agent.act(state)
         self._last_observation = self.env.step(action)
-        self.agent.save_experience(state, action, *self._last_observation)
+        if save:
+            self.agent.save_experience(state, action, *self._last_observation)
         return self._last_observation
 
     def reset(self):
@@ -101,12 +126,13 @@ class EnvWrapper:
             float: The total reward received in the episode.
         """
         done = False
-        self._logger.info("Running one episode...")
         reward = 0
-        while not done:
+        for _ in range(self._max_steps):
             self.step()
-            done = self._last_observation[2]
             reward += self._last_observation[1]
+            done = self._last_observation[2]
+            if done:
+                break
         self._logger.info("Episode finished. Total reward: %f", reward)
         return reward
 
@@ -137,6 +163,22 @@ class EnvWrapper:
         )  # backwards compatibility (some rewards are floats, some are tensors)
         self._logger.info("Episode %10d: Total reward: %4.2f", i, reward)
         return reward
+
+    def evaluate(self, n_episodes: int) -> list[float]:
+        """Evaluate the agent in the environment.
+
+        Args:
+            n_episodes (int): The number of episodes to evaluate.
+
+        Returns:
+            list[float]: A list of rewards received in each episode.
+        """
+        rewards = []
+        for i in range(n_episodes):
+            self.reset()
+            self.agent.reset()
+            rewards.append(self.run())
+        return rewards
 
     def render(self):
         """Render the environment."""

@@ -1,41 +1,98 @@
 """This file contains the CLI for the training process. Input is a yaml file with the configuration for the training."""
 
 import argparse
+import copy
 import logging
 import os
 
 import numpy as np
-from agents.base_agent import BaseAgent
 from agents.ddpg import DDPGAgent
 from agents.sac import SACAgent
 from agents.td3 import TD3Agent
 from environments.wrapper import EnvWrapper
-from utils import config_dir, logger
-from utils.config import global_config
+from utils import config_dir, logger, model_dir
+from utils.config import AgentConfig, global_config
 
 
 class TrainingRun:
-    def __init__(self, environment: EnvWrapper, agent: BaseAgent, num_episodes: int):
+    def __init__(
+        self,
+        environment: EnvWrapper,
+        agent_config: AgentConfig,
+        num_episodes: int,
+    ):
         self._environment = environment
-        self._agent = agent
+        self._agent_config = agent_config
         self._num_episodes = num_episodes
         self._logger = logging.getLogger(__name__)
+        self._best_agent = None
+        self._best_reward = -np.inf
 
-    def run(self):
+    def run(self, num_runs: int = 1):
+        """Run the training process.
+        1. Train the agent.
+        2. Evaluate the agent.
+        3. Save the best agent.
+        4. Mutate the agent.
+        """
+        for i in range(num_runs):
+            self.train()
+            self.evaluate()
+            self.save_best_agent()
+            if not self._agent_config.mutation_config.enabled:
+                break
+            self._mutate() if i < num_runs - 1 else None
+
+    def train(self):
+        """Train the agent in the environment."""
         self._logger.info("Starting training [%d]...", self._num_episodes)
-        rewards = np.array(
-            [self._environment.run_train_episode(i) for i in range(self._num_episodes)]
-        )
+        rewards = []
+        for i in range(self._num_episodes):
+            rewards += [self._environment.run_train_episode(i)]
+            if i % self._agent_config.eval_freq == 0:
+                self.evaluate()
+        rewards = np.array(rewards)
         self._logger.info("Training finished.")
-        self._logger.info("Mean reward: %4.2f", rewards.mean())
-        self._logger.info(
-            "Max reward: %4.2f [Episode: %10d]", rewards.max(), rewards.argmax()
+
+    def evaluate(self):
+        """Evaluate the agent in the environment."""
+        self._logger.info("Starting evaluation...")
+        rewards = self._environment.evaluate(self._agent_config.eval_episodes)
+        self._logger.info("Evaluation finished.")
+        self._environment.agent.save_eval_result(rewards)
+        mean_reward = np.mean(rewards)
+        if mean_reward > self._best_reward:
+            self._best_reward = mean_reward
+            self._best_agent = self._environment.agent
+            self.save_best_agent()
+
+    def save_best_agent(self):
+        """Save the best agent to a file."""
+        self._agent_config = self._best_agent.get_config()
+        self._best_agent.save(
+            os.path.join(
+                model_dir,
+                self._environment.name,
+                self._agent_config.type,
+                self._best_agent.get_name(),
+                "best_agent.pth",
+            )
         )
-        self._logger.info(
-            "Min reward: %4.2f [Episode: %10d]", rewards.min(), rewards.argmin()
+        self._agent_config.to_yaml(
+            os.path.join(
+                model_dir,
+                self._environment.name,
+                self._agent_config.type,
+                self._best_agent.get_name(),
+                "best_config.yaml",
+            )
         )
-        self._environment.close()
-        return rewards
+
+    def _mutate(self):
+        """Mutate the agent."""
+        self._logger.info("Mutating the agent...")
+        self._agent_config.mutate()
+        self._environment.change_agent_config(self._agent_config)
 
 
 class TrainCLI:
@@ -112,17 +169,19 @@ class TrainCLI:
             max_steps = (
                 env.max_steps if self._args.max_steps is None else self._args.max_steps
             )
+            env = EnvWrapper(
+                env_name=env_name,
+                max_steps=max_steps,
+                checkpoint=agent_config.checkpoint,
+                agent_class=type2agent[agent_config.type],
+                do_render=agent_config.specialized_config.do_render,
+                kwargs_agent={
+                    "config": agent_config,
+                },
+            )
             training_run = TrainingRun(
-                environment=EnvWrapper(
-                    env_name=env_name,
-                    max_steps=max_steps,
-                    agent_class=type2agent[agent_config.type],
-                    do_render=agent_config.specialized_config.do_render,
-                    kwargs_agent={
-                        "config": agent_config,
-                    },
-                ),
-                agent=agent_config,
+                environment=env,
+                agent_config=agent_config,
                 num_episodes=(
                     agent_config.specialized_config.num_episodes
                     if self._args.num_episodes is None
@@ -130,7 +189,7 @@ class TrainCLI:
                 ),
             )
             # self.training_runs.append(training_run)
-            training_run.run()
+            training_run.run(agent_config.num_runs)
 
     def setup(self):
         """Setup the CLI."""

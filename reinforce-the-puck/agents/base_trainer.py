@@ -1,5 +1,6 @@
 import datetime
 import logging
+import multiprocessing
 import os
 import pickle
 from typing import List
@@ -78,6 +79,17 @@ class BaseTrainer:
         async with aiofiles.open(file_path, "wb") as f:
             await f.write(pickle.dumps(statistics))
 
+    def save_eval_result(self, rewards: List[float]):
+        """Save the evaluation results to the TensorBoard."""
+        self._tensorboard.write_tensorboard_statistics_async(
+            self._train_iterations,
+            {
+                "eval/reward": np.mean(rewards),
+                "eval/max_reward": np.max(rewards),
+                "eval/min_reward": np.min(rewards),
+            },
+        )
+
     def train(self, last_reward: float = np.nan) -> List[dict]:
         """
         Train the agent for a specified number of iterations.
@@ -104,10 +116,10 @@ class BaseTrainer:
 
             statistics.append(statistic)
             if iteration % self._log_freq == 0:
-                self.save_statistics_async(
-                    self.__convert_dicts_to_lists(statistics),
-                    f"stats_{self.__generate_training_name(iteration)}",
-                )
+                # self.save_statistics_async(
+                #     self.__convert_dicts_to_lists(statistics),
+                #     f"stats_{self.__generate_training_name(iteration)}",
+                # )
 
                 self._tensorboard.write_tensorboard_statistics_async(
                     iteration, statistic
@@ -152,6 +164,14 @@ class BaseTrainer:
         """
         time_stamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         return f"{time_stamp}_{self._log_name}_{i}-steps"
+
+    def get_logging_dir(self) -> str:
+        """Get the directory where the logs are stored."""
+        return self._tensorboard.writer.log_dir
+
+    def get_name(self) -> str:
+        """Get the name of the agent."""
+        return self.__generate_training_name(0)
 
     def train_step(self, batch: Batch):
         """
