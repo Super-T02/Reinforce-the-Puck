@@ -295,7 +295,8 @@ class StochasticPolicyNetwork(Feedforward):
         z = normal_dist.rsample()
         action = torch.tanh(z)
         log_prob = normal_dist.log_prob(z).sum(dim=-1, keepdim=True)
-        log_prob -= torch.log(1 - action.pow(2) + 1e-6).sum(dim=-1, keepdim=True)
+        # C. Enforcing Action Bounds
+        log_prob -= torch.log(1 - action.pow(2) + 1e-6).sum(dim=-1, keepdim=True) #1e-6 prevent log(0)
         return action, log_prob
 
     def mean(self, x: torch.Tensor) -> torch.Tensor:
