@@ -185,6 +185,11 @@ class AgentConfig(ConfigGroup):
                     )
                     num_mutations += 1
 
+            if num_mutations == 100:
+                raise ValueError(
+                    "Mutation failed to happen, check probabilities (or you are very unlucky)"
+                )
+
     def _mutate_param(self, param, param_value, mutation_rate, mutationstds, i):
         """Mutate a parameter value.
 
