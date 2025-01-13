@@ -2,7 +2,8 @@
 
 base_config:
   dtype: float32
-  num_episodes: 1000
+  num_episodes: 1500
+  do_render: False
 
 env1:
   env_name: Pendulum-v1
@@ -21,7 +22,7 @@ agent1:
   tau: 0.005 # Target network update rate (Soft update)
   memory_size: 1000000
   discount: 0.99 # Discount factor
-  alpha: 0.02 # Entropy regularization (inital value -> alpha tuning)
+  alpha: 0.1 # Entropy regularization coefficient
   alpha_lr: 0.0003 # Learning rate for alpha
   log_std_min: -20 #lower bound for log_std
   log_std_max: 2 #upper bound for log_std
@@ -32,4 +33,4 @@ agent1:
     learning_rate_actor: 0.0003
     learning_rate_critic: 0.0003
     log_name: agent_sac_new_env
-    batch_size: 128
+    batch_size: 256
