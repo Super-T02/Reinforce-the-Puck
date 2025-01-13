@@ -174,6 +174,7 @@ class TrainCLI:
                 max_steps=max_steps,
                 checkpoint=agent_config.checkpoint,
                 agent_class=type2agent[agent_config.type],
+                do_render=agent_config.specialized_config.do_render,
                 kwargs_agent={
                     "config": agent_config,
                 },

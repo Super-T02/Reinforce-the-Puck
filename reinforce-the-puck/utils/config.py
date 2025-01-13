@@ -84,6 +84,7 @@ class BaseConfig(ConfigGroup):
         self._dtype = torch.float32
         self.num_episodes = 1
         self.max_memory_size = 100000
+        self.do_render = False
 
     @property
     def dtype(self):

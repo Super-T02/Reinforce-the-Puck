@@ -16,6 +16,7 @@ class EnvWrapper:
         env_name: str,
         agent_class: BaseAgent,
         max_steps: int,
+        do_render: bool = False,
         kwargs_agent: dict = {},
         checkpoint: str = None,
     ):
@@ -29,10 +30,16 @@ class EnvWrapper:
             checkpoint (str): The path to the checkpoint file.
         """
         try:
-            self.env = gym.make(env_name, continuous=True)
+            if do_render:
+                self.env = gym.make(env_name, continuous=True, render_mode="human")
+            else:
+                self.env = gym.make(env_name, continuous=True)
         except:
             logging.error("Environment not compatible with the agent.")
-            self.env = gym.make(env_name)
+            if do_render:
+                self.env = gym.make(env_name, render_mode="human")
+            else:
+                self.env = gym.make(env_name)
         self._agent_class = agent_class
         self.agent: BaseAgent = self._agent_class(
             **kwargs_agent,
@@ -172,6 +179,10 @@ class EnvWrapper:
             self.agent.reset()
             rewards.append(self.run())
         return rewards
+
+    def render(self):
+        """Render the environment."""
+        self.env.render()
 
     def close(self) -> "EnvWrapper":
         """Close the environment.
