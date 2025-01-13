@@ -170,6 +170,7 @@ class AgentConfig(ConfigGroup):
     def mutate(self):
         """Mutate the agent configuration."""
         num_mutations = 0
+        runs = 0
         while num_mutations < 1:
             for i, param in enumerate(self.mutation_config.parameters):
                 param_value = getattr(
@@ -184,8 +185,8 @@ class AgentConfig(ConfigGroup):
                         param, param_value, mutation_rate, mutationstds, i
                     )
                     num_mutations += 1
-
-            if num_mutations == 100:
+            runs += 1
+            if runs >= 100:
                 raise ValueError(
                     "Mutation failed to happen, check probabilities (or you are very unlucky)"
                 )
