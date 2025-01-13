@@ -117,6 +117,7 @@ class TrainCLI:
                     env_name=env_name,
                     max_steps=max_steps,
                     agent_class=type2agent[agent_config.type],
+                    do_render=agent_config.specialized_config.do_render,
                     kwargs_agent={
                         "config": agent_config,
                     },
