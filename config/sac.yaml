@@ -2,7 +2,7 @@
 
 base_config:
   dtype: float32
-  num_episodes: 1500
+  num_episodes: 20
   do_render: False
 
 env1:
@@ -26,8 +26,8 @@ agent1:
   alpha_lr: 0.0003 # Learning rate for alpha
   log_std_min: -20 #lower bound for log_std
   log_std_max: 2 #upper bound for log_std
-  actor_hidden_sizes: [256, 128]
-  critic_hidden_sizes: [256, 128, 64]
+  actor_hidden_sizes: [500, 256]
+  critic_hidden_sizes: [500, 256, 64]
   alpha_tuning: True
   trainer_config:
     learning_rate_actor: 0.0003
