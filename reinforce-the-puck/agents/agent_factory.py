@@ -21,7 +21,7 @@ def create_agent_from_checkpoint(
     """
     This function creates an agent from a checkpoint file.
     """
-    config = load_agent_basic_config_by_checkpoint(path, agent_type)
+    config = create_adapted_agent_config_from_checkpoint(path, agent_type)
     print(config.__class__)
     agent = create_agent_from_config(config, observation_space, action_space)
     agent.load(path)
@@ -56,7 +56,7 @@ def create_agent_from_config(
     raise ValueError("Invalid agent configuration type")
 
 
-def load_agent_basic_config_by_checkpoint(path, agent_type) -> AgentConfig:
+def create_adapted_agent_config_from_checkpoint(path, agent_type) -> AgentConfig:
     """
     This fuctions loads an agent configuration by loading the checkpoint file and extracting the hidden layer sizes of the policy and critic networks.
     """
