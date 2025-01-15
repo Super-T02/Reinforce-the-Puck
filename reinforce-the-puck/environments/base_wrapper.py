@@ -6,7 +6,7 @@ from agents.base_agent import BaseAgent
 from utils import model_dir
 
 
-class EnvWrapper:
+class BaseEnvWrapper:
     """
     A general-purpose environment wrapper for Gymnasium environments.
     """
@@ -46,16 +46,7 @@ class EnvWrapper:
         self._logger = logging.getLogger(__name__)
         self._max_steps = max_steps
         self.name = env_name
-        self._load_model(checkpoint)
         self.reset()
-
-    def _load_model(self, checkpoint: str):
-        """Load the model from a checkpoint file."""
-        if checkpoint is not None:
-            filepath = os.path.join(model_dir, checkpoint)
-            if not os.path.exists(filepath):
-                raise FileNotFoundError(f"Checkpoint file not found: {checkpoint}")
-            self.agent.load(filepath)
 
     @property
     def last_observation(self) -> tuple[any, float, bool, bool, dict[str, any]]:
@@ -167,7 +158,7 @@ class EnvWrapper:
         """Render the environment."""
         self.env.render()
 
-    def close(self) -> "EnvWrapper":
+    def close(self) -> "BaseEnvWrapper":
         """Close the environment.
 
         Returns:

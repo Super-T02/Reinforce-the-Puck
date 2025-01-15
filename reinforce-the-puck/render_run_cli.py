@@ -4,11 +4,11 @@ import os
 
 import numpy as np
 from agents.agent_factory import create_agent_from_checkpoint
-from environments.wrapper import EnvWrapper
+from environments.wrapper import BaseEnvWrapper
 
 
 def run_agent_on_environment(
-    env: EnvWrapper, n_episodes=100, max_steps=2000
+    env: BaseEnvWrapper, n_episodes=100, max_steps=2000
 ) -> tuple[list[any], list[any], list[float]]:
     """
     Runs a given agent on a specified environment for a number of episodes and collects observations, actions, and rewards.
@@ -86,7 +86,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    env = EnvWrapper(
+    env = BaseEnvWrapper(
         args.env,
         max_steps=1000,
         agent=None,  # pass None and set agent later because obs_space & action_space must be obtained from env

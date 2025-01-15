@@ -7,7 +7,7 @@ import os
 
 import numpy as np
 from agents.agent_factory import create_agent_from_config
-from environments.wrapper import EnvWrapper
+from environments.wrapper import BaseEnvWrapper
 from utils import config_dir, logger, model_dir
 from utils.config import AgentConfig, global_config
 
@@ -15,7 +15,7 @@ from utils.config import AgentConfig, global_config
 class TrainingRun:
     def __init__(
         self,
-        environment: EnvWrapper,
+        environment: BaseEnvWrapper,
         agent_config: AgentConfig,
         num_episodes: int,
     ):
@@ -168,7 +168,7 @@ class TrainCLI:
             max_steps = (
                 env.max_steps if self._args.max_steps is None else self._args.max_steps
             )
-            env = EnvWrapper(
+            env = BaseEnvWrapper(
                 env_name=env_name,
                 max_steps=max_steps,
                 agent=None,  # pass None and set agent later because obs_space & action_space must be obtained from env
