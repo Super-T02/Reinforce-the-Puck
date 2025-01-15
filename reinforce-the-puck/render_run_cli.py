@@ -3,7 +3,7 @@ import logging
 import os
 
 import numpy as np
-from agents.agent_factory import create_agent_from_checkpoint
+from agents.agent_factory import AgentFactory
 from environments.base_wrapper import BaseEnvWrapper
 from environments.environment_factory import EnvironmentFactory
 
@@ -94,7 +94,7 @@ if __name__ == "__main__":
     )
 
     try:
-        env.agent = create_agent_from_checkpoint(
+        env.agent = AgentFactory.create_agent_from_checkpoint(
             args.agent, args.agent_type, env.observation_space, env.action_space
         )
         env.reset()

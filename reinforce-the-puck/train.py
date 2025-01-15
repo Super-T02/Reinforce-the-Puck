@@ -6,7 +6,7 @@ import logging
 import os
 
 import numpy as np
-from agents.agent_factory import create_agent_from_config
+from agents.agent_factory import AgentFactory
 from environments.base_wrapper import BaseEnvWrapper
 from environments.environment_factory import EnvironmentFactory
 from utils import config_dir, logger, model_dir
@@ -91,7 +91,7 @@ class TrainingRun:
         """Mutate the agent."""
         self._logger.info("Mutating the agent...")
         self._agent_config.mutate()
-        self._environment.agent = create_agent_from_config(
+        self._environment.agent = AgentFactory.create_agent_from_config(
             self._agent_config,
             self._environment.observation_space,
             self._environment.action_space,
@@ -175,7 +175,7 @@ class TrainCLI:
                 do_render=agent_config.specialized_config.do_render,
             )
 
-            env.agent = create_agent_from_config(
+            env.agent = AgentFactory.create_agent_from_config(
                 agent_config, env.observation_space, env.action_space
             )
 
