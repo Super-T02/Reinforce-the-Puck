@@ -3,13 +3,8 @@ import logging
 import os
 
 import numpy as np
-import torch
-from agents.base_agent import BaseAgent
-from agents.ddpg import DDPGAgent
-from agents.sac import SACAgent
-from agents.td3 import TD3Agent
+from agents.agent_factory import create_agent_from_checkpoint
 from environments.wrapper import EnvWrapper
-from utils.config import AgentConfig, DDPGAgentConfig, SACAgentConfig, TD3AgentConfig
 
 
 def run_agent_on_environment(
@@ -46,71 +41,6 @@ def run_agent_on_environment(
     observations = np.asarray(observations)
     actions = np.asarray(actions)
     return observations, actions, rewards
-
-
-def get_hidden_layer_sizes(state_dict):
-    hidden_sizes = []
-    for name, param in state_dict.items():
-        if "weight" in name:
-            hidden_sizes.append(param.shape[0])  # Output size (number of neurons)
-    return hidden_sizes
-
-
-def load_agent_config(path, agent_type) -> AgentConfig:
-    """
-    This fuctions loads an agent configuration by loading the checkpoint file and extracting the hidden layer sizes of the policy and critic networks.
-    """
-    checkpoint = torch.load(path)
-    if agent_type == "SAC":
-        q1 = checkpoint[0]
-        q2 = checkpoint[1]
-        policy = checkpoint[2]
-        config = SACAgentConfig()
-        actior_hidden_layer_sizes = get_hidden_layer_sizes(policy)
-        critic_hidden_layer_sizes = get_hidden_layer_sizes(q1)
-        config.actor_hidden_sizes = [
-            actior_hidden_layer_sizes[0],
-            actior_hidden_layer_sizes[1],
-        ]
-        config.critic_hidden_sizes = [
-            critic_hidden_layer_sizes[0],
-            critic_hidden_layer_sizes[1],
-            critic_hidden_layer_sizes[2],
-        ]
-        return config
-
-    elif agent_type == "TD3":
-        q = checkpoint[0]
-        policy = checkpoint[1]
-        config = TD3AgentConfig()
-        critic_hidden_layer_sizes = get_hidden_layer_sizes(q)
-        actor_hidden_layer_sizes = get_hidden_layer_sizes(policy)
-        config.actor_hidden_sizes = [
-            actor_hidden_layer_sizes[0],
-            actor_hidden_layer_sizes[1],
-        ]
-        config.critic_hidden_sizes = [
-            critic_hidden_layer_sizes[0],
-            critic_hidden_layer_sizes[1],
-            critic_hidden_layer_sizes[2],
-        ]
-        return config
-    elif agent_type == "DDPG":
-        q = checkpoint[0]
-        policy = checkpoint[1]
-        config = DDPGAgentConfig()
-        critic_hidden_layer_sizes = get_hidden_layer_sizes(q)
-        actor_hidden_layer_sizes = get_hidden_layer_sizes(policy)
-        config.actor_hidden_sizes = [
-            actor_hidden_layer_sizes[0],
-            actor_hidden_layer_sizes[1],
-        ]
-        config.critic_hidden_sizes = [
-            critic_hidden_layer_sizes[0],
-            critic_hidden_layer_sizes[1],
-            critic_hidden_layer_sizes[2],
-        ]
-        return config
 
 
 if __name__ == "__main__":
@@ -156,22 +86,19 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    AGENT_CLASSES = {"SAC": SACAgent, "TD3": TD3Agent, "DDPG": DDPGAgent}
-
-    agent_config = load_agent_config(args.agent, args.agent_type)
-
     env = EnvWrapper(
         args.env,
         max_steps=1000,
-        agent_class=AGENT_CLASSES[args.agent_type],
+        agent=None,  # pass None and set agent later because obs_space & action_space must be obtained from env
         do_render=True,
-        kwargs_agent={"config": agent_config},
     )
-    env.reset()
-    env.render()
 
     try:
-        env.agent.load(args.agent)
+        env.agent = create_agent_from_checkpoint(
+            args.agent, args.agent_type, env.observation_space, env.action_space
+        )
+        env.reset()
+        env.render()
     except Exception as e:
         print(f"Error loading agent: {e}")
         print(

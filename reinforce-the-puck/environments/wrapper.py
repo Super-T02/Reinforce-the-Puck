@@ -14,10 +14,9 @@ class EnvWrapper:
     def __init__(
         self,
         env_name: str,
-        agent_class: BaseAgent,
+        agent: BaseAgent,
         max_steps: int,
         do_render: bool = False,
-        kwargs_agent: dict = {},
         checkpoint: str = None,
     ):
         """
@@ -40,12 +39,7 @@ class EnvWrapper:
                 self.env = gym.make(env_name, render_mode="human")
             else:
                 self.env = gym.make(env_name)
-        self._agent_class = agent_class
-        self.agent: BaseAgent = self._agent_class(
-            **kwargs_agent,
-            observation_space=self.env.observation_space,
-            action_space=self.env.action_space,
-        )
+        self.agent = agent
         self.observation_space = self.env.observation_space
         self.action_space = self.env.action_space
         self._last_observation = (None, 0, False, False, {})
@@ -62,17 +56,6 @@ class EnvWrapper:
             if not os.path.exists(filepath):
                 raise FileNotFoundError(f"Checkpoint file not found: {checkpoint}")
             self.agent.load(filepath)
-
-    def change_agent_config(self, config: dict):
-        """Change the agent configuration."""
-        del self.agent
-        self.agent = self._agent_class(
-            config=config,
-            observation_space=self.observation_space,
-            action_space=self.action_space,
-        )
-        self.reset()
-        self._logger.info("Agent configuration changed.")
 
     @property
     def last_observation(self) -> tuple[any, float, bool, bool, dict[str, any]]:
