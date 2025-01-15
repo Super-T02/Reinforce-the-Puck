@@ -4,7 +4,8 @@ import os
 
 import numpy as np
 from agents.agent_factory import create_agent_from_checkpoint
-from environments.wrapper import BaseEnvWrapper
+from environments.base_wrapper import BaseEnvWrapper
+from environments.environment_factory import EnvironmentFactory
 
 
 def run_agent_on_environment(
@@ -86,10 +87,9 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    env = BaseEnvWrapper(
+    env = EnvironmentFactory.create_environment(
         args.env,
         max_steps=1000,
-        agent=None,  # pass None and set agent later because obs_space & action_space must be obtained from env
         do_render=True,
     )
 

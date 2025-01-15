@@ -7,7 +7,8 @@ import os
 
 import numpy as np
 from agents.agent_factory import create_agent_from_config
-from environments.wrapper import BaseEnvWrapper
+from environments.base_wrapper import BaseEnvWrapper
+from environments.environment_factory import EnvironmentFactory
 from utils import config_dir, logger, model_dir
 from utils.config import AgentConfig, global_config
 
@@ -168,11 +169,9 @@ class TrainCLI:
             max_steps = (
                 env.max_steps if self._args.max_steps is None else self._args.max_steps
             )
-            env = BaseEnvWrapper(
+            env = EnvironmentFactory.create_environment(
                 env_name=env_name,
                 max_steps=max_steps,
-                agent=None,  # pass None and set agent later because obs_space & action_space must be obtained from env
-                checkpoint=agent_config.checkpoint,
                 do_render=agent_config.specialized_config.do_render,
             )
 

@@ -14,10 +14,9 @@ class BaseEnvWrapper:
     def __init__(
         self,
         env_name: str,
-        agent: BaseAgent,
         max_steps: int,
         do_render: bool = False,
-        checkpoint: str = None,
+        agent: BaseAgent = None,
     ):
         """
         Initialize the environment wrapper.
