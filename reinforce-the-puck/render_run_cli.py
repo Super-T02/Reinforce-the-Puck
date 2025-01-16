@@ -40,7 +40,8 @@ def run_agent_on_environment(
         ep_reward = 0
     logging.getLogger(__name__).info(f"Mean reward: {np.mean(rewards)}")
     observations = np.asarray(observations)
-    actions = np.asarray(actions)
+    # actions = np.asarray(actions)
+    actions = []
     return observations, actions, rewards
 
 
@@ -84,13 +85,18 @@ if __name__ == "__main__":
         default=1000,
         help="maximum number of steps per episode.",
     )
+    parser.add_argument(
+        "--mode",
+        type=int,
+        required=False,
+        default=None,
+        help="Mode for the hockey environment (0:=NORMAL, 1:=Shooting, 2:=Defense).",
+    )
 
     args = parser.parse_args()
 
     env = EnvironmentFactory.create_environment(
-        args.env,
-        max_steps=1000,
-        do_render=True,
+        args.env, max_steps=1000, do_render=True, mode=args.mode
     )
 
     try:

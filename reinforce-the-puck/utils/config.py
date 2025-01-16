@@ -283,6 +283,7 @@ class EnvironmentConfig(ConfigGroup):
     def __init__(self):
         self.max_steps = 1000
         self.env_name = "unnamed"
+        self.mode = None
         self.id = -1
 
 

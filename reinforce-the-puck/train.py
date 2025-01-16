@@ -194,6 +194,11 @@ class TrainCLI:
                 ),
                 None,
             )
+            if env is None:
+                self._logger.error(
+                    "No environment found for agent %s", agent_config.name
+                )
+                continue
             env_name = (
                 env.env_name
                 if self._args.environment is None
@@ -206,6 +211,7 @@ class TrainCLI:
                 env_name=env_name,
                 max_steps=max_steps,
                 do_render=agent_config.specialized_config.do_render,
+                mode=env.mode,
             )
 
             env.agent = AgentFactory.create_agent_from_config(

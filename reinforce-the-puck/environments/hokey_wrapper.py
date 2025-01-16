@@ -13,9 +13,10 @@ class HokeyEnvWrapper(BaseEnvWrapper):
         do_render: bool = False,
         agent: BaseAgent = None,
         opponent_agent: BaseAgent = None,
+        mode: int = h_env.Mode.NORMAL,
     ):
         self._do_render = do_render
-        self.env = h_env.HockeyEnv()
+        self.env = h_env.HockeyEnv(mode=mode)
         self.agent = agent
         self.opponent_agent = opponent_agent
         self.observation_space = self.env.observation_space

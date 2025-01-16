@@ -27,11 +27,12 @@ class BaseTrainer:
         self._logger = logging.getLogger(__name__)
         self._train_iterations = 0
         self._is_config_logged = False
+        self._run_name = self.__generate_training_name(self._epochs)
 
         self._tensorboard: TensorboardStatistics = TensorboardStatistics(
             os.path.join(
                 os.path.join(logs_dir, "tensorboard"),
-                self.__generate_training_name(self._epochs),
+                self._run_name,
             )
         )
 
@@ -171,7 +172,7 @@ class BaseTrainer:
 
     def get_name(self) -> str:
         """Get the name of the agent."""
-        return self.__generate_training_name(0)
+        return self._run_name
 
     def train_step(self, batch: Batch):
         """
