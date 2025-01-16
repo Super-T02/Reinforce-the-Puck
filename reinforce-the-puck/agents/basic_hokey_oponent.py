@@ -2,13 +2,14 @@ from typing import List
 
 import hockey.hockey_env as h_env
 import numpy as np
-from agents.base_agent import BaseAgent
+from agents.base_agent import AgentMode, BaseAgent
 from components.memory import Batch
 
 
 class BasicHokeyOpponentWrapper(BaseAgent):
     def __init__(self, weak=False):
         self.agent = h_env.BasicOpponent(weak=weak)
+        self._mode = AgentMode.DEFAULT
 
     def act(self, observation):
         return self.agent.act(observation)

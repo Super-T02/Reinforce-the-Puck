@@ -1,3 +1,6 @@
+from enum import Enum
+from unittest.mock import DEFAULT
+
 import numpy as np
 import torch
 from agents.base_trainer import BaseTrainer
@@ -14,18 +17,24 @@ class UnsupportedSpace(Exception):
         super().__init__(self.message)
 
 
+class AgentMode(Enum):
+    TRAIN = "train"
+    EVAL = "eval"
+    DEFAULT = None
+
+
 class TrainContext:
     def __init__(self, agent):
         self.agent = agent
 
     def __enter__(self):
-        if self.agent._mode is not None:
+        if self.agent._mode == AgentMode.TRAIN:
             raise RuntimeError(f"Agent is already in {self.agent._mode} mode.")
-        self.agent._mode = "train"
+        self.agent._mode = AgentMode.TRAIN
         return self.agent
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.agent._mode = None
+        self.agent._mode = AgentMode.DEFAULT
 
 
 class EvalContext:
@@ -33,13 +42,13 @@ class EvalContext:
         self.agent = agent
 
     def __enter__(self):
-        if self.agent._mode is not None:
+        if self.agent._mode == AgentMode.EVAL:
             raise RuntimeError(f"Agent is already in {self.agent._mode} mode.")
-        self.agent._mode = "eval"
+        self.agent._mode = AgentMode.EVAL
         return self.agent
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.agent._mode = None
+        self.agent._mode = AgentMode.DEFAULT
 
 
 class BaseAgent(BaseTrainer):
@@ -79,15 +88,15 @@ class BaseAgent(BaseTrainer):
         self._action_space = action_space
         self._obs_dim = self._observation_space.shape[0]
         self._action_n = self._action_space.shape[0]
-        self._mode = None  # Tracks the current mode ('train' or 'eval')
+        self._mode: AgentMode = AgentMode.DEFAULT
 
-    def train(self):
+    def train_context(self):
         """
         Activate training mode. This method is a context manager.
         """
         return TrainContext(self)
 
-    def evaluate(self):
+    def evaluate_context(self):
         """
         Activate evaluation mode. This method is a context manager.
         """

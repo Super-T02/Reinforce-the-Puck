@@ -118,23 +118,24 @@ class BaseEnvWrapper:
         Returns:
             float: The total reward of the episode.
         """
-        reward = 0
-        self.reset()
-        self.agent.reset()
-        done = False
+        with self.agent.train_context():
+            reward = 0
+            self.reset()
+            self.agent.reset()
+            done = False
 
-        for _ in range(self._max_steps):
-            self.step()
-            done = self._last_observation[2]
-            trunc = self._last_observation[3]
-            reward += self._last_observation[1]
-            if done or trunc:
-                break
+            for _ in range(self._max_steps):
+                self.step()
+                done = self._last_observation[2]
+                trunc = self._last_observation[3]
+                reward += self._last_observation[1]
+                if done or trunc:
+                    break
 
-        self.agent.train(
-            reward if isinstance(reward, float) else reward.item()
-        )  # backwards compatibility (some rewards are floats, some are tensors)
-        self._logger.info("Episode %10d: Total reward: %4.2f", i, reward)
+            self.agent.train(
+                reward if isinstance(reward, float) else reward.item()
+            )  # backwards compatibility (some rewards are floats, some are tensors)
+            self._logger.info("Episode %10d: Total reward: %4.2f", i, reward)
         return reward
 
     def evaluate(self, n_episodes: int) -> list[float]:
@@ -146,11 +147,12 @@ class BaseEnvWrapper:
         Returns:
             list[float]: A list of rewards received in each episode.
         """
-        rewards = []
-        for i in range(n_episodes):
-            self.reset()
-            self.agent.reset()
-            rewards.append(self.run())
+        with self.agent.evaluate_context():
+            rewards = []
+            for i in range(n_episodes):
+                self.reset()
+                self.agent.reset()
+                rewards.append(self.run())
         return rewards
 
     def render(self):

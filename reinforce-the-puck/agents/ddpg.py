@@ -3,12 +3,12 @@ from itertools import chain
 
 import numpy as np
 import torch
-from agents.base_agent import BaseAgent
+from agents.base_agent import AgentMode, BaseAgent
 from components.memory import Batch
 from components.networks import Feedforward, QFunction
 from components.noise import OUNoise
 from gymnasium import spaces
-from utils.config import AgentConfig, DDPGAgentConfig, global_config
+from utils.config import DDPGAgentConfig
 
 
 class DDPGAgent(BaseAgent):
@@ -117,9 +117,9 @@ class DDPGAgent(BaseAgent):
         Returns:
             action: The selected action.
         """
-        action = (
-            self.policy_target.predict(state) + self._config.eps * self._action_noise()
-        )
+        action = self.policy_target.predict(state)
+        if self._mode in [AgentMode.TRAIN]:
+            action += self._config.eps * self._action_noise()
         if type(action) == torch.Tensor:
             action = action.detach().numpy()
         action = np.clip(action, self._action_space.low, self._action_space.high)
@@ -171,6 +171,9 @@ class DDPGAgent(BaseAgent):
 
     def train(self, last_reward=np.nan):
         """Train the agent."""
+        if self._mode != AgentMode.TRAIN:
+            raise ValueError("Agent is not in training mode.")
+
         d = self._config.update_target_every
 
         if d > 0 and self._train_iterations % d == 0:
@@ -186,6 +189,8 @@ class DDPGAgent(BaseAgent):
         Returns:
             dict: The training statistics.
         """
+        if self._mode != AgentMode.TRAIN:
+            raise ValueError("Agent is not in training mode.")
         critic_loss = self._optimize_critic(batch)
         actor_loss = self._optimize_actor(batch)
 
