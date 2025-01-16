@@ -14,6 +14,34 @@ class UnsupportedSpace(Exception):
         super().__init__(self.message)
 
 
+class TrainContext:
+    def __init__(self, agent):
+        self.agent = agent
+
+    def __enter__(self):
+        if self.agent._mode is not None:
+            raise RuntimeError(f"Agent is already in {self.agent._mode} mode.")
+        self.agent._mode = "train"
+        return self.agent
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.agent._mode = None
+
+
+class EvalContext:
+    def __init__(self, agent):
+        self.agent = agent
+
+    def __enter__(self):
+        if self.agent._mode is not None:
+            raise RuntimeError(f"Agent is already in {self.agent._mode} mode.")
+        self.agent._mode = "eval"
+        return self.agent
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.agent._mode = None
+
+
 class BaseAgent(BaseTrainer):
     """Base class for all agents."""
 
@@ -51,6 +79,19 @@ class BaseAgent(BaseTrainer):
         self._action_space = action_space
         self._obs_dim = self._observation_space.shape[0]
         self._action_n = self._action_space.shape[0]
+        self._mode = None  # Tracks the current mode ('train' or 'eval')
+
+    def train(self):
+        """
+        Activate training mode. This method is a context manager.
+        """
+        return TrainContext(self)
+
+    def evaluate(self):
+        """
+        Activate evaluation mode. This method is a context manager.
+        """
+        return EvalContext(self)
 
     def get_config(self) -> AgentConfig:
         """Return the agent's configuration."""
