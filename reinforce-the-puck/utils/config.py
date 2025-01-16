@@ -144,8 +144,8 @@ class AgentConfig(ConfigGroup):
         self.checkpoint = None
         self.version = 1
         self.epochs = 10
-        self.eval_freq = 100
-        self.eval_episodes = 10
+        self.eval_freq = 50
+        self.eval_episodes = 20
         self.env_id = 0
         self.memory_size = 10000
         self.num_runs = 1
@@ -274,6 +274,7 @@ class TD3AgentConfig(DDPGAgentConfig):
         self.eps = 1.0
         self.noise_sigma = 0.2
         self.noise_clip = 0.5
+        self.noise_beta = 1.0  # Power spectral density (1.0 = Pink noise)
         self.policy_delay = 3
         self.tao = 0.005
 
@@ -282,6 +283,7 @@ class EnvironmentConfig(ConfigGroup):
     def __init__(self):
         self.max_steps = 1000
         self.env_name = "unnamed"
+        self.mode = None
         self.id = -1
 
 

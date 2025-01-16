@@ -92,7 +92,7 @@ class BaseEnvWrapper:
         self._last_observation = (state, 0, False, False, {})
         return state
 
-    def run(self) -> float:
+    def run_eval(self) -> float:
         """Run one episode of the environment.
 
         Returns:
@@ -106,6 +106,7 @@ class BaseEnvWrapper:
             done = self._last_observation[2]
             if done:
                 break
+            self.render() if self._do_render else None
         self._logger.info("Episode finished. Total reward: %f", reward)
         return reward
 
@@ -152,7 +153,7 @@ class BaseEnvWrapper:
             for i in range(n_episodes):
                 self.reset()
                 self.agent.reset()
-                rewards.append(self.run())
+                rewards.append(self.run_eval())
         return rewards
 
     def render(self):
