@@ -27,6 +27,7 @@ agent1:
   tao: 0.005
   noise_sigma: 0.2
   noise_clip: 0.5
+  noise_beta: 1.0 # Pink noise
   memory_size: 100000
   num_runs: 10
   mutation_config:
@@ -67,6 +68,7 @@ agent2:
   tao: 0.005
   noise_sigma: 0.2
   noise_clip: 0.5
+  noise_beta: 1.0 # Pink noise
   memory_size: 1000000
   num_runs: 5
   mutation_config:
@@ -107,6 +109,7 @@ agent3:
   tao: 0.005
   noise_sigma: 0.2
   noise_clip: 0.5
+  noise_beta: 1.0 # Pink noise
   memory_size: 1000000
   num_runs: 5
   mutation_config:
