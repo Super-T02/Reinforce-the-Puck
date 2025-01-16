@@ -4,6 +4,7 @@ import argparse
 import copy
 import logging
 import os
+from calendar import c
 
 import numpy as np
 from agents.agent_factory import AgentFactory
@@ -24,8 +25,14 @@ class TrainingRun:
         self._agent_config = agent_config
         self._num_episodes = num_episodes
         self._logger = logging.getLogger(__name__)
+        self._best_config = None
         self._best_agent = None
         self._best_reward = -np.inf
+        self.reset()
+
+    def reset(self):
+        self._best_agent_current_run = None
+        self._best_reward_current_run = -np.inf
 
     def run(self, num_runs: int = 1):
         """Run the training process.
@@ -37,6 +44,7 @@ class TrainingRun:
         for i in range(num_runs):
             self.train()
             self.evaluate()
+            self.save_run_best_agent()
             self.save_best_agent()
             if not self._agent_config.mutation_config.enabled:
                 break
@@ -64,26 +72,52 @@ class TrainingRun:
             self._best_reward = mean_reward
             self._best_agent = self._environment.agent
             self.save_best_agent()
+        if mean_reward > self._best_reward_current_run:
+            self._best_reward_current_run = mean_reward
+            self._best_agent_current_run = self._environment.agent
+            self.save_run_best_agent()
+
+    def save_run_best_agent(self):
+        """Save the best agent to a file."""
+        cfg = self._best_agent_current_run.get_config()
+        self._best_agent_current_run.save(
+            os.path.join(
+                model_dir,
+                self._environment.name,
+                cfg.type,
+                self._best_agent_current_run.get_name(),
+                "best_agent_run.pth",
+            )
+        )
+        cfg.to_yaml(
+            os.path.join(
+                model_dir,
+                self._environment.name,
+                cfg.type,
+                self._best_agent_current_run.get_name(),
+                "best_config_run.yaml",
+            )
+        )
 
     def save_best_agent(self):
         """Save the best agent to a file."""
-        self._agent_config = self._best_agent.get_config()
+        self._best_config = self._best_agent.get_config()
         self._best_agent.save(
             os.path.join(
                 model_dir,
                 self._environment.name,
-                self._agent_config.type,
+                self._best_config.type,
                 self._best_agent.get_name(),
-                "best_agent.pth",
+                "best_agent_mutation.pth",
             )
         )
-        self._agent_config.to_yaml(
+        self._best_config.to_yaml(
             os.path.join(
                 model_dir,
                 self._environment.name,
-                self._agent_config.type,
+                self._best_config.type,
                 self._best_agent.get_name(),
-                "best_config.yaml",
+                "best_config_mutation.yaml",
             )
         )
 
