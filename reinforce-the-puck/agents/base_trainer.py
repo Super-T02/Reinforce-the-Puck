@@ -228,4 +228,5 @@ class BaseTrainer:
         }
 
     def __del__(self):
-        self._tensorboard.close()
+        if hasattr(self, "_tensorboard"):
+            self._tensorboard.close()

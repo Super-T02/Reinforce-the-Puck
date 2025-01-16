@@ -6,9 +6,7 @@ import logging
 import os
 
 import numpy as np
-from agents.ddpg import DDPGAgent
-from agents.sac import SACAgent
-from agents.td3 import TD3Agent
+from agents.agent_factory import AgentFactory
 from environments.wrapper import EnvWrapper
 from utils import config_dir, logger, model_dir
 from utils.config import AgentConfig, global_config
@@ -92,7 +90,11 @@ class TrainingRun:
         """Mutate the agent."""
         self._logger.info("Mutating the agent...")
         self._agent_config.mutate()
-        self._environment.change_agent_config(self._agent_config)
+        self._environment.agent = AgentFactory.create_agent_from_config(
+            self._agent_config,
+            self._environment.observation_space,
+            self._environment.action_space,
+        )
 
 
 class TrainCLI:
@@ -148,9 +150,6 @@ class TrainCLI:
 
     def load_classes(self):
         """Load the agent, and environment classes."""
-        # TODO: Add support for multiple agents
-
-        type2agent = {"ddpg": DDPGAgent, "sac": SACAgent, "td3": TD3Agent}
 
         for agent_config in global_config.get_agents():
             env = next(
@@ -172,13 +171,15 @@ class TrainCLI:
             env = EnvWrapper(
                 env_name=env_name,
                 max_steps=max_steps,
+                agent=None,  # pass None and set agent later because obs_space & action_space must be obtained from env
                 checkpoint=agent_config.checkpoint,
-                agent_class=type2agent[agent_config.type],
                 do_render=agent_config.specialized_config.do_render,
-                kwargs_agent={
-                    "config": agent_config,
-                },
             )
+
+            env.agent = AgentFactory.create_agent_from_config(
+                agent_config, env.observation_space, env.action_space
+            )
+
             training_run = TrainingRun(
                 environment=env,
                 agent_config=agent_config,
