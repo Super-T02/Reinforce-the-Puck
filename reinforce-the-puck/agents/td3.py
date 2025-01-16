@@ -3,7 +3,7 @@ import torch
 from agents.base_agent import AgentMode
 from agents.ddpg import DDPGAgent
 from components.networks import Feedforward
-from components.noise import ClippedGaussianNoise
+from components.noise import ClippedColoredNoise, ClippedGaussianNoise, ColoredNoise
 from utils.config import TD3AgentConfig, global_config
 
 
@@ -17,9 +17,11 @@ class TD3Agent(DDPGAgent):
     ):
         self.Q2, self.Q2_target = None, None
         super().__init__(observation_space, action_space, config, "TD3")
-        self._action_noise = ClippedGaussianNoise(
-            (self._action_n,), config.noise_sigma, config.noise_clip
+        # Exploration noise
+        self._action_noise = ColoredNoise(
+            (self._action_n,), config.noise_sigma, config.noise_beta
         )
+        # Smooths the target policy
         self._target_smoothing_noise = ClippedGaussianNoise(
             (self._action_n,), 0.1, config.noise_clip
         )

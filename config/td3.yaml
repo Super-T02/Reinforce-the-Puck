@@ -27,6 +27,7 @@ agent1:
   tao: 0.005
   noise_sigma: 0.2
   noise_clip: 0.5
+  noise_beta: 1.0 # Pink noise
   memory_size: 100000
   num_runs: 1
   mutation_config:
@@ -40,7 +41,39 @@ agent1:
   trainer_config:
     learning_rate_actor: 0.001
     learning_rate_critic: 0.001
-    log_name: td3_pendulum
+    log_name: td3_pendulum_pink
+    batch_size: 128
+  specialized_config:
+    num_episodes: 500
+
+agent4:
+  type: td3
+  checkpoint: null
+  env_id: 0
+  eps: 1
+  discount: 0.95
+  actor_hidden_sizes: [128, 128]
+  critic_hidden_sizes: [128, 128, 64]
+  policy_delay: 3
+  update_target_every: -1
+  tao: 0.005
+  noise_sigma: 0.2
+  noise_clip: 0.5
+  noise_beta: 0.0 # White noise
+  memory_size: 100000
+  num_runs: 1
+  mutation_config:
+    enabled: false
+    means: []
+    mins: []
+    maxs: []
+    vars: []
+    prob: []
+    parameters: []
+  trainer_config:
+    learning_rate_actor: 0.001
+    learning_rate_critic: 0.001
+    log_name: td3_pendulum_white
     batch_size: 128
   specialized_config:
     num_episodes: 500
@@ -58,6 +91,7 @@ agent2:
   tao: 0.005
   noise_sigma: 0.2
   noise_clip: 0.5
+  noise_beta: 1.0 # Pink noise
   memory_size: 1000000
   num_runs: 1
   mutation_config:
@@ -71,7 +105,7 @@ agent2:
   trainer_config:
     learning_rate_actor: 0.0003
     learning_rate_critic: 0.0003
-    log_name: td3_luna
+    log_name: td3_luna_pink
     batch_size: 128
   specialized_config:
     num_episodes: 750
@@ -82,13 +116,14 @@ agent3:
   env_id: 1
   eps: 1
   discount: 0.99
-  actor_hidden_sizes: [128, 64]
-  critic_hidden_sizes: [128, 64, 32]
+  actor_hidden_sizes: [256, 128]
+  critic_hidden_sizes: [256, 128, 64]
   policy_delay: 2
   update_target_every: -1
   tao: 0.005
   noise_sigma: 0.2
   noise_clip: 0.5
+  noise_beta: 0.0 # White noise
   memory_size: 1000000
   num_runs: 1
   mutation_config:
@@ -102,7 +137,7 @@ agent3:
   trainer_config:
     learning_rate_actor: 0.0003
     learning_rate_critic: 0.0003
-    log_name: td3_luna_smaller
+    log_name: td3_luna_white
     batch_size: 128
   specialized_config:
     num_episodes: 750
