@@ -1,0 +1,133 @@
+import logging
+
+import hockey.hockey_env as h_env
+import numpy as np
+from agents.base_agent import BaseAgent
+from environments.base_wrapper import BaseEnvWrapper
+
+
+class HokeyEnvWrapper(BaseEnvWrapper):
+    def __init__(
+        self,
+        max_steps: int,
+        do_render: bool = False,
+        agent: BaseAgent = None,
+        opponent_agent: BaseAgent = None,
+    ):
+        self._do_render = do_render
+        self.env = h_env.HockeyEnv()
+        self.agent = agent
+        self.opponent_agent = opponent_agent
+        self.observation_space = self.env.observation_space
+        self.action_space = self.env.action_space
+        self._last_observation = (None, 0, False, False, {})
+        self._logger = logging.getLogger(__name__)
+        self._max_steps = max_steps
+
+        self.name = "Hockey-v0"
+
+        self.reset()
+
+    def step(self, save=True):
+        state = self._last_observation[0]
+        action1 = self.agent.act(state)
+        action2 = self.opponent_agent.act(state)
+        obs, r, d, t, info = self.env.step(np.hstack([action1, action2]))
+        self._last_observation = (obs, r, d, t, info)
+        if save:
+            self.agent.save_experience(state, action1, *self._last_observation)
+            self.opponent_agent.save_experience(state, action2, *self._last_observation)
+
+        if self._do_render:
+            self.env.render()
+
+        return self._last_observation
+
+    def compute_reward_agent(self, obs, r, d, t, info) -> float:
+        # todo: formula reward function
+        return r
+
+    def compute_reward_opponent(self, obs, r, d, t, info) -> float:
+        # todo: formula reward function
+        return r
+
+    def run(self) -> float:
+        """Run one episode of the environment.
+
+        Returns:
+            float: The total reward received in the episode.
+        """
+        done = False
+        reward_agent = 0
+        reward_opponent = 0
+        for _ in range(self._max_steps):
+            self.step()
+            reward_agent += self.compute_reward_agent(*self._last_observation)
+            reward_opponent += self.compute_reward_opponent(*self._last_observation)
+            done = self._last_observation[2]
+            if done:
+                break
+        self._logger.info("Episode finished. Total reward agent: %f", reward_agent)
+        self._logger.info("Episode finished. Total reward opponent: %f", reward_agent)
+
+        # todo: return reward_opponent (not compatible with the current implementation yet)
+        return reward_agent
+
+    def run_train_episode(self, i: int) -> float:
+        """Run a single episode of the training.
+
+        Args:
+            i (int): The episode number.
+
+        Returns:
+            float: The total reward of the episode.
+        """
+        reward_agent = 0
+        reward_opponent = 0
+        self.reset()
+        self.agent.reset()
+        self.opponent_agent.reset()
+        done = False
+
+        for _ in range(self._max_steps):
+            self.step()
+            done = self._last_observation[2]
+            trunc = self._last_observation[3]
+            reward_agent += self.compute_reward_agent(*self._last_observation)
+            reward_opponent += self.compute_reward_opponent(*self._last_observation)
+            if done or trunc:
+                break
+
+        self.agent.train(
+            reward_agent if isinstance(reward_agent, float) else reward_agent.item()
+        )  # backwards compatibility (some rewards are floats, some are tensors)
+        self.opponent_agent.train(
+            reward_opponent
+            if isinstance(reward_opponent, float)
+            else reward_opponent.item()
+        )  # backwards compatibility (some rewards are floats, some are tensors)
+
+        self._logger.info("Episode %10d: Total reward agent: %4.2f", i, reward_agent)
+        self._logger.info(
+            "Episode %10d: Total reward opponent: %4.2f", i, reward_opponent
+        )
+
+        # todo: return reward_opponent (not compatible with the current implementation yet)
+        return reward_agent
+
+    def evaluate(self, n_episodes: int) -> list[float]:
+        """Evaluate the agent in the environment.
+
+        Args:
+            n_episodes (int): The number of episodes to evaluate.
+
+        Returns:
+            list[float]: A list of rewards received in each episode.
+        """
+        rewards = []
+        for i in range(n_episodes):
+            self.reset()
+            self.agent.reset()
+            self.opponent_agent.reset()
+            rewards.append(self.run())
+        return rewards

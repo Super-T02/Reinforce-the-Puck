@@ -29,7 +29,7 @@ class AgentFactory:
         config = AgentFactory.create_adapted_agent_config_from_checkpoint(
             path, agent_type
         )
-        print(config.__class__)
+
         agent = AgentFactory.create_agent_from_config(
             config, observation_space, action_space
         )
