@@ -14,6 +14,10 @@ class HokeyEnvWrapper(BaseEnvWrapper):
         agent: BaseAgent = None,
         opponent_agent: BaseAgent = None,
         mode: int = h_env.Mode.NORMAL,
+        winner_weight: float = 10.0,
+        closeness_puck_weight: float = 0.5,
+        touch_puck_weight: float = 0.0,
+        puck_direction_weight: float = 1.0,
     ):
         self._do_render = do_render
         self.env = h_env.HockeyEnv(mode=mode)
@@ -24,6 +28,10 @@ class HokeyEnvWrapper(BaseEnvWrapper):
         self._last_observation = (None, 0, False, False, {})
         self._logger = logging.getLogger(__name__)
         self._max_steps = max_steps
+        self.winner_weight = winner_weight
+        self.closeness_puck_weight = closeness_puck_weight
+        self.touch_puck_weight = touch_puck_weight
+        self.puck_direction_weight = puck_direction_weight
 
         self.name = "Hockey-v0"
 
@@ -39,20 +47,38 @@ class HokeyEnvWrapper(BaseEnvWrapper):
             self.agent.save_experience(state, action1, *self._last_observation)
             self.opponent_agent.save_experience(state, action2, *self._last_observation)
 
-        if self._do_render:
-            self.env.render()
-
         return self._last_observation
 
-    def compute_reward_agent(self, obs, r, d, t, info) -> float:
-        # todo: formula reward function
+    def compute_reward_agent(self, obs, r, d, t, info, evaluate=False) -> float:
+        return (
+            self._generic_reward(info)
+            if not evaluate
+            else info.get("winner", 0.0) * self.winner_weight
+        )
+
+    def compute_reward_opponent(self, obs, r, d, t, info, evaluate=False) -> float:
+        info["winner"] = -info["winner"]
+        # TODO: Think about how to get the correct information for the opponent --> May already be implemented in environment
+        return (
+            self._generic_reward(info)
+            if not evaluate
+            else info.get("winner", 0.0) * self.winner_weight
+        )
+
+    def _generic_reward(self, info) -> float:
+        winner = info.get("winner", 0.0)  # 0: tie, -1: opponent, 1: agent
+        closeness_puck = info.get("reward_closeness_to_puck", 0.0)
+        touch_puck = info.get("reward_touch_puck", 0.0)
+        puck_direction = info.get("reward_puck_direction", 0.0)
+        r = (
+            winner * self.winner_weight
+            + closeness_puck * self.closeness_puck_weight
+            + touch_puck * self.touch_puck_weight
+            + puck_direction * self.puck_direction_weight
+        )
         return r
 
-    def compute_reward_opponent(self, obs, r, d, t, info) -> float:
-        # todo: formula reward function
-        return r
-
-    def run(self) -> float:
+    def run_eval(self) -> float:
         """Run one episode of the environment.
 
         Returns:
@@ -63,11 +89,16 @@ class HokeyEnvWrapper(BaseEnvWrapper):
         reward_opponent = 0
         for _ in range(self._max_steps):
             self.step()
-            reward_agent += self.compute_reward_agent(*self._last_observation)
-            reward_opponent += self.compute_reward_opponent(*self._last_observation)
+            reward_agent += self.compute_reward_agent(
+                *self._last_observation, evaluate=True
+            )
+            reward_opponent += self.compute_reward_opponent(
+                *self._last_observation, evaluate=True
+            )
             done = self._last_observation[2]
             if done:
                 break
+            self.render() if self._do_render else None
         self._logger.info("Episode finished. Total reward agent: %f", reward_agent)
         self._logger.info("Episode finished. Total reward opponent: %f", reward_agent)
 
@@ -134,5 +165,5 @@ class HokeyEnvWrapper(BaseEnvWrapper):
                 self.reset()
                 self.agent.reset()
                 self.opponent_agent.reset()
-                rewards.append(self.run())
+                rewards.append(self.run_eval())
         return rewards
