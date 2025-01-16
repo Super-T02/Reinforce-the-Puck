@@ -1,3 +1,6 @@
+from enum import Enum
+from unittest.mock import DEFAULT
+
 import numpy as np
 import torch
 from agents.base_trainer import BaseTrainer
@@ -12,6 +15,40 @@ class UnsupportedSpace(Exception):
     def __init__(self, message="Unsupported Space"):
         self.message = message
         super().__init__(self.message)
+
+
+class AgentMode(Enum):
+    TRAIN = "train"
+    EVAL = "eval"
+    DEFAULT = None
+
+
+class TrainContext:
+    def __init__(self, agent):
+        self.agent = agent
+
+    def __enter__(self):
+        if self.agent._mode == AgentMode.TRAIN:
+            raise RuntimeError(f"Agent is already in {self.agent._mode} mode.")
+        self.agent._mode = AgentMode.TRAIN
+        return self.agent
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.agent._mode = AgentMode.DEFAULT
+
+
+class EvalContext:
+    def __init__(self, agent):
+        self.agent = agent
+
+    def __enter__(self):
+        if self.agent._mode == AgentMode.EVAL:
+            raise RuntimeError(f"Agent is already in {self.agent._mode} mode.")
+        self.agent._mode = AgentMode.EVAL
+        return self.agent
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.agent._mode = AgentMode.DEFAULT
 
 
 class BaseAgent(BaseTrainer):
@@ -51,6 +88,19 @@ class BaseAgent(BaseTrainer):
         self._action_space = action_space
         self._obs_dim = self._observation_space.shape[0]
         self._action_n = self._action_space.shape[0]
+        self._mode: AgentMode = AgentMode.DEFAULT
+
+    def train_context(self):
+        """
+        Activate training mode. This method is a context manager.
+        """
+        return TrainContext(self)
+
+    def evaluate_context(self):
+        """
+        Activate evaluation mode. This method is a context manager.
+        """
+        return EvalContext(self)
 
     def get_config(self) -> AgentConfig:
         """Return the agent's configuration."""

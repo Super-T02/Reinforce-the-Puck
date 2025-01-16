@@ -2,7 +2,7 @@ import os
 
 import numpy as np
 import torch
-from agents.base_agent import BaseAgent
+from agents.base_agent import AgentMode, BaseAgent
 from components.memory import Batch
 from components.networks import QFunction, StochasticPolicyNetwork
 from gymnasium import spaces
@@ -201,7 +201,8 @@ class SACAgent(BaseAgent):
             dict: The training statistics.
 
         """
-
+        if self._mode != AgentMode.TRAIN:
+            raise ValueError("Agent is not in training mode.")
         q1_loss, q2_loss = self.update_q_values(batch)
 
         policy_loss = self.update_policy(batch)

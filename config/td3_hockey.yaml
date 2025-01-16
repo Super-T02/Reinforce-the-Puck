@@ -1,0 +1,52 @@
+# Please refer to the documentation for more information on the configuration file.
+
+base_config:
+  dtype: float32
+  num_episodes: 1000
+
+env1:
+  env_name: Pendulum-v1
+  id: 0
+  max_steps: 1000
+
+env2:
+  env_name: LunarLander-v3
+  id: 1
+  max_steps: 1000
+
+env3:
+  env_name: Hockey-v0
+  env_type: gym
+  id: 2
+  max_steps: 1000
+
+agent1:
+  type: td3
+  checkpoint: null
+  env_id: 2
+  eps: 1
+  discount: 0.99
+  actor_hidden_sizes: [256, 128]
+  critic_hidden_sizes: [256, 128, 64]
+  policy_delay: 2
+  update_target_every: -1
+  tao: 0.005
+  noise_sigma: 0.2
+  noise_clip: 0.5
+  memory_size: 1000000
+  num_runs: 1
+  mutation_config:
+    enabled: false
+    means: []
+    mins: []
+    maxs: []
+    vars: []
+    prob: []
+    parameters: []
+  trainer_config:
+    learning_rate_actor: 0.0003
+    learning_rate_critic: 0.0003
+    log_name: td3_hockey
+    batch_size: 128
+  specialized_config:
+    num_episodes: 750

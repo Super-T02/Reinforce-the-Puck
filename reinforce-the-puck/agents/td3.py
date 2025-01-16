@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+from agents.base_agent import AgentMode
 from agents.ddpg import DDPGAgent
 from components.networks import Feedforward
 from components.noise import ClippedGaussianNoise
@@ -77,6 +78,8 @@ class TD3Agent(DDPGAgent):
         Returns:
             dict: The training statistics.
         """
+        if self._mode != AgentMode.TRAIN:
+            raise ValueError("Agent is not in training mode.")
         critic_loss = self._optimize_critic(batch)
         if self._train_iterations % self._config.policy_delay == 0:
             actor_loss = self._optimize_actor(batch)

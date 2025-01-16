@@ -82,35 +82,38 @@ class HokeyEnvWrapper(BaseEnvWrapper):
         Returns:
             float: The total reward of the episode.
         """
-        reward_agent = 0
-        reward_opponent = 0
-        self.reset()
-        self.agent.reset()
-        self.opponent_agent.reset()
-        done = False
+        with self.agent.train_context(), self.opponent_agent.train_context():
+            reward_agent = 0
+            reward_opponent = 0
+            self.reset()
+            self.agent.reset()
+            self.opponent_agent.reset()
+            done = False
 
-        for _ in range(self._max_steps):
-            self.step()
-            done = self._last_observation[2]
-            trunc = self._last_observation[3]
-            reward_agent += self.compute_reward_agent(*self._last_observation)
-            reward_opponent += self.compute_reward_opponent(*self._last_observation)
-            if done or trunc:
-                break
+            for _ in range(self._max_steps):
+                self.step()
+                done = self._last_observation[2]
+                trunc = self._last_observation[3]
+                reward_agent += self.compute_reward_agent(*self._last_observation)
+                reward_opponent += self.compute_reward_opponent(*self._last_observation)
+                if done or trunc:
+                    break
 
-        self.agent.train(
-            reward_agent if isinstance(reward_agent, float) else reward_agent.item()
-        )  # backwards compatibility (some rewards are floats, some are tensors)
-        self.opponent_agent.train(
-            reward_opponent
-            if isinstance(reward_opponent, float)
-            else reward_opponent.item()
-        )  # backwards compatibility (some rewards are floats, some are tensors)
+            self.agent.train(
+                reward_agent if isinstance(reward_agent, float) else reward_agent.item()
+            )  # backwards compatibility (some rewards are floats, some are tensors)
+            self.opponent_agent.train(
+                reward_opponent
+                if isinstance(reward_opponent, float)
+                else reward_opponent.item()
+            )  # backwards compatibility (some rewards are floats, some are tensors)
 
-        self._logger.info("Episode %10d: Total reward agent: %4.2f", i, reward_agent)
-        self._logger.info(
-            "Episode %10d: Total reward opponent: %4.2f", i, reward_opponent
-        )
+            self._logger.info(
+                "Episode %10d: Total reward agent: %4.2f", i, reward_agent
+            )
+            self._logger.info(
+                "Episode %10d: Total reward opponent: %4.2f", i, reward_opponent
+            )
 
         # todo: return reward_opponent (not compatible with the current implementation yet)
         return reward_agent
@@ -124,10 +127,11 @@ class HokeyEnvWrapper(BaseEnvWrapper):
         Returns:
             list[float]: A list of rewards received in each episode.
         """
-        rewards = []
-        for i in range(n_episodes):
-            self.reset()
-            self.agent.reset()
-            self.opponent_agent.reset()
-            rewards.append(self.run())
+        with self.agent.evaluate_context(), self.opponent_agent.evaluate_context():
+            rewards = []
+            for i in range(n_episodes):
+                self.reset()
+                self.agent.reset()
+                self.opponent_agent.reset()
+                rewards.append(self.run())
         return rewards

@@ -1,7 +1,6 @@
 """This file contains the CLI for the training process. Input is a yaml file with the configuration for the training."""
 
 import argparse
-import copy
 import logging
 import os
 from calendar import c
