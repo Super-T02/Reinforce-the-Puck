@@ -27,8 +27,8 @@ agent1:
   env_id: 2
   eps: 1
   discount: 0.99
-  actor_hidden_sizes: [256, 128]
-  critic_hidden_sizes: [256, 128, 64]
+  actor_hidden_sizes: [516, 256]
+  critic_hidden_sizes: [516, 256, 128]
   policy_delay: 2
   update_target_every: -1
   tao: 0.005
@@ -48,6 +48,6 @@ agent1:
     learning_rate_actor: 0.0003
     learning_rate_critic: 0.0003
     log_name: td3_hockey_shooting
-    batch_size: 128
+    batch_size: 256
   specialized_config:
     num_episodes: 750
