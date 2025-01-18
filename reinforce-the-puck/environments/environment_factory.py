@@ -13,7 +13,7 @@ class EnvironmentFactory:
             mode = Mode.NORMAL if mode is None else mode
             env = HokeyEnvWrapper(max_steps, do_render, mode=mode)
             # todo: make opponent agent configurable
-            env.opponent_agent = BasicHokeyOpponentWrapper(weak=True)
+            env.opponent_agent = BasicHokeyOpponentWrapper(weak=False)
             return env
         else:
             return BaseEnvWrapper(env_name, max_steps, do_render)

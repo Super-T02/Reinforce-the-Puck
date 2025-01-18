@@ -217,7 +217,7 @@ class StochasticPolicyNetwork(Feedforward):
         output_activation: Any | None = None,
         loss_fn: callable = torch.nn.SmoothL1Loss(),
         device: str = None,
-        dtype: torch.dtype = None,
+        dtype: torch.dtype = global_config.base_config.dtype,
         log_std_min: float = -20,
         log_std_max: float = 2,
         **kwargs,
@@ -296,7 +296,9 @@ class StochasticPolicyNetwork(Feedforward):
         action = torch.tanh(z)
         log_prob = normal_dist.log_prob(z).sum(dim=-1, keepdim=True)
         # C. Enforcing Action Bounds
-        log_prob -= torch.log(1 - action.pow(2) + 1e-6).sum(dim=-1, keepdim=True) #1e-6 prevent log(0)
+        log_prob -= torch.log(1 - action.pow(2) + 1e-6).sum(
+            dim=-1, keepdim=True
+        )  # 1e-6 prevent log(0)
         return action, log_prob
 
     def mean(self, x: torch.Tensor) -> torch.Tensor:
