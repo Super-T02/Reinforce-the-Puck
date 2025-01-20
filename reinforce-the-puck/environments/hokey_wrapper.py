@@ -4,6 +4,7 @@ import hockey.hockey_env as h_env
 import numpy as np
 from agents.base_agent import BaseAgent
 from environments.base_wrapper import BaseEnvWrapper
+from reward_model.reward_inference import rate_observation
 
 
 class HokeyEnvWrapper(BaseEnvWrapper):
@@ -14,10 +15,10 @@ class HokeyEnvWrapper(BaseEnvWrapper):
         agent: BaseAgent = None,
         opponent_agent: BaseAgent = None,
         mode: int = h_env.Mode.NORMAL,
-        winner_weight: float = 10.0,
-        closeness_puck_weight: float = 0.5,
+        winner_weight: float = 20.0,
+        closeness_puck_weight: float = 0.3,
         touch_puck_weight: float = 0.0,
-        puck_direction_weight: float = 1.0,
+        puck_direction_weight: float = 0.7,
     ):
         self._do_render = do_render
         self.env = h_env.HockeyEnv(mode=mode)
@@ -50,8 +51,14 @@ class HokeyEnvWrapper(BaseEnvWrapper):
         return self._last_observation
 
     def compute_reward_agent(self, obs, r, d, t, info, evaluate=False) -> float:
+        closeness_puck = info.get("reward_closeness_to_puck", 0.0)
+        puck_direction = info.get("reward_puck_direction", 0.0)
         return (
-            self._generic_reward(info)
+            self._generic_reward(info) * 3
+            + rate_observation(
+                obs, puck_direction=puck_direction, puck_distance=closeness_puck
+            )
+            * 0.6
             if not evaluate
             else info.get("winner", 0.0) * self.winner_weight
         )
