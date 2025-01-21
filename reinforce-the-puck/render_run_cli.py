@@ -32,6 +32,7 @@ def run_agent_on_environment(
         state = env.reset()
         for t in range(max_steps):
             state, reward, done, truncated, info = env.step()
+            env.render()
             observations.append(state)
             ep_reward += reward
             if done or truncated:

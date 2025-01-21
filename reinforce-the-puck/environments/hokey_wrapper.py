@@ -3,6 +3,7 @@ import logging
 import hockey.hockey_env as h_env
 import numpy as np
 from agents.base_agent import BaseAgent
+from environments.advanced_reward_calculator import AdaptiveHockeyRewardCalculator
 from environments.base_wrapper import BaseEnvWrapper
 
 
@@ -14,7 +15,7 @@ class HokeyEnvWrapper(BaseEnvWrapper):
         agent: BaseAgent = None,
         opponent_agent: BaseAgent = None,
         mode: int = h_env.Mode.NORMAL,
-        winner_weight: float = 10.0,
+        winner_weight: float = 100.0,
         closeness_puck_weight: float = 0.5,
         touch_puck_weight: float = 0.0,
         puck_direction_weight: float = 1.0,
@@ -35,6 +36,8 @@ class HokeyEnvWrapper(BaseEnvWrapper):
 
         self.name = "Hockey-v0"
 
+        self.reward_calculator = AdaptiveHockeyRewardCalculator()
+
         self.reset()
 
     def step(self, save=True):
@@ -51,7 +54,7 @@ class HokeyEnvWrapper(BaseEnvWrapper):
 
     def compute_reward_agent(self, obs, r, d, t, info, evaluate=False) -> float:
         return (
-            self._generic_reward(info)
+            self.reward_calculator.compute_reward(obs, info)
             if not evaluate
             else info.get("winner", 0.0) * self.winner_weight
         )
