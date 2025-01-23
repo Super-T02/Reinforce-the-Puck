@@ -27,6 +27,8 @@ agent1:
   checkpoint: td3_hockey_game1_2025-01-23_11-21-04_100/checkpoint_last.pth
   env_id: 2
   eps: 1
+  eval_freq: 50
+  eval_episodes: 20
   discount: 0.95
   actor_hidden_sizes: [516, 256]
   critic_hidden_sizes: [516, 256, 128]
