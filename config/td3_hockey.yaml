@@ -26,7 +26,7 @@ agent1:
   type: td3
   checkpoint: Hockey-v0/td3/td3_hockey_game1_2025-01-23_11-21-04_100/checkpoint_last.pth
   opponent:
-    checkpoint: Hockey-v0/td3/td3_hockey_game1_2025-01-23_11-21-04_100/checkpoint_last.pth
+    checkpoint: Hockey-v0/td3/2025-01-23_15-00-13_td3_hockey_game1_100-steps/best_agent_run.pth
     weak: False
     type: td3
   env_id: 2
