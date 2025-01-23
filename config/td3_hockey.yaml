@@ -24,7 +24,7 @@ env3:
 
 agent1:
   type: td3
-  checkpoint: basic_opponnent_1
+  # checkpoint:
   env_id: 2
   eps: 1
   discount: 0.95
