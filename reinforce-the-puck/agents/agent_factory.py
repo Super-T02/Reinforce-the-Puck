@@ -111,7 +111,7 @@ class AgentFactory:
         This fuctions loads an agent configuration by loading the checkpoint file and extracting the hidden layer sizes of the policy and critic networks.
         """
         checkpoint = torch.load(path)
-        if agent_type == "SAC":
+        if agent_type.upper() == "SAC":
             q1 = checkpoint[0]
             q2 = checkpoint[1]
             policy = checkpoint[2]
@@ -129,7 +129,7 @@ class AgentFactory:
             ]
             return config
 
-        elif agent_type == "TD3":
+        elif agent_type.upper() == "TD3":
             q = checkpoint[0]
             policy = checkpoint[1]
             config = TD3AgentConfig()
@@ -145,7 +145,7 @@ class AgentFactory:
                 critic_hidden_layer_sizes[2],
             ]
             return config
-        elif agent_type == "DDPG":
+        elif agent_type.upper() == "DDPG":
             q = checkpoint[0]
             policy = checkpoint[1]
             config = DDPGAgentConfig()

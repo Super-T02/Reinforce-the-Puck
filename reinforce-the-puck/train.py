@@ -180,6 +180,10 @@ class TrainCLI:
                     env.observation_space,
                     env.action_space,
                 )
+                logging.info(
+                    "Created opponent agent. Type: %s",
+                    type(env.opponent_agent).__name__,
+                )
 
             training_run = TrainingRun(
                 environment=env,
