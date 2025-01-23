@@ -2,11 +2,18 @@ import os
 
 import torch
 from agents.base_agent import BaseAgent
+from agents.basic_hokey_oponent import BasicHokeyOpponentWrapper
 from agents.ddpg import DDPGAgent
 from agents.sac import SACAgent
 from agents.td3 import TD3Agent
 from gymnasium import spaces
-from utils.config import AgentConfig, DDPGAgentConfig, SACAgentConfig, TD3AgentConfig
+from utils.config import (
+    AgentConfig,
+    DDPGAgentConfig,
+    OpponentConfig,
+    SACAgentConfig,
+    TD3AgentConfig,
+)
 
 
 def _get_hidden_layer_sizes(state_dict):
@@ -67,6 +74,20 @@ class AgentFactory:
             )
 
         raise ValueError("Invalid agent configuration type")
+
+    @staticmethod
+    def create_opponent_agent(
+        opponent_config: OpponentConfig,
+        observation_space: spaces.box.Box,
+        action_space: spaces.box.Box,
+    ):
+        cfg = opponent_config.to_dict()
+        if opponent_config.type == "basic_opponent":
+            return BasicHokeyOpponentWrapper(cfg.get("weak", False))
+        elif opponent_config.checkpoint is not None:
+            return AgentFactory.create_agent_from_checkpoint(
+                cfg.get("checkpoint"), cfg.get("type"), observation_space, action_space
+            )
 
     @staticmethod
     def create_adapted_agent_config_from_checkpoint(path, agent_type) -> AgentConfig:

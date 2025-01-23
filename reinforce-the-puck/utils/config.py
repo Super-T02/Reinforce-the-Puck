@@ -141,6 +141,7 @@ class AgentConfig(ConfigGroup):
     def __init__(self):
         self.type = "none"
         self.name = "BasicOpponent"
+        self.opponent: OpponentConfig = OpponentConfig()
         self.checkpoint = None
         self.version = 1
         self.epochs = 10
@@ -231,6 +232,14 @@ class AgentConfig(ConfigGroup):
         setattr(goal, param, value)
 
 
+class OpponentConfig(ConfigGroup):
+    def __init__(self):
+        super().__init__()
+        self.checkpoint = None
+        self.weak = False
+        self.type = "basic_opponent"
+
+
 class SACAgentConfig(AgentConfig):
     def __init__(self):
         super().__init__()
@@ -310,7 +319,12 @@ class Config:
     Main configuration class to load and manage YAML configurations.
     """
 
-    TYPE2AGENT = {"ddpg": DDPGAgentConfig, "td3": TD3AgentConfig, "sac": SACAgentConfig}
+    TYPE2AGENT = {
+        "ddpg": DDPGAgentConfig,
+        "td3": TD3AgentConfig,
+        "sac": SACAgentConfig,
+        "basic_opponent": AgentConfig,
+    }
 
     def __init__(self):
         self.base_config = BaseConfig()
