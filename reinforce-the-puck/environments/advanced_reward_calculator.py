@@ -23,7 +23,7 @@ class AdaptiveHockeyRewardCalculator:
         offense_weight=0.3,
         win_bonus=10.0,
         lose_penalty=-10.0,
-        puck_speed_threshold=1.0,
+        puck_speed_threshold=10.0,
     ):
         # Environment-based constants
         self.W = 10.0
@@ -64,13 +64,20 @@ class AdaptiveHockeyRewardCalculator:
         puck_pos = np.array(observations[12:14], dtype=np.float32)
         puck_vel = np.array(observations[14:16], dtype=np.float32)
 
+        p1_pos = p1_pos - [
+            self.CENTER_X,
+            self.CENTER_Y,
+        ]  # because  in env: self.player2.position - [CENTER_X, CENTER_Y],
+        p2_pos = p2_pos - [self.CENTER_X, self.CENTER_Y]
+        puck_pos = puck_pos - [self.CENTER_X, self.CENTER_Y]
+
         # Decide whether to emphasize offense or defense
-        puck_speed = np.linalg.norm(puck_vel)
+        puck_speed = np.linalg.norm(puck_vel)  # euclidean norm
         is_in_own_half = puck_pos[0] < self.CENTER_X
         is_puck_slow = puck_speed < self.puck_speed_threshold
 
         # If puck is in our half and slow -> offense, else defense
-        if is_in_own_half and is_puck_slow:
+        if is_in_own_half and is_puck_slow:  # todo??
             w_offense, w_defense = 1.0, 0.0
         else:
             w_offense, w_defense = 0.0, 1.0
@@ -94,21 +101,28 @@ class AdaptiveHockeyRewardCalculator:
 
     def _defense_reward(self, p1_pos, p2_pos, puck_pos):
         # Reward agent for being better positioned on line puck->my_goal
-        dist_agent_line = self._point_line_distance(
+        dist_agent_line = self._point_line_distance(  # distance from player pos to line (going through puck and my goal)
             p1_pos, puck_pos, self.my_goal_center
         )
-        dist_opponent_line = self._point_line_distance(
+        dist_opponent_line = self._point_line_distance(  # also consider opponent --> target: be better than opponent (when he is close to the line, I must be closer)
             p2_pos, puck_pos, self.my_goal_center
         )
+
         return np.clip(dist_opponent_line - dist_agent_line, -5.0, 5.0)
 
     def _offense_reward(self, puck_pos, puck_vel):
         # Reward alignment puck->opponent_goal
-        vec_goal = self.opponent_goal_center - puck_pos
-        dot_val = np.dot(vec_goal, puck_vel)
+        vec_goal = (
+            self.opponent_goal_center - puck_pos
+        )  # vector from puck to opponent goal
+        dot_val = np.dot(
+            vec_goal, puck_vel
+        )  # measure of how much puck is moving towards the goal
         norm_vec = np.linalg.norm(vec_goal) + 1e-6
         norm_vel = np.linalg.norm(puck_vel) + 1e-6
-        cos_angle = dot_val / (norm_vec * norm_vel)
+        cos_angle = dot_val / (
+            norm_vec * norm_vel
+        )  # normalized (make independent of puck speed)
         return np.clip(cos_angle, -1.0, 1.0)
 
     @staticmethod
