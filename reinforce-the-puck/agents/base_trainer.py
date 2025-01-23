@@ -164,7 +164,7 @@ class BaseTrainer:
                  batch size, log frequency, save checkpoint frequency, and iteration steps.
         """
         time_stamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        return f"{time_stamp}_{self._log_name}_{i}-steps"
+        return f"{self._log_name}_{time_stamp}_{i}"
 
     def get_logging_dir(self) -> str:
         """Get the directory where the logs are stored."""
