@@ -1,4 +1,5 @@
 import math
+from logging import getLogger
 
 import numpy as np
 
@@ -25,6 +26,7 @@ class AdaptiveHockeyRewardCalculator:
         lose_penalty=-10.0,
         puck_speed_threshold=10.0,
     ):
+        self.logger = getLogger(__name__)
         # Environment-based constants
         self.W = 10.0
         self.H = 8.0
@@ -64,23 +66,30 @@ class AdaptiveHockeyRewardCalculator:
         puck_pos = np.array(observations[12:14], dtype=np.float32)
         puck_vel = np.array(observations[14:16], dtype=np.float32)
 
-        p1_pos = p1_pos - [
+        p1_pos = p1_pos + [
             self.CENTER_X,
             self.CENTER_Y,
         ]  # because  in env: self.player2.position - [CENTER_X, CENTER_Y],
-        p2_pos = p2_pos - [self.CENTER_X, self.CENTER_Y]
-        puck_pos = puck_pos - [self.CENTER_X, self.CENTER_Y]
+
+        p2_pos = p2_pos + [self.CENTER_X, self.CENTER_Y]
+        puck_pos = puck_pos + [self.CENTER_X, self.CENTER_Y]
 
         # Decide whether to emphasize offense or defense
         puck_speed = np.linalg.norm(puck_vel)  # euclidean norm
         is_in_own_half = puck_pos[0] < self.CENTER_X
         is_puck_slow = puck_speed < self.puck_speed_threshold
 
+        self.logger.info(f"Puck speed: {puck_speed}, in own half: {is_in_own_half}")
+        self.logger.info(f"Puck pos: {puck_pos}, puck vel: {puck_vel}")
+        self.logger.info(f"Player 1 pos: {p1_pos}, player 2 pos: {p2_pos}")
+
         # If puck is in our half and slow -> offense, else defense
         if is_in_own_half and is_puck_slow:  # todo??
             w_offense, w_defense = 1.0, 0.0
+            self.logger.info("Offense")
         else:
             w_offense, w_defense = 0.0, 1.0
+            self.logger.info("Defense")
 
         # Compute partial strategy rewards
         r_defense = self._defense_reward(p1_pos, p2_pos, puck_pos)
