@@ -4,6 +4,7 @@ import hockey.hockey_env as h_env
 import numpy as np
 from agents.base_agent import BaseAgent
 from environments.base_wrapper import BaseEnvWrapper
+from gymnasium.spaces.box import Box
 
 
 class HokeyEnvWrapper(BaseEnvWrapper):
@@ -25,6 +26,12 @@ class HokeyEnvWrapper(BaseEnvWrapper):
         self.opponent_agent = opponent_agent
         self.observation_space = self.env.observation_space
         self.action_space = self.env.action_space
+        self.action_space = Box(
+            self.action_space.low[:4],
+            self.action_space.high[:4],
+            (4,),
+            self.action_space.dtype,
+        )
         self._last_observation = (None, 0, False, False, {})
         self._last_opponent_observation = (None, 0, False, False, {})
         self._logger = logging.getLogger(__name__)
@@ -49,11 +56,12 @@ class HokeyEnvWrapper(BaseEnvWrapper):
         state_opponent = self._last_opponent_observation[0]
 
         # Get actions
-        action1 = self.agent.act(state_agent)
-        action2 = self.opponent_agent.act(state_opponent)
+        action1 = np.array(self.agent.act(state_agent))
+        action2 = np.array(self.opponent_agent.act(state_opponent))
 
         # Agent 1
-        obs, r, d, t, info = self.env.step(np.hstack([action1, action2]))
+        actions = np.hstack([action1, action2])
+        obs, r, d, t, info = self.env.step(actions)
         self._last_observation = (obs, r, d, t, info)
 
         # Agent 2

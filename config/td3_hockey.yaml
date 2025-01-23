@@ -20,15 +20,16 @@ env3:
   id: 2
   mode: 0 # 0: normal, 1: shooting, 2: defense
   max_steps: 1000
+  # train_both: False # TODO: Implement this
   do_render: True
 
 agent1:
   type: td3
-  checkpoint: Hockey-v0/td3/td3_hockey_game1_2025-01-23_11-21-04_100/checkpoint_last.pth
+  checkpoint: null
   opponent:
-    checkpoint: Hockey-v0/td3/2025-01-23_15-00-13_td3_hockey_game1_100-steps/best_agent_run.pth
+    checkpoint: null
     weak: False
-    type: td3
+    type: basic_opponent
   env_id: 2
   eps: 1
   eval_freq: 50
@@ -54,7 +55,7 @@ agent1:
   trainer_config:
     learning_rate_actor: 0.0003
     learning_rate_critic: 0.0003
-    log_name: td3_hockey_game_opponent
+    log_name: td3_hockey_game_1
     batch_size: 256
   specialized_config:
     num_episodes: 750
