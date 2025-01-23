@@ -110,33 +110,11 @@ class CheckpointManager:
                 [c for c in self._checkpoints if c.agent.get_config().type == t],
                 key=lambda x: x.avg_eval_reward,
             )
-            if best_checkpoint.avg_eval_reward <= self.get_best_saved_score(t):
-                self._logger.info("It exists a better Checkpoint. Not Saving.")
-                continue
-            path = f"{self.get_best_path(t)}_{best_checkpoint.avg_eval_reward}"
+            path = best_checkpoint.get_path() + "_best"
             self._logger.info(
                 f"Saving best checkpoint for {t}: {best_checkpoint.avg_eval_reward} to: {path}"
             )
             best_checkpoint.save(path)
-
-    def get_best_saved_score(self, agent_type: str) -> None:
-        """Get the best agents score
-
-        Args:
-            agent_type (str): Type of the agent.
-        """
-        best_path = self.get_best_path(agent_type)
-        if not os.path.exists(best_path):
-            return -float("inf")
-        best_agents = [
-            f
-            for f in os.listdir(best_path)
-            if os.path.isfile(os.path.join(best_path, f)) and f.split(".")[-1] == "pth"
-        ]
-        scores = [
-            float(".".join(f.split("_")[-1].split(".")[0:1])) for f in best_agents
-        ]
-        return max(scores) if len(scores) > 0 else -float("inf")
 
     def get_best_path(self, agent_type: str) -> str:
         """Generates the path for the best checkpoint.

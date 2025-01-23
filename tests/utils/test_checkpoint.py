@@ -93,15 +93,6 @@ def test_save_last_checkpoint(setup_checkpoint_manager, setup_checkpoint, monkey
     setup_checkpoint.save.assert_called_once_with(setup_checkpoint.get_path() + "_last")
 
 
-def test_get_best_saved_score(setup_checkpoint_manager, setup_agent, monkeypatch):
-    monkeypatch.setattr(os, "listdir", lambda path: ["best_5.0.pth", "best_-10.0.pth"])
-    monkeypatch.setattr(os.path, "isfile", lambda path: True)
-    monkeypatch.setattr(os.path, "exists", lambda path: True)
-
-    score = setup_checkpoint_manager.get_best_saved_score(setup_agent.get_config().type)
-    assert score == 5.0  # The highest score from the mocked files
-
-
 def test_get_best_agent(setup_checkpoint_manager, setup_agent):
     checkpoint = Checkpoint(
         agent=setup_agent, environment="test_env", avg_eval_reward=10.0

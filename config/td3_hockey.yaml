@@ -24,7 +24,7 @@ env3:
 
 agent1:
   type: td3
-  # checkpoint:
+  checkpoint: td3_hockey_game1_2025-01-23_11-21-04_100/checkpoint_last.pth
   env_id: 2
   eps: 1
   discount: 0.95
