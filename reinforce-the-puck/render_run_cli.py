@@ -25,24 +25,9 @@ def run_agent_on_environment(
             - actions (list[any]): A list of actions taken by the agent during the episodes.
             - rewards (list[float]): A list of total rewards received in each episode.
     """
-    rewards = []
-    observations = []
-    for ep in range(1, n_episodes + 1):
-        ep_reward = 0
-        state = env.reset()
-        for t in range(max_steps):
-            state, reward, done, truncated, info = env.step()
-            observations.append(state)
-            ep_reward += reward
-            if done or truncated:
-                break
-        rewards.append(ep_reward)
-        ep_reward = 0
+    rewards = env.evaluate(n_episodes)
     logging.getLogger(__name__).info(f"Mean reward: {np.mean(rewards)}")
-    observations = np.asarray(observations)
-    # actions = np.asarray(actions)
-    actions = []
-    return observations, actions, rewards
+    return rewards
 
 
 if __name__ == "__main__":
