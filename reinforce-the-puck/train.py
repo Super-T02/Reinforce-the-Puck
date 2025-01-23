@@ -48,7 +48,7 @@ class TrainingRun:
         rewards = []
         for i in range(self._num_episodes):
             rewards += [self._environment.run_train_episode(i)]
-            if i % self._agent_config.eval_freq == 0:
+            if i % self._agent_config.eval_freq == 0 and i != 0:
                 self.evaluate()
         rewards = np.array(rewards)
         self._logger.info("Training finished.")

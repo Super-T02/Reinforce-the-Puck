@@ -30,7 +30,7 @@ class Checkpoint:
         Args:
             path (str): Path to save the checkpoint.
         """
-        path = self.get_path()
+        path = self.get_path() if path is None else path
         os.makedirs(path, exist_ok=True)
         self.agent.save(f"{path}.pth")
         self.agent.get_config().to_yaml(f"{path}_config.yaml")
@@ -113,8 +113,11 @@ class CheckpointManager:
             if best_checkpoint.avg_eval_reward <= self.get_best_saved_score(t):
                 self._logger.info("It exists a better Checkpoint. Not Saving.")
                 continue
-            self._logger.info(f"Saving best checkpoint for {t}")
-            best_checkpoint.save(f"best_{best_checkpoint.avg_eval_reward}")
+            path = f"{self.get_best_path(t)}_{best_checkpoint.avg_eval_reward}"
+            self._logger.info(
+                f"Saving best checkpoint for {t}: {best_checkpoint.avg_eval_reward} to: {path}"
+            )
+            best_checkpoint.save(path)
 
     def get_best_saved_score(self, agent_type: str) -> None:
         """Get the best agents score
@@ -143,10 +146,7 @@ class CheckpointManager:
             str: Path for the best Checkpoint.
         """
         return os.path.join(
-            model_dir,
-            self._environment_name,
-            agent_type,
-            self._best_path,
+            model_dir, self._environment_name, agent_type, self._best_path, "best"
         )
 
     def get_best_config(self, agent_type: str) -> AgentConfig:
