@@ -3,17 +3,19 @@
 import argparse
 import logging
 import os
-from calendar import c
 
 import numpy as np
 from agents.agent_factory import AgentFactory
 from environments.base_wrapper import BaseEnvWrapper
 from environments.environment_factory import EnvironmentFactory
-from utils import config_dir, logger, model_dir
+from utils import config_dir, logger
+from utils.checkpoint import Checkpoint, CheckpointManager
 from utils.config import AgentConfig, global_config
 
 
 class TrainingRun:
+    """Training Run class which trains, evaluates, saves the best and mutates the best agent."""
+
     def __init__(
         self,
         environment: BaseEnvWrapper,
@@ -24,27 +26,18 @@ class TrainingRun:
         self._agent_config = agent_config
         self._num_episodes = num_episodes
         self._logger = logging.getLogger(__name__)
-        self._best_config = None
-        self._best_agent = None
-        self._best_reward = -np.inf
-        self.reset()
-
-    def reset(self):
-        self._best_agent_current_run = None
-        self._best_reward_current_run = -np.inf
+        self._checkpoint_manager = CheckpointManager(environment.name, 5, "best")
 
     def run(self, num_runs: int = 1):
         """Run the training process.
         1. Train the agent.
         2. Evaluate the agent.
         3. Save the best agent.
-        4. Mutate the agent.
+        4. Mutate the best agent.
         """
         for i in range(num_runs):
             self.train()
             self.evaluate()
-            self.save_run_best_agent()
-            self.save_best_agent()
             if not self._agent_config.mutation_config.enabled:
                 break
             self._mutate() if i < num_runs - 1 else None
@@ -67,63 +60,26 @@ class TrainingRun:
         self._logger.info("Evaluation finished.")
         self._environment.agent.save_eval_result(rewards)
         mean_reward = np.mean(rewards)
-        if mean_reward > self._best_reward:
-            self._best_reward = mean_reward
-            self._best_agent = self._environment.agent
-            self.save_best_agent()
-        if mean_reward > self._best_reward_current_run:
-            self._best_reward_current_run = mean_reward
-            self._best_agent_current_run = self._environment.agent
-            self.save_run_best_agent()
+        self._add_checkpoint(mean_reward)
+        self._checkpoint_manager.save_last_checkpoint()
+        self._checkpoint_manager.save_best_checkpoint()
 
-    def save_run_best_agent(self):
-        """Save the best agent to a file."""
-        cfg = self._best_agent_current_run.get_config()
-        self._best_agent_current_run.save(
-            os.path.join(
-                model_dir,
-                self._environment.name,
-                cfg.type,
-                self._best_agent_current_run.get_name(),
-                "best_agent_run.pth",
-            )
+    def _add_checkpoint(self, mean_reward: float):
+        """Adds a checkpoint to the Manager."""
+        checkpoint = Checkpoint(
+            self._environment.agent,
+            self._environment.name,
+            mean_reward,
         )
-        cfg.to_yaml(
-            os.path.join(
-                model_dir,
-                self._environment.name,
-                cfg.type,
-                self._best_agent_current_run.get_name(),
-                "best_config_run.yaml",
-            )
-        )
-
-    def save_best_agent(self):
-        """Save the best agent to a file."""
-        self._best_config = self._best_agent.get_config()
-        self._best_agent.save(
-            os.path.join(
-                model_dir,
-                self._environment.name,
-                self._best_config.type,
-                self._best_agent.get_name(),
-                "best_agent_mutation.pth",
-            )
-        )
-        self._best_config.to_yaml(
-            os.path.join(
-                model_dir,
-                self._environment.name,
-                self._best_config.type,
-                self._best_agent.get_name(),
-                "best_config_mutation.yaml",
-            )
-        )
+        self._checkpoint_manager.add_checkpoint(checkpoint)
 
     def _mutate(self):
-        """Mutate the agent."""
+        """Mutate the best agent."""
         self._logger.info("Mutating the agent...")
-        self._agent_config.mutate()
+        best_agent_config = self._checkpoint_manager.get_best_config(
+            self._agent_config.type
+        )
+        self._agent_config = best_agent_config.mutate()
         self._environment.agent = AgentFactory.create_agent_from_config(
             self._agent_config,
             self._environment.observation_space,

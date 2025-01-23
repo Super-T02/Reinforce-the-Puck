@@ -1,8 +1,9 @@
+import logging
 import os
 
 from agents.base_agent import BaseAgent
 from utils import model_dir
-from utils.config import AgentConfig, Config
+from utils.config import AgentConfig
 
 
 class Checkpoint:
@@ -39,7 +40,7 @@ class Checkpoint:
         Returns:
             str: Path of the checkpoint.
         """
-        os.path.join(
+        return os.path.join(
             model_dir,
             self.environment,
             self.agent.get_config().type,
@@ -62,6 +63,7 @@ class CheckpointManager:
         self._max_checkpoints = max_checkpoints
         self._best_path = best_path
         self._environment_name = environment_name
+        self._logger = logging.getLogger(__name__)
 
     def add_checkpoint(self, checkpoint: Checkpoint) -> None:
         """Adds a checkpoint to the manager
@@ -91,6 +93,9 @@ class CheckpointManager:
 
     def save_last_checkpoint(self) -> None:
         """Saves the last checkpoint to the base path"""
+        if len(self._checkpoints) == 0:
+            self._logger.warning("No checkpoints to save.")
+            return
         to_save: Checkpoint = self._checkpoints[-1]
         path = to_save.get_path()
         to_save.save(path + "_last")
