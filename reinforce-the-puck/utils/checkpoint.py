@@ -133,7 +133,9 @@ class CheckpointManager:
             for f in os.listdir(best_path)
             if os.path.isfile(os.path.join(best_path, f)) and f.split(".")[-1] == "pth"
         ]
-        scores = [float(f.split("_")[-1].split(".")[0]) for f in best_agents]
+        scores = [
+            float(".".join(f.split("_")[-1].split(".")[0:1])) for f in best_agents
+        ]
         return max(scores) if len(scores) > 0 else -float("inf")
 
     def get_best_path(self, agent_type: str) -> str:
