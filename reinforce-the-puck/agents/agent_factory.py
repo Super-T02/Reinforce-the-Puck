@@ -7,12 +7,14 @@ from agents.ddpg import DDPGAgent
 from agents.sac import SACAgent
 from agents.td3 import TD3Agent
 from gymnasium import spaces
+from matplotlib.pylab import f
 from utils.config import (
     AgentConfig,
     DDPGAgentConfig,
     OpponentConfig,
     SACAgentConfig,
     TD3AgentConfig,
+    model_dir,
 )
 
 
@@ -22,6 +24,10 @@ def _get_hidden_layer_sizes(state_dict):
         if "weight" in name:
             hidden_sizes.append(param.shape[0])  # Output size (number of neurons)
     return hidden_sizes
+
+
+def _build_checkpoint_path(checkpoint):
+    return os.path.join(model_dir, checkpoint)
 
 
 class AgentFactory:
@@ -54,26 +60,31 @@ class AgentFactory:
         """
         This function creates an agent from a configuration object.
         """
+        agent = None
         if isinstance(config, SACAgentConfig):
-            return SACAgent(
+            agent = SACAgent(
                 config=config,
                 action_space=action_space,
                 observation_space=observation_space,
             )
         elif isinstance(config, TD3AgentConfig):
-            return TD3Agent(
+            agent = TD3Agent(
                 config=config,
                 action_space=action_space,
                 observation_space=observation_space,
             )
         elif isinstance(config, DDPGAgentConfig):
-            return DDPGAgent(
+            agent = DDPGAgent(
                 config=config,
                 action_space=action_space,
                 observation_space=observation_space,
             )
-
-        raise ValueError("Invalid agent configuration type")
+        else:
+            raise ValueError("Invalid agent configuration type")
+        if config.checkpoint is not None:
+            path = _build_checkpoint_path(config.checkpoint)
+            agent.load(path)
+        return agent
 
     @staticmethod
     def create_opponent_agent(
@@ -86,8 +97,13 @@ class AgentFactory:
             return BasicHokeyOpponentWrapper(cfg.get("weak", False))
         elif opponent_config.checkpoint is not None:
             return AgentFactory.create_agent_from_checkpoint(
-                cfg.get("checkpoint"), cfg.get("type"), observation_space, action_space
+                _build_checkpoint_path(cfg.get("checkpoint")),
+                cfg.get("type"),
+                observation_space,
+                action_space,
             )
+        else:
+            raise ValueError("Invalid opponent configuration")
 
     @staticmethod
     def create_adapted_agent_config_from_checkpoint(path, agent_type) -> AgentConfig:

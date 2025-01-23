@@ -174,9 +174,12 @@ class TrainCLI:
                 agent_config, env.observation_space, env.action_space
             )
 
-            env.opponent_agent = AgentFactory.create_opponent_agent(
-                agent_config.opponent_config, env.observation_space, env.action_space
-            )
+            if env.name == "Hockey-v0":
+                env.opponent_agent = AgentFactory.create_opponent_agent(
+                    agent_config.opponent,
+                    env.observation_space,
+                    env.action_space,
+                )
 
             training_run = TrainingRun(
                 environment=env,

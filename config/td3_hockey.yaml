@@ -24,7 +24,11 @@ env3:
 
 agent1:
   type: td3
-  checkpoint: td3_hockey_game1_2025-01-23_11-21-04_100/checkpoint_last.pth
+  checkpoint: Hockey-v0/td3/td3_hockey_game1_2025-01-23_11-21-04_100/checkpoint_last.pth
+  opponent:
+    checkpoint: null
+    weak: False
+    type: basic_opponent
   env_id: 2
   eps: 1
   eval_freq: 50
