@@ -6,6 +6,7 @@ import numpy as np
 from agents.agent_factory import AgentFactory
 from environments.base_wrapper import BaseEnvWrapper
 from environments.environment_factory import EnvironmentFactory
+from utils.config import OpponentConfig
 
 
 def run_agent_on_environment(
@@ -40,10 +41,7 @@ def run_agent_on_environment(
         rewards.append(ep_reward)
         ep_reward = 0
     logging.getLogger(__name__).info(f"Mean reward: {np.mean(rewards)}")
-    observations = np.asarray(observations)
-    # actions = np.asarray(actions)
-    actions = []
-    return observations, actions, rewards
+    return rewards
 
 
 if __name__ == "__main__":
@@ -93,8 +91,26 @@ if __name__ == "__main__":
         default=None,
         help="Mode for the hockey environment (0:=NORMAL, 1:=Shooting, 2:=Defense).",
     )
+    parser.add_argument(
+        "--opponent-checkpoint",
+        type=str,
+        required=False,
+        default=None,
+        help="Path to the opponent agent checkpoint file.",
+    )
+    parser.add_argument(
+        "--opponent-type",
+        type=str,
+        required=False,
+        default=None,
+        help="Type of the opponent agent (SAC/TD3/DDPG/BASIC_OPPONENT).",
+    )
 
     args = parser.parse_args()
+    opponent_config = OpponentConfig()
+    if args.opponent_checkpoint is not None:
+        opponent_config.checkpoint = args.opponent_checkpoint
+        opponent_config.type = args.opponent_type
 
     env = EnvironmentFactory.create_environment(
         args.env, max_steps=1000, do_render=True, mode=args.mode
@@ -104,6 +120,11 @@ if __name__ == "__main__":
         env.agent = AgentFactory.create_agent_from_checkpoint(
             args.agent, args.agent_type, env.observation_space, env.action_space
         )
+        if env.name == "Hockey-v0":
+            env.opponent_agent = AgentFactory.create_opponent_agent(
+                opponent_config, env.observation_space, env.action_space
+            )
+            print("Loaded opponent agent: ", env.opponent_agent)
         env.reset()
         env.render()
     except Exception as e:

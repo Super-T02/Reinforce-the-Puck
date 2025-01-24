@@ -57,16 +57,6 @@ class BaseEnvWrapper:
         """
         return self._last_observation
 
-    def reset(self) -> any:
-        """
-        Reset the environment and return the initial state.
-
-        Returns:
-            state: The initial state of the environment.
-        """
-        state, _ = self.env.reset()
-        return state
-
     def step(self, save=True) -> tuple[any, float, bool, bool, dict[str, any]]:
         """
         Take an simulation step in the environment.
