@@ -2,8 +2,10 @@ import logging
 import os
 
 import gymnasium as gym
+import imageio
 from agents.base_agent import BaseAgent
-from utils import model_dir
+from PIL import Image
+from utils import model_dir, workspace_dir
 
 
 class BaseEnvWrapper:
@@ -45,6 +47,9 @@ class BaseEnvWrapper:
         self._logger = logging.getLogger(__name__)
         self._max_steps = max_steps
         self.name = env_name
+        self.record = False
+        self.record_path = os.path.join(workspace_dir, "gifs")
+        self.frames = []
         self.reset()
 
     @property
@@ -144,11 +149,19 @@ class BaseEnvWrapper:
                 self.reset()
                 self.agent.reset()
                 rewards.append(self.run_eval())
+        if self._do_render and self.record:
+            self.save_gif()
         return rewards
 
     def render(self):
         """Render the environment."""
-        self.env.render()
+        frame = self.env.render()
+        if self.record:
+            self._logger.warning("GIF is not supported in this environment.")
+
+    def save_gif(self):
+        """Save the captured frames as a GIF."""
+        self._logger.warning("GIF is not supported in this environment.")
 
     def close(self) -> "BaseEnvWrapper":
         """Close the environment.

@@ -130,3 +130,4 @@ venv.bak/
 report/*.pdf
 logs/*
 models/*
+gifs/*
