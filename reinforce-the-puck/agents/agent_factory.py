@@ -118,15 +118,8 @@ class AgentFactory:
             config = SACAgentConfig()
             actior_hidden_layer_sizes = _get_hidden_layer_sizes(policy)
             critic_hidden_layer_sizes = _get_hidden_layer_sizes(q1)
-            config.actor_hidden_sizes = [
-                actior_hidden_layer_sizes[0],
-                actior_hidden_layer_sizes[1],
-            ]
-            config.critic_hidden_sizes = [
-                critic_hidden_layer_sizes[0],
-                critic_hidden_layer_sizes[1],
-                critic_hidden_layer_sizes[2],
-            ]
+            config.actor_hidden_sizes = [*actior_hidden_layer_sizes[:-1]]
+            config.critic_hidden_sizes = [*critic_hidden_layer_sizes[:-1]]
             return config
 
         elif agent_type.upper() == "TD3":
@@ -135,15 +128,8 @@ class AgentFactory:
             config = TD3AgentConfig()
             critic_hidden_layer_sizes = _get_hidden_layer_sizes(q)
             actor_hidden_layer_sizes = _get_hidden_layer_sizes(policy)
-            config.actor_hidden_sizes = [
-                actor_hidden_layer_sizes[0],
-                actor_hidden_layer_sizes[1],
-            ]
-            config.critic_hidden_sizes = [
-                critic_hidden_layer_sizes[0],
-                critic_hidden_layer_sizes[1],
-                critic_hidden_layer_sizes[2],
-            ]
+            config.actor_hidden_sizes = [*actor_hidden_layer_sizes[:-1]]
+            config.critic_hidden_sizes = [*critic_hidden_layer_sizes[:-1]]
             return config
         elif agent_type.upper() == "DDPG":
             q = checkpoint[0]
@@ -151,13 +137,6 @@ class AgentFactory:
             config = DDPGAgentConfig()
             critic_hidden_layer_sizes = _get_hidden_layer_sizes(q)
             actor_hidden_layer_sizes = _get_hidden_layer_sizes(policy)
-            config.actor_hidden_sizes = [
-                actor_hidden_layer_sizes[0],
-                actor_hidden_layer_sizes[1],
-            ]
-            config.critic_hidden_sizes = [
-                critic_hidden_layer_sizes[0],
-                critic_hidden_layer_sizes[1],
-                critic_hidden_layer_sizes[2],
-            ]
+            config.actor_hidden_sizes = [*actor_hidden_layer_sizes[:-1]]
+            config.critic_hidden_sizes = [*critic_hidden_layer_sizes[:-1]]
             return config
