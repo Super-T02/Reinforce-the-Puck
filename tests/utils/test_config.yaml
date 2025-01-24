@@ -4,18 +4,18 @@ base_config:
   max_memory_size: 100000
 
 agent1:
-  name: BasicOpponent # Changed
+  type: td3 # Changed
   version: 1
   memory_size: 10000
 
 agent2:
-  name: BasicNotOpponent
+  type: sac
   version: 19 # Changed
   memory_size: 1 # Changed
   dtype: float32 # Should not be used
 
 agent3: # Not specified
-  name: BasicOpponent
+  type: td3
   version: 1
   memory_size: 10000
   device: cpu

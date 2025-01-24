@@ -4,6 +4,7 @@ import hockey.hockey_env as h_env
 import numpy as np
 from agents.base_agent import BaseAgent
 from environments.base_wrapper import BaseEnvWrapper
+from gymnasium.spaces.box import Box
 
 
 class HokeyEnvWrapper(BaseEnvWrapper):
@@ -25,7 +26,14 @@ class HokeyEnvWrapper(BaseEnvWrapper):
         self.opponent_agent = opponent_agent
         self.observation_space = self.env.observation_space
         self.action_space = self.env.action_space
+        self.action_space = Box(
+            self.action_space.low[:4],
+            self.action_space.high[:4],
+            (4,),
+            self.action_space.dtype,
+        )
         self._last_observation = (None, 0, False, False, {})
+        self._last_opponent_observation = (None, 0, False, False, {})
         self._logger = logging.getLogger(__name__)
         self._max_steps = max_steps
         self.winner_weight = winner_weight
@@ -37,28 +45,48 @@ class HokeyEnvWrapper(BaseEnvWrapper):
 
         self.reset()
 
+    def reset(self):
+        super().reset()
+        state = self.env.obs_agent_two()
+        self._last_opponent_observation = (state, 0, False, False, {})
+
     def step(self, save=True):
-        state = self._last_observation[0]
-        action1 = self.agent.act(state)
-        action2 = self.opponent_agent.act(state)
-        obs, r, d, t, info = self.env.step(np.hstack([action1, action2]))
+        # Get states
+        state_agent = self._last_observation[0]
+        state_opponent = self._last_opponent_observation[0]
+
+        # Get actions
+        action1 = np.array(self.agent.act(state_agent))
+        action2 = np.array(self.opponent_agent.act(state_opponent))
+
+        # Agent 1
+        actions = np.hstack([action1, action2])
+        obs, r, d, t, info = self.env.step(actions)
         self._last_observation = (obs, r, d, t, info)
+
+        # Agent 2
+        info_opponent = self.env.get_info_agent_two()
+        obs_opponent, r_opponent = (
+            self.env.obs_agent_two(),
+            self.env.get_reward_agent_two(info_opponent),
+        )
+        self._last_opponent_observation = (
+            obs_opponent,
+            r_opponent,
+            d,
+            t,
+            info_opponent,
+        )
+
         if save:
-            self.agent.save_experience(state, action1, *self._last_observation)
-            self.opponent_agent.save_experience(state, action2, *self._last_observation)
+            self.agent.save_experience(state_agent, action1, *self._last_observation)
+            self.opponent_agent.save_experience(
+                state_opponent, action2, *self._last_opponent_observation
+            )
 
         return self._last_observation
 
     def compute_reward_agent(self, obs, r, d, t, info, evaluate=False) -> float:
-        return (
-            self._generic_reward(info)
-            if not evaluate
-            else info.get("winner", 0.0) * self.winner_weight
-        )
-
-    def compute_reward_opponent(self, obs, r, d, t, info, evaluate=False) -> float:
-        info["winner"] = -info["winner"]
-        # TODO: Think about how to get the correct information for the opponent --> May already be implemented in environment
         return (
             self._generic_reward(info)
             if not evaluate
@@ -92,17 +120,17 @@ class HokeyEnvWrapper(BaseEnvWrapper):
             reward_agent += self.compute_reward_agent(
                 *self._last_observation, evaluate=True
             )
-            reward_opponent += self.compute_reward_opponent(
-                *self._last_observation, evaluate=True
+            reward_opponent += self.compute_reward_agent(
+                *self._last_opponent_observation, evaluate=True
             )
             done = self._last_observation[2]
             if done:
                 break
             self.render() if self._do_render else None
         self._logger.info("Episode finished. Total reward agent: %f", reward_agent)
-        self._logger.info("Episode finished. Total reward opponent: %f", reward_agent)
-
-        # todo: return reward_opponent (not compatible with the current implementation yet)
+        self._logger.info(
+            "Episode finished. Total reward opponent: %f", reward_opponent
+        )
         return reward_agent
 
     def run_train_episode(self, i: int) -> float:
@@ -127,18 +155,20 @@ class HokeyEnvWrapper(BaseEnvWrapper):
                 done = self._last_observation[2]
                 trunc = self._last_observation[3]
                 reward_agent += self.compute_reward_agent(*self._last_observation)
-                reward_opponent += self.compute_reward_opponent(*self._last_observation)
+                reward_opponent += self.compute_reward_agent(
+                    *self._last_opponent_observation
+                )
                 if done or trunc:
                     break
 
             self.agent.train(
                 reward_agent if isinstance(reward_agent, float) else reward_agent.item()
             )  # backwards compatibility (some rewards are floats, some are tensors)
-            self.opponent_agent.train(
-                reward_opponent
-                if isinstance(reward_opponent, float)
-                else reward_opponent.item()
-            )  # backwards compatibility (some rewards are floats, some are tensors)
+            # self.opponent_agent.train(
+            #     reward_opponent
+            #     if isinstance(reward_opponent, float)
+            #     else reward_opponent.item()
+            # )  # backwards compatibility (some rewards are floats, some are tensors)
 
             self._logger.info(
                 "Episode %10d: Total reward agent: %4.2f", i, reward_agent
