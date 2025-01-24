@@ -22,9 +22,9 @@ class AdaptiveHockeyRewardCalculator:
         direction_weight=0.5,
         defense_weight=0.2,
         offense_weight=0.3,
-        win_bonus=10.0,
-        lose_penalty=-10.0,
-        puck_speed_threshold=10.0,
+        win_bonus=100.0,
+        lose_penalty=-94.0,
+        puck_speed_threshold=14.0,
     ):
         self.logger = getLogger(__name__)
         # Environment-based constants
@@ -79,17 +79,17 @@ class AdaptiveHockeyRewardCalculator:
         is_in_own_half = puck_pos[0] < self.CENTER_X
         is_puck_slow = puck_speed < self.puck_speed_threshold
 
-        self.logger.info(f"Puck speed: {puck_speed}, in own half: {is_in_own_half}")
-        self.logger.info(f"Puck pos: {puck_pos}, puck vel: {puck_vel}")
-        self.logger.info(f"Player 1 pos: {p1_pos}, player 2 pos: {p2_pos}")
+        # self.logger.info(f"Puck speed: {puck_speed}, in own half: {is_in_own_half}")
+        # self.logger.info(f"Puck pos: {puck_pos}, puck vel: {puck_vel}")
+        # self.logger.info(f"Player 1 pos: {p1_pos}, player 2 pos: {p2_pos}")
 
         # If puck is in our half and slow -> offense, else defense
         if is_in_own_half and is_puck_slow:  # todo??
-            w_offense, w_defense = 1.0, 0.0
-            self.logger.info("Offense")
+            w_offense, w_defense = 1.0, 0.1
+        # self.logger.info("Offense")
         else:
-            w_offense, w_defense = 0.0, 1.0
-            self.logger.info("Defense")
+            w_offense, w_defense = 0.1, 1.0  # soft weight
+        # self.logger.info("Defense")
 
         # Compute partial strategy rewards
         r_defense = self._defense_reward(p1_pos, p2_pos, puck_pos)
