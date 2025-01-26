@@ -288,6 +288,14 @@ class TD3AgentConfig(DDPGAgentConfig):
         self.tao = 0.005
 
 
+class TD3CrossAgentConfig(TD3AgentConfig):
+    def __init__(self):
+        super().__init__()
+        self.type = "td3_cross"
+        self.critic_hidden_sizes = [1024, 512, 256]  # Wider Network
+        self.use_target_net = False
+
+
 class EnvironmentConfig(ConfigGroup):
     def __init__(self):
         self.max_steps = 1000
@@ -324,6 +332,7 @@ class Config:
         "td3": TD3AgentConfig,
         "sac": SACAgentConfig,
         "basic_opponent": AgentConfig,
+        "td3_cross": TD3CrossAgentConfig,
     }
 
     def __init__(self):

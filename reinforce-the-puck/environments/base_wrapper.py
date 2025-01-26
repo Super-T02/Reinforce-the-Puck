@@ -50,6 +50,7 @@ class BaseEnvWrapper:
         self.record = False
         self.record_path = os.path.join(workspace_dir, "gifs")
         self.frames = []
+        self._do_render = False
         self.reset()
 
     @property

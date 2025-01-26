@@ -56,7 +56,7 @@ class DDPGAgent(BaseAgent):
             eps=0.000001,
         )
 
-    def _create_q_net(self, out: int, lr: float = 0.0) -> QFunction:
+    def _create_q_net(self, out: int, lr: float = 0.0, **kwargs) -> QFunction:
         """Create the Q network.
 
         Args:
@@ -72,6 +72,7 @@ class DDPGAgent(BaseAgent):
             hidden_sizes=self._config.critic_hidden_sizes,
             learning_rate=lr,
             device=self._config.specialized_config.device,
+            **kwargs,
         )
 
     def _policy_activation(self) -> callable:
@@ -88,7 +89,7 @@ class DDPGAgent(BaseAgent):
         output_activation = lambda x: (torch.nn.Tanh()(x) + 1) * (high - low) / 2 + low
         return output_activation
 
-    def _create_policy_net(self) -> Feedforward:
+    def _create_policy_net(self, **kwargs) -> Feedforward:
         """Create the policy network.
 
         Returns:
@@ -101,6 +102,7 @@ class DDPGAgent(BaseAgent):
             activation_fun=torch.nn.ReLU(),
             output_activation=self._policy_activation(),
             device=self._config.specialized_config.device,
+            **kwargs,
         )
 
     def _copy_nets(self) -> None:
@@ -117,13 +119,24 @@ class DDPGAgent(BaseAgent):
         Returns:
             action: The selected action.
         """
-        action = self.policy_target.predict(state)
+        action = self._get_target_action(state)
         if self._mode in [AgentMode.TRAIN]:
             action += self._config.eps * self._action_noise()
         if type(action) == torch.Tensor:
             action = action.detach().numpy()
         action = np.clip(action, self._action_space.low, self._action_space.high)
         return action
+
+    def _get_target_action(self, state) -> any:
+        """Get the target action based on the given state.
+
+        Args:
+            state: The current state of the environment.
+
+        Returns:
+            action: The target action.
+        """
+        return self.policy_target.predict(state)
 
     def state(self) -> tuple:
         """Get the state of the agent.
