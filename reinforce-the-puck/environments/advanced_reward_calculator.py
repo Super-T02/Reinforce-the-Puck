@@ -13,6 +13,7 @@ class AdaptiveHockeyRewardCalculator:
       - The center is (5, 4)
       - Left (my) goal center
       - Right (opponent) goal center
+      GOAL_SIZE = 75
     """
 
     def __init__(
@@ -32,6 +33,7 @@ class AdaptiveHockeyRewardCalculator:
         self.H = 8.0
         self.CENTER_X = self.W / 2.0
         self.CENTER_Y = self.H / 2.0
+        self.GOAL_SIZE = 75 / 60
 
         # Approximate goal centers in scaled coordinates
         self.my_goal_center = np.array([0.83, 4.0], dtype=np.float32)
@@ -85,15 +87,15 @@ class AdaptiveHockeyRewardCalculator:
 
         # If puck is in our half and slow -> offense, else defense
         if is_in_own_half and is_puck_slow:  # todo??
-            w_offense, w_defense = 1.0, 0.1
+            w_offense, w_defense = 0.9, 0.2
         # self.logger.info("Offense")
         else:
-            w_offense, w_defense = 0.1, 1.0  # soft weight
+            w_offense, w_defense = 0.2, 0.9  # soft weight
         # self.logger.info("Defense")
 
         # Compute partial strategy rewards
         r_defense = self._defense_reward(p1_pos, p2_pos, puck_pos)
-        r_offense = self._offense_reward(puck_pos, puck_vel)
+        r_offense = self._offense_reward(puck_pos, puck_vel, p2_pos)
 
         # Combine with adaptive weights
         reward += w_offense * (self.offense_weight * r_offense)
@@ -117,22 +119,49 @@ class AdaptiveHockeyRewardCalculator:
             p2_pos, puck_pos, self.my_goal_center
         )
 
-        return np.clip(dist_opponent_line - dist_agent_line, -5.0, 5.0)
+        goal_boarder_top = self.my_goal_center[1] - self.GOAL_SIZE / 2
+        goal_boarder_bottom = self.my_goal_center[1] + self.GOAL_SIZE / 2
 
-    def _offense_reward(self, puck_pos, puck_vel):
+        reward = np.clip(dist_opponent_line - dist_agent_line, -5.0, 5.0)
+
+        # punish beeing outside the boarders
+        if p1_pos[1] < goal_boarder_top or p1_pos[1] > goal_boarder_bottom:
+            reward -= 1
+        return reward
+
+    def _offense_reward(self, puck_pos, puck_vel, p2_pos):
         # Reward alignment puck->opponent_goal
-        vec_goal = (
-            self.opponent_goal_center - puck_pos
-        )  # vector from puck to opponent goal
-        dot_val = np.dot(
-            vec_goal, puck_vel
-        )  # measure of how much puck is moving towards the goal
-        norm_vec = np.linalg.norm(vec_goal) + 1e-6
-        norm_vel = np.linalg.norm(puck_vel) + 1e-6
-        cos_angle = dot_val / (
-            norm_vec * norm_vel
-        )  # normalized (make independent of puck speed)
-        return np.clip(cos_angle, -1.0, 1.0)
+        speed = np.linalg.norm(puck_vel)
+        if speed < 1e-6:
+            # No movement -> no reward
+            return 0.0
+
+        # 1) Reward for going in the direction of the opponent's goal
+
+        # Use the x-component normalized by total speed
+        # Opponent's goal is to the right, so positive x-direction is "good"
+        direction_reward = puck_vel[0] / speed
+
+        # Clip to [-1, 1] to avoid extreme values
+        direction_reward = np.clip(direction_reward, -1.0, 1.0)
+
+        # 2) Penalty if the puck is going in the direction of p2
+        # Calculate angle between puck_vel and vector from puck to p2
+        vec_p2 = p2_pos - puck_pos
+        dist_p2 = np.linalg.norm(vec_p2)
+        penalty = 0.0
+
+        if dist_p2 > 1e-6:
+            # Cosine of angle between puck_vel and p2 vector
+            cos_angle_p2 = np.dot(puck_vel, vec_p2) / (speed * dist_p2)
+
+            # If cos_angle_p2 ~ 1, the puck is going directly toward p2
+            if cos_angle_p2 > 0.8:
+                penalty_strength = (cos_angle_p2 - 0.8) * 5.0
+                penalty = np.clip(penalty_strength, 0.0, 2.0)
+
+        # Combine: reward for going to the right, minus penalty
+        return direction_reward - penalty
 
     @staticmethod
     def _point_line_distance(point, line_start, line_end):

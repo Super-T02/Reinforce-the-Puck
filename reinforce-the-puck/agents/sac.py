@@ -20,8 +20,10 @@ class SACAgent(BaseAgent):
         action_space: spaces.box.Box,
         config: SACAgentConfig,
     ):
-        super().__init__("SAC", observation_space, action_space, config)
         self._config: SACAgentConfig = config
+        self.device = self._config.specialized_config.device
+        print("Device: ", self.device)
+        super().__init__("SAC", observation_space, action_space, config)
 
         """enhancement of original paper which uses fixed alpha (hyperparameter)
 
@@ -34,7 +36,7 @@ class SACAgent(BaseAgent):
         """
 
         if self._config.alpha_tuning:
-            self._log_alpha = torch.zeros(1, requires_grad=True)
+            self._log_alpha = torch.zeros(1, requires_grad=True, device=self.device)
 
             self.alpha_optimizer = torch.optim.Adam(
                 [self._log_alpha], lr=self._config.alpha_lr
@@ -52,6 +54,7 @@ class SACAgent(BaseAgent):
             output_size=1,
             hidden_sizes=config.critic_hidden_sizes,
             loss_fn=torch.nn.MSELoss(),
+            device=self.device,
             learning_rate=config.trainer_config.learning_rate_critic,
         )
 
@@ -60,6 +63,7 @@ class SACAgent(BaseAgent):
             output_size=1,
             hidden_sizes=config.critic_hidden_sizes,
             loss_fn=torch.nn.MSELoss(),
+            device=self.device,
             learning_rate=config.trainer_config.learning_rate_critic,
         )
 
@@ -68,12 +72,14 @@ class SACAgent(BaseAgent):
             output_size=1,
             hidden_sizes=config.critic_hidden_sizes,
             loss_fn=torch.nn.MSELoss(),
+            device=self.device,
             learning_rate=config.trainer_config.learning_rate_critic,
         )
 
         self.Q2_target = QFunction(
             input_size=self._obs_dim + self._action_n,
             output_size=1,
+            device=self.device,
             hidden_sizes=config.critic_hidden_sizes,
             loss_fn=torch.nn.MSELoss(),
             learning_rate=config.trainer_config.learning_rate_critic,
@@ -117,6 +123,7 @@ class SACAgent(BaseAgent):
             hidden_sizes=self._config.actor_hidden_sizes,
             output_size=self._action_n,
             activation=torch.nn.ReLU,
+            device=self.device,
             output_activation=self._policy_activation(),
             log_std_min=self._config.log_std_min,
             log_std_max=self._config.log_std_max,
@@ -143,7 +150,7 @@ class SACAgent(BaseAgent):
             action: The selected action.
         """
         action, _ = self.policy.predict(state)
-        action = action.detach().numpy()
+        action = action.detach().cpu().numpy()
         action = np.clip(action, self._action_space.low, self._action_space.high)
         return action
 
@@ -234,6 +241,7 @@ class SACAgent(BaseAgent):
 
     def update_policy(self, batch):
         actions_pred, log_probs = self.policy.sample(batch.observations)
+        log_probs = log_probs.cpu()
         q1_pred = self.Q1.Qvalues(batch.observations, actions_pred)
         q2_pred = self.Q2.Qvalues(batch.observations, actions_pred)
         q_pred_min = torch.min(q1_pred, q2_pred)
@@ -252,6 +260,7 @@ class SACAgent(BaseAgent):
     def update_q_values(self, batch):
         with torch.no_grad():
             next_actions, next_log_probs = self.policy.sample(batch.next_observations)
+            next_log_probs = next_log_probs.cpu()
 
             target_q1 = self.Q1_target.Qvalues(batch.next_observations, next_actions)
             target_q2 = self.Q2_target.Qvalues(batch.next_observations, next_actions)
