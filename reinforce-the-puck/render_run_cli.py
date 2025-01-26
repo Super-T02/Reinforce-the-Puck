@@ -5,10 +5,28 @@ import os
 
 import numpy as np
 from agents.agent_factory import AgentFactory
+from environments.advanced_reward_calculator import AdaptiveHockeyRewardCalculator
 from environments.base_wrapper import BaseEnvWrapper
 from environments.environment_factory import EnvironmentFactory
 from utils import workspace_dir
 from utils.config import OpponentConfig
+
+
+def find_newest_file(directory):
+    newest_file = None
+    newest_time = 0
+
+    # Durchlaufe das Verzeichnis und alle Unterverzeichnisse
+    for root, _, files in os.walk(directory):
+        for file in files:
+            file_path = os.path.join(root, file)
+            file_time = os.path.getmtime(file_path)
+
+            # Überprüfe, ob diese Datei neuer ist
+            if file_time > newest_time:
+                newest_time = file_time
+                newest_file = file_path
+    return newest_file
 
 
 def run_agent_on_environment(
@@ -28,7 +46,22 @@ def run_agent_on_environment(
             - actions (list[any]): A list of actions taken by the agent during the episodes.
             - rewards (list[float]): A list of total rewards received in each episode.
     """
-    rewards = env.evaluate(n_episodes)
+    rewards = []
+    observations = []
+    reward_calc = AdaptiveHockeyRewardCalculator()
+    for ep in range(1, n_episodes + 1):
+        ep_reward = 0
+        state = env.reset()
+        for t in range(max_steps):
+            state, reward, done, truncated, info = env.step()
+            reward = reward_calc.compute_reward(state, info)
+            env.render()
+            observations.append(state)
+            ep_reward += reward
+            if done or truncated:
+                break
+        rewards.append(ep_reward)
+        ep_reward = 0
     logging.getLogger(__name__).info(f"Mean reward: {np.mean(rewards)}")
     return rewards
 
@@ -48,9 +81,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "--agent",
         type=str,
-        required=True,
-        # default="models/checkpoints/checkpoint_2025-01-11_10-51-53_agent_ddpg_0-steps.pth",
-        help="path to the agent c heckpoint file.",
+        required=False,
+        default=find_newest_file(os.path.join(workspace_dir, "models")),
+        help="path to the agent checkpoint file.",
     )
     parser.add_argument(
         "--episodes",

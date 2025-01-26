@@ -233,12 +233,14 @@ class StochasticPolicyNetwork(Feedforward):
             dtype,
             **kwargs,
         )
+        self._device = device
 
         self.log_std_min = log_std_min
         self.log_std_max = log_std_max
 
         self._mean_layer = nn.Linear(self._hidden_sizes[-1], self._output_size)
         self._log_std_layer = nn.Linear(self._hidden_sizes[-1], self._output_size)
+        self.to(self._device)
 
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         # Pass through the Feedforward hidden layers (up to the last hidden layer)
@@ -269,6 +271,8 @@ class StochasticPolicyNetwork(Feedforward):
 
         if isinstance(x, np.ndarray):
             x = torch.tensor(x, dtype=self._dtype)
+
+        x = x.to(self._device)
         with torch.no_grad():
             return self.forward(x)
 
@@ -286,6 +290,8 @@ class StochasticPolicyNetwork(Feedforward):
         """
         if isinstance(x, np.ndarray):
             x = torch.tensor(x, dtype=self._dtype)
+
+        x = x.to(self._device)
         mean, log_std = self.forward(x)
         std = log_std.exp()
 
