@@ -1,4 +1,5 @@
 import argparse
+import datetime
 import logging
 import os
 
@@ -6,6 +7,7 @@ import numpy as np
 from agents.agent_factory import AgentFactory
 from environments.base_wrapper import BaseEnvWrapper
 from environments.environment_factory import EnvironmentFactory
+from utils import workspace_dir
 from utils.config import OpponentConfig
 
 
@@ -105,6 +107,7 @@ if __name__ == "__main__":
         default=None,
         help="Type of the opponent agent (SAC/TD3/DDPG/BASIC_OPPONENT).",
     )
+    parser.add_argument("--gif", action="store_true", help="Create a gif of the run.")
 
     args = parser.parse_args()
     opponent_config = OpponentConfig()
@@ -126,6 +129,13 @@ if __name__ == "__main__":
             )
             print("Loaded opponent agent: ", env.opponent_agent)
         env.reset()
+        if args.gif:
+            env.record = True
+            base = os.path.join(workspace_dir, "gifs")
+            os.makedirs(base, exist_ok=True)
+            env.record_path = os.path.join(
+                base, f"{env.name}_{datetime.datetime.now()}.gif"
+            )
         env.render()
     except Exception as e:
         print(f"Error loading agent: {e}")

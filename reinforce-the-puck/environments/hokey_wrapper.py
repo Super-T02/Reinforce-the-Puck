@@ -1,11 +1,15 @@
 import logging
+import os
 
 import hockey.hockey_env as h_env
+import imageio
 import numpy as np
 from agents.base_agent import BaseAgent
 from environments.advanced_reward_calculator import AdaptiveHockeyRewardCalculator
 from environments.base_wrapper import BaseEnvWrapper
 from gymnasium.spaces.box import Box
+from PIL import Image
+from utils import workspace_dir
 
 
 class HokeyEnvWrapper(BaseEnvWrapper):
@@ -23,6 +27,7 @@ class HokeyEnvWrapper(BaseEnvWrapper):
     ):
         self._do_render = do_render
         self.env = h_env.HockeyEnv(mode=mode)
+        self.env.render_mode = "rgb_array" if do_render else None
         self.agent = agent
         self.opponent_agent = opponent_agent
         self.observation_space = self.env.observation_space
@@ -41,7 +46,9 @@ class HokeyEnvWrapper(BaseEnvWrapper):
         self.closeness_puck_weight = closeness_puck_weight
         self.touch_puck_weight = touch_puck_weight
         self.puck_direction_weight = puck_direction_weight
-
+        self.record = False
+        self.record_path = os.path.join(workspace_dir, "gifs")
+        self.frames = []
         self.name = "Hockey-v0"
 
         self.reward_calculator = AdaptiveHockeyRewardCalculator()
@@ -52,6 +59,20 @@ class HokeyEnvWrapper(BaseEnvWrapper):
         super().reset()
         state = self.env.obs_agent_two()
         self._last_opponent_observation = (state, 0, False, False, {})
+
+    def render(self):
+        """Render the environment."""
+        frame = self.env.render("rgb_array" if self.record else "human")
+        if self.record:
+            frame = Image.fromarray(frame)
+            self.frames.append(frame)
+
+    def save_gif(self):
+        """Save the captured frames as a GIF."""
+        if self.record and self.frames and self.frames[0] is not None:
+            imageio.mimsave(self.record_path, self.frames, fps=30)
+            self._logger.info(f"GIF saved to {self.record_path}")
+            self.frames = []
 
     def step(self, save=True):
         # Get states
@@ -199,4 +220,6 @@ class HokeyEnvWrapper(BaseEnvWrapper):
                 self.agent.reset()
                 self.opponent_agent.reset()
                 rewards.append(self.run_eval())
+        if self._do_render and self.record:
+            self.save_gif()
         return rewards

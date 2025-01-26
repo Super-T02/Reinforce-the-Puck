@@ -31,7 +31,7 @@ class Checkpoint:
             path (str): Path to save the checkpoint.
         """
         path = self.get_path() if path is None else path
-        os.makedirs("/".join(path.split("/")[:-1]), exist_ok=True)
+        os.makedirs(os.sep.join(path.split(os.sep)[:-1]), exist_ok=True)
         self.agent.save(f"{path}.pth")
         self.agent.get_config().to_yaml(f"{path}_config.yaml")
 
