@@ -117,9 +117,11 @@ class AgentFactory:
             policy = checkpoint[2]
             config = SACAgentConfig()
             actior_hidden_layer_sizes = _get_hidden_layer_sizes(policy)
+            actior_hidden_layer_sizes = actior_hidden_layer_sizes[:-2]
             critic_hidden_layer_sizes = _get_hidden_layer_sizes(q1)
             config.actor_hidden_sizes = [*actior_hidden_layer_sizes[:-1]]
             config.critic_hidden_sizes = [*critic_hidden_layer_sizes[:-1]]
+
             return config
 
         elif agent_type.upper() == "TD3":

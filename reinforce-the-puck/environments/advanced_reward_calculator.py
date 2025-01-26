@@ -18,13 +18,13 @@ class AdaptiveHockeyRewardCalculator:
 
     def __init__(
         self,
-        closeness_weight=0.1,
-        touch_weight=1.0,
+        closeness_weight=0.3,
+        touch_weight=2.0,
         direction_weight=0.5,
         defense_weight=0.2,
         offense_weight=0.3,
-        win_bonus=100.0,
-        lose_penalty=-94.0,
+        win_bonus=70.0,
+        lose_penalty=-60.0,
         puck_speed_threshold=14.0,
     ):
         self.logger = getLogger(__name__)
@@ -47,6 +47,8 @@ class AdaptiveHockeyRewardCalculator:
         self.offense_weight = offense_weight
         self.win_bonus = win_bonus
         self.lose_penalty = lose_penalty
+
+        self.own_half_counter = 0
 
         # Threshold to consider puck "slow"
         self.puck_speed_threshold = puck_speed_threshold
@@ -86,10 +88,13 @@ class AdaptiveHockeyRewardCalculator:
         # self.logger.info(f"Player 1 pos: {p1_pos}, player 2 pos: {p2_pos}")
 
         # If puck is in our half and slow -> offense, else defense
-        if is_in_own_half and is_puck_slow:  # todo??
+        if is_in_own_half:  # and is_puck_slow:  # todo??
             w_offense, w_defense = 0.9, 0.2
+            if puck_speed < self.puck_speed_threshold:
+                self.own_half_counter += 0.05
         # self.logger.info("Offense")
         else:
+            self.own_half_counter = 0
             w_offense, w_defense = 0.2, 0.9  # soft weight
         # self.logger.info("Defense")
 
@@ -100,6 +105,10 @@ class AdaptiveHockeyRewardCalculator:
         # Combine with adaptive weights
         reward += w_offense * (self.offense_weight * r_offense)
         reward += w_defense * (self.defense_weight * r_defense)
+
+        reward -= (
+            self.own_half_counter
+        )  # punish for being long in own half when puck is slow
 
         # Handle win/lose outcome
         winner = info.get("winner", None)
@@ -145,7 +154,7 @@ class AdaptiveHockeyRewardCalculator:
         # Clip to [-1, 1] to avoid extreme values
         direction_reward = np.clip(direction_reward, -1.0, 1.0)
 
-        # 2) Penalty if the puck is going in the direction of p2
+        # 2) Penalty if the puck is going in the direction of p2 (don't shoot the opponent because he will defend)
         # Calculate angle between puck_vel and vector from puck to p2
         vec_p2 = p2_pos - puck_pos
         dist_p2 = np.linalg.norm(vec_p2)

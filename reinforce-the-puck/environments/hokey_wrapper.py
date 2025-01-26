@@ -112,7 +112,8 @@ class HokeyEnvWrapper(BaseEnvWrapper):
 
     def compute_reward_agent(self, obs, r, d, t, info, evaluate=False) -> float:
         return (
-            self.reward_calculator.compute_reward(obs, info)
+            # self.reward_calculator.compute_reward(obs, info)
+            self._generic_reward(info)
             if not evaluate
             else info.get("winner", 0.0) * self.winner_weight
         )
