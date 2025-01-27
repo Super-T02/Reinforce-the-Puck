@@ -20,7 +20,7 @@ class HokeyEnvWrapper(BaseEnvWrapper):
         agent: BaseAgent = None,
         opponent_agent: BaseAgent = None,
         mode: int = h_env.Mode.NORMAL,
-        winner_weight: float = 100.0,
+        winner_weight: float = 10.0,
         closeness_puck_weight: float = 0.5,
         touch_puck_weight: float = 0.0,
         puck_direction_weight: float = 1.0,
@@ -72,7 +72,10 @@ class HokeyEnvWrapper(BaseEnvWrapper):
         if self.record and self.frames and self.frames[0] is not None:
             imageio.mimsave(self.record_path, self.frames, fps=30)
             self._logger.info(f"GIF saved to {self.record_path}")
+            print(f"GIF saved to {self.record_path}")
             self.frames = []
+        else:
+            print("No frames to save.")
 
     def step(self, save=True):
         # Get states
@@ -221,6 +224,6 @@ class HokeyEnvWrapper(BaseEnvWrapper):
                 self.agent.reset()
                 self.opponent_agent.reset()
                 rewards.append(self.run_eval())
-        if self._do_render and self.record:
+        if self.record:
             self.save_gif()
         return rewards
