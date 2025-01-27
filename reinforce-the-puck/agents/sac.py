@@ -160,7 +160,12 @@ class SACAgent(BaseAgent):
         Returns:
             tuple: The state of the agent.
         """
-        return (self.Q1.state_dict(), self.Q2.state_dict(), self.policy.state_dict())
+        return (
+            self.Q1.state_dict(),
+            self.Q2.state_dict(),
+            self.policy.state_dict(),
+            self._log_alpha,
+        )
 
     def restore_state(self, state: tuple) -> None:
         """Restore the state of the agent.
@@ -171,6 +176,7 @@ class SACAgent(BaseAgent):
         self.Q1.load_state_dict(state[0])
         self.Q2.load_state_dict(state[1])
         self.policy.load_state_dict(state[2])
+        self._log_alpha = state[3]
         self._copy_nets()
 
     def reset(self) -> "SACAgent":
