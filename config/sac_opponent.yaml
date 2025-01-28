@@ -14,7 +14,7 @@ env1:
 
 agent1:
   type: sac
-  opponent_name: 'agent2'
+  opponent_name: 'opponent1'
   checkpoint: 'Hockey-v0/sac/agent_sac_hokey_2025-01-27_14-36-13_100/checkpoint_last.pth'
   env_id: 0
   tau: 0.005 # Target network update rate (Soft update)
@@ -36,7 +36,7 @@ agent1:
     batch_size: 512
 
 
-agent2:
+opponent1:
   type: 'basic_opponent_weak'
   trainer_config:
     learning_rate_actor: 0.0007
