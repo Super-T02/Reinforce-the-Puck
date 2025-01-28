@@ -3,7 +3,6 @@ import torch
 from agents.base_agent import AgentMode
 from agents.td3 import TD3Agent
 from components.networks import Feedforward
-from components.noise import ClippedColoredNoise, ClippedGaussianNoise, ColoredNoise
 from utils.config import TD3AgentConfig, global_config
 
 
@@ -39,6 +38,9 @@ class TD3CrossQAgent(TD3Agent):
     def _update_target_net(self, target: Feedforward, source: Feedforward):
         pass
 
+    def _compute_target_q(self, batch):
+        pass
+
     def train_step(self, batch):
         """Perform a single training step.
 
@@ -58,41 +60,31 @@ class TD3CrossQAgent(TD3Agent):
 
     def _compute_q_loss(self, batch):
         """Compute the Q loss with a concatenated forward pass."""
-        # "Target" Q values (without target networks)
-        target_q = self._compute_target_q(batch)
-
-        # Forward pass
-        q1, q2, _, _ = self._joint_forward(
-            batch.observations,
-            batch.next_observations,
-            batch.actions,
-            self.act(batch.next_observations),
-        )
-
-        # Compute the Q loss
-        q1_loss = self.Q.get_loss(q1, target_q, False)
-        q2_loss = self.Q2.get_loss(q2, target_q, False)
-        return q1_loss + q2_loss
-
-    def _compute_target_q(self, batch):
-        """Compute the target Q values for the batch without target networks."""
-        next_actions = self.act(batch.next_observations)
+        # Select action with clipped noise
+        next_actions = self.policy(batch.next_observations).detach().cpu().numpy()
         noise = self._target_smoothing_noise()
         next_actions = np.clip(
             next_actions + noise, self._action_space.low, self._action_space.high
         )
         next_actions = torch.tensor(next_actions, dtype=global_config.base_config.dtype)
 
-        # Forward
-        _, _, next_q1, next_q2 = self._joint_forward(
-            batch.observations, batch.next_observations, batch.actions, next_actions
+        # Forward pass
+        q1, q2, next_q1, next_q2 = self._joint_forward(
+            batch.observations,
+            batch.next_observations,
+            batch.actions,
+            next_actions,
         )
 
         # Compute the target Q-values using the minimum of the two critics
         next_q = torch.min(next_q1, next_q2).detach().cpu()
-        target_q = batch.rewards + self._config.discount * (1 - batch.dones) * next_q
-        target_q = self._create_tensor(target_q)
-        return target_q
+        q_hat = batch.rewards + self._config.discount * (1 - batch.dones) * next_q
+        q_hat = self._create_tensor(q_hat)
+
+        # Compute the Q loss
+        q1_loss = self.Q.get_loss(q1, q_hat, False)
+        q2_loss = self.Q2.get_loss(q2, q_hat, False)
+        return q1_loss + q2_loss
 
     def _joint_forward(self, states, next_states, actions, next_actions):
         """Perform a joint forward pass through both critics."""

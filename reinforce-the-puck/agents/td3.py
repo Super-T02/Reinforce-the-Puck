@@ -120,7 +120,9 @@ class TD3Agent(DDPGAgent):
         Returns:
             torch.Tensor: The target Q values.
         """
-        next_actions = self.act(batch.next_observations)
+        next_actions = (
+            self.policy_target(batch.next_observations).detach().cpu().numpy()
+        )
         noise = self._target_smoothing_noise()
         next_actions = np.clip(
             next_actions + noise, self._action_space.low, self._action_space.high
