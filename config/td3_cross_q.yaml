@@ -25,9 +25,9 @@ env3:
 
 agent1:
   type: td3_cross
-  checkpoint: null
+  # checkpoint: Hockey-v0/td3_cross/td3_cross_hockey_2025-01-26_17-26-21_100/checkpoint_best.pth
   opponent:
-    checkpoint: null
+    # checkpoint: Hockey-v0/sac/best_jona_2025_01_28.pth
     weak: False
     type: basic_opponent
   env_id: 2
@@ -58,81 +58,5 @@ agent1:
     log_name: td3_cross_hockey
     batch_size: 256
   specialized_config:
-    num_episodes: 15000
-    do_render: False
-
-agent2:
-  type: td3_cross
-  checkpoint: null
-  opponent:
-    checkpoint: null
-    weak: False
-    type: basic_opponent
-  env_id: 2
-  eps: 1
-  eval_freq: 50
-  eval_episodes: 20
-  discount: 0.99
-  actor_hidden_sizes: [516, 256]
-  critic_hidden_sizes: [1024, 516, 256, 128]
-  policy_delay: 1
-  update_target_every: -1
-  noise_sigma: 0.2
-  noise_clip: 0.8
-  noise_beta: 1.0 # Pink noise
-  memory_size: 1000000
-  num_runs: 1
-  mutation_config:
-    enabled: false
-    means: []
-    mins: []
-    maxs: []
-    vars: []
-    prob: []
-    parameters: []
-  trainer_config:
-    learning_rate_actor: 0.0003
-    learning_rate_critic: 0.0003
-    log_name: td3_cross_hockey_wo_delay
-    batch_size: 256
-  specialized_config:
-    num_episodes: 15000
-    do_render: False
-
-agent3:
-  type: td3_cross
-  checkpoint: null
-  opponent:
-    checkpoint: null
-    weak: False
-    type: basic_opponent
-  env_id: 2
-  eps: 1
-  eval_freq: 50
-  eval_episodes: 20
-  discount: 0.99
-  actor_hidden_sizes: [516, 256]
-  critic_hidden_sizes: [1024, 516, 256, 128]
-  policy_delay: 3
-  update_target_every: -1
-  noise_sigma: 0.2
-  noise_clip: 0.8
-  noise_beta: 1.0 # Pink noise
-  memory_size: 1000000
-  num_runs: 1
-  mutation_config:
-    enabled: false
-    means: []
-    mins: []
-    maxs: []
-    vars: []
-    prob: []
-    parameters: []
-  trainer_config:
-    learning_rate_actor: 0.0006
-    learning_rate_critic: 0.0006
-    log_name: td3_cross_hockey_higher_lr
-    batch_size: 256
-  specialized_config:
-    num_episodes: 15000
+    num_episodes: 10000
     do_render: False

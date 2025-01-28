@@ -15,7 +15,9 @@ class TD3CrossQAgent(TD3Agent):
     def __init__(
         self, observation_space: tuple, action_space: tuple, config: TD3AgentConfig
     ):
-        super().__init__(observation_space, action_space, config, "TD3CrossQ")
+        super().__init__(
+            observation_space, action_space, config, "TD3CrossQ", use_batch_norm=True
+        )
 
         # Delete target networks
         del (
@@ -24,14 +26,9 @@ class TD3CrossQAgent(TD3Agent):
             self.policy_target,
         )
 
-    def _create_q_net(self, out: int, lr: int = 0, **kwargs):
-        return super()._create_q_net(out, lr, use_batch_norm=True, **kwargs)
-
-    def _create_policy_net(self, **kwargs):
-        return super()._create_policy_net(use_batch_norm=True, **kwargs)
-
     def _get_target_action(self, state):
-        return self.policy(state)
+        state = self._create_tensor(state)
+        return self.policy.predict(state)
 
     def _copy_nets(self):
         pass
@@ -73,8 +70,8 @@ class TD3CrossQAgent(TD3Agent):
         )
 
         # Compute the Q loss
-        q1_loss = self.Q.get_loss(q1, target_q)
-        q2_loss = self.Q2.get_loss(q2, target_q)
+        q1_loss = self.Q.get_loss(q1, target_q, False)
+        q2_loss = self.Q2.get_loss(q2, target_q, False)
         return q1_loss + q2_loss
 
     def _compute_target_q(self, batch):
@@ -92,12 +89,19 @@ class TD3CrossQAgent(TD3Agent):
         )
 
         # Compute the target Q-values using the minimum of the two critics
-        next_q = torch.min(next_q1, next_q2)
+        next_q = torch.min(next_q1, next_q2).detach().cpu()
         target_q = batch.rewards + self._config.discount * (1 - batch.dones) * next_q
+        target_q = self._create_tensor(target_q)
         return target_q
 
     def _joint_forward(self, states, next_states, actions, next_actions):
         """Perform a joint forward pass through both critics."""
+        # Create Tensors if not already
+        states = self._create_tensor(states)
+        next_states = self._create_tensor(next_states)
+        actions = self._create_tensor(actions)
+        next_actions = self._create_tensor(next_actions)
+
         # Concatenate for a joint forward pass
         all_states = torch.cat([states, next_states], dim=0)
         all_actions = torch.cat([actions, next_actions], dim=0)
@@ -110,6 +114,13 @@ class TD3CrossQAgent(TD3Agent):
         q1, next_q1 = torch.split(all_q1, states.shape[0])
         q2, next_q2 = torch.split(all_q2, states.shape[0])
         return q1, q2, next_q1, next_q2
+
+    def _create_tensor(self, data):
+        return (
+            torch.tensor(data, dtype=global_config.base_config.dtype)
+            if not isinstance(data, torch.Tensor)
+            else data
+        )
 
     def __del__(self):
         return super().__del__()

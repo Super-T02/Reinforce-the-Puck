@@ -18,9 +18,10 @@ class TD3Agent(DDPGAgent):
         action_space: tuple,
         config: TD3AgentConfig,
         name: str = "TD3",
+        **kwargs
     ):
         self.Q2, self.Q2_target = None, None
-        super().__init__(observation_space, action_space, config, name)
+        super().__init__(observation_space, action_space, config, name, **kwargs)
         # Exploration noise
         self._action_noise = ColoredNoise(
             (self._action_n,), config.noise_sigma, config.noise_beta
@@ -31,8 +32,10 @@ class TD3Agent(DDPGAgent):
         )
 
         # Create 2nd Q network
-        self.Q2 = self._create_q_net(1, config.trainer_config.learning_rate_critic)
-        self.Q2_target = self._create_q_net(1)
+        self.Q2 = self._create_q_net(
+            1, config.trainer_config.learning_rate_critic, **kwargs
+        )
+        self.Q2_target = self._create_q_net(1, **kwargs)
         self._last_actor_loss = torch.nan
         self._copy_nets()
         self.Q_optimizer = self._create_q_optim([self.Q, self.Q2])

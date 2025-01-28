@@ -1,4 +1,5 @@
 from typing import Any
+from unittest import result
 
 import numpy as np
 import torch
@@ -53,9 +54,9 @@ class Feedforward(torch.nn.Module):
 
         self.use_batch_norm = kwargs.get("use_batch_norm", False)
         self._batch_norms = torch.nn.ModuleList(
-            [torch.nn.BatchNorm1d(size) for size in self._hidden_sizes]
+            [torch.nn.BatchNorm1d(size) for size in layer_sizes[1:]]
             if self.use_batch_norm
-            else []
+            else [None] * len(layer_sizes)
         )
 
         self.to(self._device)
@@ -70,13 +71,13 @@ class Feedforward(torch.nn.Module):
             torch.Tensor: Output tensor.
         """
         x = x.to(self._device)
-        zipped = (
-            zip(self._layers, self._activations, self._batch_norms)
-            if self.use_batch_norm
-            else zip(self._layers, self._activations)
-        )
-        for layer, activation_fun in zipped:
-            x = activation_fun(layer(x))
+        for layer, batch_norm, activation_fun in zip(
+            self._layers, self._batch_norms, self._activations
+        ):
+            x = layer(x)
+            if batch_norm is not None and x.dim() > 1:
+                x = batch_norm(x)
+            x = activation_fun(x)
         if self._output_activation is not None:
             return self._output_activation(self._readout(x))
         else:
@@ -170,22 +171,26 @@ class QFunction(Feedforward):
             loss_fn,
             device,
             dtype,
+            **kwargs,
         )
 
-    def get_loss(self, x: torch.Tensor, y: torch.Tensor) -> object:
+    def get_loss(
+        self, x: torch.Tensor, y: torch.Tensor, do_forward: bool = True
+    ) -> object:
         """Calculate the loss for the given input and target.
 
         Args:
             x (torch.Tensor): Input tensor.
             y (torch.Tensor): Target tensor.
             loss_fn (callable): Loss function.
+            do_forward(bool, optional): Whether to do a forward pass. Defaults to True.
 
         Returns:
             object: Loss object.
         """
         x = x.to(self._device)
         y = y.to(self._device)
-        return self._loss_fn(self.forward(x), y)
+        return self._loss_fn(self.forward(x), y) if do_forward else self._loss_fn(x, y)
 
     def Qvalues(
         self, observations: torch.Tensor, actions: torch.Tensor

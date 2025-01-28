@@ -22,16 +22,19 @@ class DDPGAgent(BaseAgent):
         action_space: spaces.box.Box,
         config: DDPGAgentConfig,
         name: str = "DDPG",
+        **kwargs,
     ):
         super().__init__(name, observation_space, action_space, config)
         self._config: DDPGAgentConfig = config
         self._action_noise = OUNoise((self._action_n))
 
-        self.Q = self._create_q_net(1, config.trainer_config.learning_rate_critic)
-        self.Q_target = self._create_q_net(1)
+        self.Q = self._create_q_net(
+            1, config.trainer_config.learning_rate_critic, **kwargs
+        )
+        self.Q_target = self._create_q_net(1, **kwargs)
 
-        self.policy = self._create_policy_net()
-        self.policy_target = self._create_policy_net()
+        self.policy = self._create_policy_net(**kwargs)
+        self.policy_target = self._create_policy_net(**kwargs)
         self._copy_nets()
         self.policy_optimizer = torch.optim.Adam(
             self.policy.parameters(),
