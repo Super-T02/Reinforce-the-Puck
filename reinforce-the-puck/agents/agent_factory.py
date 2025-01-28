@@ -125,7 +125,6 @@ class AgentFactory:
             config = TD3AgentConfig()
             critic_hidden_layer_sizes = _get_hidden_layer_sizes(q)
             actor_hidden_layer_sizes = _get_hidden_layer_sizes(policy)
-            print(actor_hidden_layer_sizes, critic_hidden_layer_sizes)
             config.actor_hidden_sizes = [*actor_hidden_layer_sizes[:-1]]
             config.critic_hidden_sizes = [*critic_hidden_layer_sizes[:-1]]
             return config
