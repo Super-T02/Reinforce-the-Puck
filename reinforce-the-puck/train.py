@@ -141,7 +141,7 @@ class TrainCLI:
     def load_classes(self):
         """Load the agent, and environment classes."""
 
-        for agent_config in global_config.get_agents():
+        for agent_config in global_config.get_agent_configs():
             env = next(
                 (
                     env
@@ -175,8 +175,8 @@ class TrainCLI:
             )
 
             if env.name == "Hockey-v0":
-                env.opponent_agent = AgentFactory.create_opponent_agent(
-                    agent_config.opponent,
+                env.opponent_agent = AgentFactory.create_agent_from_config(
+                    global_config.get_opponent_config(agent_config.opponent_name),
                     env.observation_space,
                     env.action_space,
                 )

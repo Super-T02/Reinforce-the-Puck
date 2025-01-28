@@ -141,8 +141,8 @@ class AgentConfig(ConfigGroup):
     def __init__(self):
         self.type = "none"
         self.name = "BasicOpponent"
-        self.opponent: OpponentConfig = OpponentConfig()
         self.checkpoint = None
+        self.opponent_name = "undefined"
         self.version = 1
         self.epochs = 10
         self.eval_freq = 50
@@ -230,14 +230,6 @@ class AgentConfig(ConfigGroup):
             goal = self.trainer_config
         value = self.mutation_config.clip(value, i)
         setattr(goal, param, value)
-
-
-class OpponentConfig(ConfigGroup):
-    def __init__(self):
-        super().__init__()
-        self.checkpoint = None
-        self.weak = False
-        self.type = "basic_opponent"
 
 
 class SACAgentConfig(AgentConfig):
@@ -331,14 +323,24 @@ class Config:
         "ddpg": DDPGAgentConfig,
         "td3": TD3AgentConfig,
         "sac": SACAgentConfig,
-        "basic_opponent": AgentConfig,
+        "basic_opponent_weak": AgentConfig,
+        "basic_opponent_strong": AgentConfig,
         "td3_cross": TD3CrossAgentConfig,
     }
 
     def __init__(self):
         self.base_config = BaseConfig()
 
-    def get_agents(self) -> list[AgentConfig]:
+    def get_opponent_config(self, name):
+        agents = [attr for attr in dir(self) if attr.startswith("opponent")]
+        for agent in agents:
+            if not isinstance(getattr(self, agent), AgentConfig):
+                continue
+            if agent == name:
+                config = getattr(self, agent)
+                return config
+
+    def get_agent_configs(self) -> list[AgentConfig]:
         agents = [attr for attr in dir(self) if attr.startswith("agent")]
         return [
             getattr(self, agent)
@@ -371,6 +373,9 @@ class Config:
             if group_name.startswith("agent"):
                 agent_config = self.TYPE2AGENT[group_config["type"]]
                 setattr(self, group_name, agent_config())
+            if group_name.startswith("opponent"):
+                agent_config = self.TYPE2AGENT[group_config["type"]]
+                setattr(self, group_name, agent_config())
             if group_name.startswith("env"):
                 env_config = EnvironmentConfig()
                 setattr(self, group_name, env_config)
@@ -381,7 +386,7 @@ class Config:
                     group.update_from_dict(group_config)
 
         # impl inheritance for specialized_config from base_config
-        agent_configs = self.get_agents()
+        agent_configs = self.get_agent_configs()
         for agent_config in agent_configs:
             for attr in dir(agent_config.specialized_config):
                 if not attr.startswith("_") and not callable(

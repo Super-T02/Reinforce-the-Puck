@@ -21,8 +21,8 @@ class SACAgent(BaseAgent):
         config: SACAgentConfig,
     ):
         self._config: SACAgentConfig = config
+        print("Config: ", self._config.trainer_config.learning_rate_actor)
         self.device = self._config.specialized_config.device
-        print("Device: ", self.device)
         super().__init__("SAC", observation_space, action_space, config)
 
         """enhancement of original paper which uses fixed alpha (hyperparameter)

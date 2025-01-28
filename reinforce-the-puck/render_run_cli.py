@@ -9,7 +9,7 @@ from environments.advanced_reward_calculator import AdaptiveHockeyRewardCalculat
 from environments.base_wrapper import BaseEnvWrapper
 from environments.environment_factory import EnvironmentFactory
 from utils import workspace_dir
-from utils.config import OpponentConfig
+from utils.config import AgentConfig
 
 
 def find_newest_file(directory):
@@ -109,14 +109,15 @@ if __name__ == "__main__":
         type=str,
         required=False,
         default=None,
-        help="Type of the opponent agent (SAC/TD3/DDPG/BASIC_OPPONENT).",
+        help="Type of the opponent agent (SAC/TD3/DDPG/BASIC_OPPONENT_WEAK/BASIC_OPPONENT_STRONG).",
     )
     parser.add_argument("--gif", action="store_true", help="Create a gif of the run.")
 
     args = parser.parse_args()
-    opponent_config = OpponentConfig()
+    opponent_config = AgentConfig()
     if args.opponent_checkpoint is not None:
         opponent_config.checkpoint = args.opponent_checkpoint
+    if args.opponent_type is not None:
         opponent_config.type = args.opponent_type
 
     env = EnvironmentFactory.create_environment(
@@ -128,7 +129,7 @@ if __name__ == "__main__":
             args.agent, args.agent_type, env.observation_space, env.action_space
         )
         if env.name == "Hockey-v0":
-            env.opponent_agent = AgentFactory.create_opponent_agent(
+            env.opponent_agent = AgentFactory.create_agent_from_config(
                 opponent_config, env.observation_space, env.action_space
             )
             print("Loaded opponent agent: ", env.opponent_agent)

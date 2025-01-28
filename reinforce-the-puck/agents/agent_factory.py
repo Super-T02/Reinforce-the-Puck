@@ -12,7 +12,6 @@ from matplotlib.pylab import f
 from utils.config import (
     AgentConfig,
     DDPGAgentConfig,
-    OpponentConfig,
     SACAgentConfig,
     TD3AgentConfig,
     TD3CrossAgentConfig,
@@ -39,13 +38,15 @@ class AgentFactory:
         agent_type,
         observation_space: spaces.box.Box,
         action_space: spaces.box.Box,
+        config=None,
     ) -> BaseAgent:
         """
         This function creates an agent from a checkpoint file.
         """
-        config = AgentFactory.create_adapted_agent_config_from_checkpoint(
-            path, agent_type
-        )
+        if config is None:
+            config = AgentFactory.create_adapted_agent_config_from_checkpoint(
+                path, agent_type
+            )
 
         agent = AgentFactory.create_agent_from_config(
             config, observation_space, action_space
@@ -87,31 +88,17 @@ class AgentFactory:
                 action_space=action_space,
                 observation_space=observation_space,
             )
+        elif isinstance(config, AgentConfig):
+            if config.type == "basic_opponent_weak":
+                return BasicHokeyOpponentWrapper(weak=True)
+            elif config.type == "basic_opponent_strong":
+                return BasicHokeyOpponentWrapper(weak=False)
         else:
             raise ValueError("Invalid agent configuration type")
         if config.checkpoint is not None:
             path = _build_checkpoint_path(config.checkpoint)
             agent.load(path)
         return agent
-
-    @staticmethod
-    def create_opponent_agent(
-        opponent_config: OpponentConfig,
-        observation_space: spaces.box.Box,
-        action_space: spaces.box.Box,
-    ):
-        cfg = opponent_config.to_dict()
-        if opponent_config.type == "basic_opponent":
-            return BasicHokeyOpponentWrapper(cfg.get("weak", False))
-        elif opponent_config.checkpoint is not None:
-            return AgentFactory.create_agent_from_checkpoint(
-                _build_checkpoint_path(cfg.get("checkpoint")),
-                cfg.get("type"),
-                observation_space,
-                action_space,
-            )
-        else:
-            raise ValueError("Invalid opponent configuration")
 
     @staticmethod
     def create_adapted_agent_config_from_checkpoint(path, agent_type) -> AgentConfig:
