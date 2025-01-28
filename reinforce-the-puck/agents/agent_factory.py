@@ -70,6 +70,12 @@ class AgentFactory:
                 action_space=action_space,
                 observation_space=observation_space,
             )
+        elif isinstance(config, TD3CrossAgentConfig):
+            agent = TD3CrossQAgent(
+                config=config,
+                action_space=action_space,
+                observation_space=observation_space,
+            )
         elif isinstance(config, TD3AgentConfig):
             agent = TD3Agent(
                 config=config,
@@ -78,12 +84,6 @@ class AgentFactory:
             )
         elif isinstance(config, DDPGAgentConfig):
             agent = DDPGAgent(
-                config=config,
-                action_space=action_space,
-                observation_space=observation_space,
-            )
-        elif isinstance(config, TD3CrossAgentConfig):
-            agent = TD3CrossQAgent(
                 config=config,
                 action_space=action_space,
                 observation_space=observation_space,
@@ -143,6 +143,12 @@ class AgentFactory:
             config = TD3CrossAgentConfig()
             critic_hidden_layer_sizes = _get_hidden_layer_sizes(q)
             actor_hidden_layer_sizes = _get_hidden_layer_sizes(policy)
-            config.actor_hidden_sizes = [*actor_hidden_layer_sizes[:-1]]
-            config.critic_hidden_sizes = [*critic_hidden_layer_sizes[:-1]]
+            important_critic = (len(critic_hidden_layer_sizes) - 1) // 2
+            important_actor = (len(actor_hidden_layer_sizes) - 1) // 2
+            config.actor_hidden_sizes = [
+                *actor_hidden_layer_sizes[: -important_actor - 1]
+            ]
+            config.critic_hidden_sizes = [
+                *critic_hidden_layer_sizes[: -important_critic - 1]
+            ]
             return config
