@@ -332,7 +332,7 @@ class Config:
         self.base_config = BaseConfig()
 
     def get_opponent_config(self, name):
-        agents = [attr for attr in dir(self) if attr.startswith("agent")]
+        agents = [attr for attr in dir(self) if attr.startswith("opponent")]
         for agent in agents:
             if not isinstance(getattr(self, agent), AgentConfig):
                 continue
@@ -371,6 +371,9 @@ class Config:
 
         for group_name, group_config in data.items():
             if group_name.startswith("agent"):
+                agent_config = self.TYPE2AGENT[group_config["type"]]
+                setattr(self, group_name, agent_config())
+            if group_name.startswith("opponent"):
                 agent_config = self.TYPE2AGENT[group_config["type"]]
                 setattr(self, group_name, agent_config())
             if group_name.startswith("env"):
