@@ -6,6 +6,7 @@ from agents.basic_hokey_oponent import BasicHokeyOpponentWrapper
 from agents.ddpg import DDPGAgent
 from agents.sac import SACAgent
 from agents.td3 import TD3Agent
+from agents.td3_cross import TD3CrossQAgent
 from gymnasium import spaces
 from matplotlib.pylab import f
 from utils.config import (
@@ -14,6 +15,7 @@ from utils.config import (
     OpponentConfig,
     SACAgentConfig,
     TD3AgentConfig,
+    TD3CrossAgentConfig,
     model_dir,
 )
 
@@ -79,6 +81,12 @@ class AgentFactory:
                 action_space=action_space,
                 observation_space=observation_space,
             )
+        elif isinstance(config, TD3CrossAgentConfig):
+            agent = TD3CrossQAgent(
+                config=config,
+                action_space=action_space,
+                observation_space=observation_space,
+            )
         else:
             raise ValueError("Invalid agent configuration type")
         if config.checkpoint is not None:
@@ -137,6 +145,15 @@ class AgentFactory:
             q = checkpoint[0]
             policy = checkpoint[1]
             config = DDPGAgentConfig()
+            critic_hidden_layer_sizes = _get_hidden_layer_sizes(q)
+            actor_hidden_layer_sizes = _get_hidden_layer_sizes(policy)
+            config.actor_hidden_sizes = [*actor_hidden_layer_sizes[:-1]]
+            config.critic_hidden_sizes = [*critic_hidden_layer_sizes[:-1]]
+            return config
+        elif agent_type.upper() == "TD3_CROSS":
+            q = checkpoint[0]
+            policy = checkpoint[1]
+            config = TD3CrossAgentConfig()
             critic_hidden_layer_sizes = _get_hidden_layer_sizes(q)
             actor_hidden_layer_sizes = _get_hidden_layer_sizes(policy)
             config.actor_hidden_sizes = [*actor_hidden_layer_sizes[:-1]]

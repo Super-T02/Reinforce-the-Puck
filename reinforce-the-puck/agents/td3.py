@@ -13,10 +13,14 @@ class TD3Agent(DDPGAgent):
     """
 
     def __init__(
-        self, observation_space: tuple, action_space: tuple, config: TD3AgentConfig
+        self,
+        observation_space: tuple,
+        action_space: tuple,
+        config: TD3AgentConfig,
+        name: str = "TD3",
     ):
         self.Q2, self.Q2_target = None, None
-        super().__init__(observation_space, action_space, config, "TD3")
+        super().__init__(observation_space, action_space, config, name)
         # Exploration noise
         self._action_noise = ColoredNoise(
             (self._action_n,), config.noise_sigma, config.noise_beta

@@ -50,6 +50,14 @@ class Feedforward(torch.nn.Module):
         )
         self._activations = [activation() for _ in self._layers]
         self._readout = torch.nn.Linear(self._hidden_sizes[-1], self._output_size)
+
+        self.use_batch_norm = kwargs.get("use_batch_norm", False)
+        self._batch_norms = torch.nn.ModuleList(
+            [torch.nn.BatchNorm1d(size) for size in self._hidden_sizes]
+            if self.use_batch_norm
+            else []
+        )
+
         self.to(self._device)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -62,7 +70,12 @@ class Feedforward(torch.nn.Module):
             torch.Tensor: Output tensor.
         """
         x = x.to(self._device)
-        for layer, activation_fun in zip(self._layers, self._activations):
+        zipped = (
+            zip(self._layers, self._activations, self._batch_norms)
+            if self.use_batch_norm
+            else zip(self._layers, self._activations)
+        )
+        for layer, activation_fun in zipped:
             x = activation_fun(layer(x))
         if self._output_activation is not None:
             return self._output_activation(self._readout(x))

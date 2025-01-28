@@ -46,23 +46,7 @@ def run_agent_on_environment(
             - actions (list[any]): A list of actions taken by the agent during the episodes.
             - rewards (list[float]): A list of total rewards received in each episode.
     """
-    rewards = []
-    observations = []
-    reward_calc = AdaptiveHockeyRewardCalculator()
-    for ep in range(1, n_episodes + 1):
-        ep_reward = 0
-        state = env.reset()
-        for t in range(max_steps):
-            state, reward, done, truncated, info = env.step()
-            reward = reward_calc.compute_reward(state, info)
-            env.render()
-            observations.append(state)
-            ep_reward += reward
-            if done or truncated:
-                break
-        rewards.append(ep_reward)
-        ep_reward = 0
-    logging.getLogger(__name__).info(f"Mean reward: {np.mean(rewards)}")
+    rewards = env.evaluate(n_episodes)
     return rewards
 
 
@@ -136,7 +120,7 @@ if __name__ == "__main__":
         opponent_config.type = args.opponent_type
 
     env = EnvironmentFactory.create_environment(
-        args.env, max_steps=1000, do_render=True, mode=args.mode
+        args.env, max_steps=1500, do_render=True, mode=args.mode
     )
 
     try:
