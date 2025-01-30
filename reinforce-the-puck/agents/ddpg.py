@@ -259,6 +259,20 @@ class DDPGAgent(BaseAgent):
         """
         q_loss = self._compute_q_loss(batch)
 
+        # Handle BPER
+        if self._config.buffer_type == "BPER":
+            indices, priority_weights = batch.indices, batch.priority_weights
+            priority_weights = priority_weights.to(self.device)
+
+            # Reweight the loss
+            q_loss = (q_loss * priority_weights).mean()
+
+            # Update priorities in the replay buffer
+            self._feedback_buffer.update_priorities(
+                indices, batch.rewards.cpu().numpy()
+            )
+
+        # Backpropagate the loss
         self.Q_optimizer.zero_grad()
         q_loss.backward()
         self.Q_optimizer.step()

@@ -3,7 +3,7 @@ import torch
 from agents.base_agent import AgentMode
 from agents.ddpg import DDPGAgent
 from components.networks import Feedforward
-from components.noise import ClippedColoredNoise, ClippedGaussianNoise, ColoredNoise
+from components.noise import ClippedColoredNoise, ColoredNoise
 from utils.config import TD3AgentConfig, global_config
 
 

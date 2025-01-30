@@ -20,6 +20,7 @@ class HokeyEnvWrapper(BaseEnvWrapper):
         agent: BaseAgent = None,
         opponent_agent: BaseAgent = None,
         mode: int = h_env.Mode.NORMAL,
+        start_training_after_steps: int = 10000,
         winner_weight: float = 10.0,
         closeness_puck_weight: float = 0.5,
         touch_puck_weight: float = 0.0,
@@ -52,7 +53,9 @@ class HokeyEnvWrapper(BaseEnvWrapper):
         self.name = "Hockey-v0"
 
         self.reward_calculator = AdaptiveHockeyRewardCalculator()
-
+        self._start_training_after_steps = start_training_after_steps
+        self._steps = 0
+        self.started_training = False
         self.reset()
 
     def reset(self):
@@ -186,17 +189,22 @@ class HokeyEnvWrapper(BaseEnvWrapper):
                 reward_opponent += self.compute_reward_agent(
                     *self._last_opponent_observation
                 )
+                self._steps += 1
                 if done or trunc:
                     break
 
-            self.agent.train(
-                reward_agent if isinstance(reward_agent, float) else reward_agent.item()
-            )  # backwards compatibility (some rewards are floats, some are tensors)
-            # self.opponent_agent.train(
-            #     reward_opponent
-            #     if isinstance(reward_opponent, float)
-            #     else reward_opponent.item()
-            # )  # backwards compatibility (some rewards are floats, some are tensors)
+            if self._start_training_after_steps < self._steps:
+                self.started_training = True
+                self.agent.train(
+                    reward_agent
+                    if isinstance(reward_agent, float)
+                    else reward_agent.item()
+                )  # backwards compatibility (some rewards are floats, some are tensors)
+                # self.opponent_agent.train(
+                #     reward_opponent
+                #     if isinstance(reward_opponent, float)
+                #     else reward_opponent.item()
+                # )  # backwards compatibility (some rewards are floats, some are tensors)
 
             self._logger.info(
                 "Episode %10d: Total reward agent: %4.2f", i, reward_agent

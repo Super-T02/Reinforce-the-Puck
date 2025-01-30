@@ -49,6 +49,11 @@ class TrainingRun:
         for i in range(self._num_episodes):
             rewards += [self._environment.run_train_episode(i)]
             if i % self._agent_config.eval_freq == 0 and i != 0:
+                if not self._environment.started_training:
+                    self._logger.info(
+                        f"Currently: {self._environment._steps} of {self._environment._start_training_after_steps} steps ({self._environment._steps/self._environment._start_training_after_steps * 100} %)"
+                    )
+                    continue
                 self.evaluate()
         rewards = np.array(rewards)
         self._logger.info("Training finished.")
@@ -168,6 +173,7 @@ class TrainCLI:
                 max_steps=max_steps,
                 do_render=agent_config.specialized_config.do_render,
                 mode=env.mode,
+                start_training_after_steps=env.start_training_after_steps,
             )
 
             env.agent = AgentFactory.create_agent_from_config(

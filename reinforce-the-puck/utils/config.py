@@ -150,6 +150,11 @@ class AgentConfig(ConfigGroup):
         self.env_id = 0
         self.memory_size = 10000
         self.num_runs = 1
+        self.buffer_type = "ER"
+        self.buffer_alpha = 0.6
+        self.buffer_beta = 0.4
+        self.buffer_beta_increment = 0.001
+        self.buffer_decay_steps = 100000
         self.mutation_config: MutationConfig = MutationConfig()
         self.trainer_config: TrainerConfig = TrainerConfig()
 
@@ -293,6 +298,7 @@ class EnvironmentConfig(ConfigGroup):
         self.max_steps = 1000
         self.env_name = "unnamed"
         self.mode = None
+        self.start_training_after_steps = 10000
         self.id = -1
 
 

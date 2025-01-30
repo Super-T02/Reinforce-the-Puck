@@ -20,6 +20,7 @@ env3:
   id: 2
   mode: 0 # 0: normal, 1: shooting, 2: defense
   max_steps: 1000
+  start_training_after_steps: 10000
   # train_both: False # TODO: Implement this
   do_render: True
 
@@ -40,13 +41,14 @@ agent1:
   noise_clip: 0.8
   noise_beta: 1.0 # Pink noise
   memory_size: 1000000
+  buffer_type: BPER # Balanced Prioritized Experience Replay
   num_runs: 1
   mutation_config:
     enabled: false
   trainer_config:
     learning_rate_actor: 0.0003
     learning_rate_critic: 0.0003
-    log_name: td3_hockey_pink_target_noise
+    log_name: td3_hockey_bper_default
     batch_size: 256
   specialized_config:
     num_episodes: 10000
