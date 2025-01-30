@@ -20,13 +20,13 @@ env3:
   id: 2
   mode: 0 # 0: normal, 1: shooting, 2: defense
   max_steps: 1000
-  start_training_after_steps: 10000
+  start_training_after_steps: 100000
   # train_both: False # TODO: Implement this
   do_render: True
 
 agent1:
   type: td3
-  checkpoint: Hockey-v0/td3/td3_not_cross_hockey_2025-01-28_09-26-13_100/checkpoint_last.pth
+  checkpoint: Hockey-v0/td3/td3_hockey_pink_target_noise_2025-01-29_21-02-11_100/checkpoint_last.pth
   opponent_name: "opponent1"
   env_id: 2
   eps: 1
@@ -34,13 +34,14 @@ agent1:
   eval_episodes: 20
   discount: 0.99
   actor_hidden_sizes: [516, 256]
-  critic_hidden_sizes: [1024, 516, 256, 128]
+  # critic_hidden_sizes: [1024, 516, 256, 128]
+  critic_hidden_sizes: [1024, 516, 256]
   policy_delay: 3
   update_target_every: -1
   noise_sigma: 0.2
   noise_clip: 0.8
   noise_beta: 1.0 # Pink noise
-  memory_size: 1000000
+  memory_size: 100000
   # buffer_type: BPER # Balanced Prioritized Experience Replay
   buffer_type: ER
   num_runs: 1
@@ -49,10 +50,10 @@ agent1:
   trainer_config:
     learning_rate_actor: 0.0003
     learning_rate_critic: 0.0003
-    log_name: td3_hockey_train_sac
+    log_name: td3_hockey_pink_target_noise_continued
     batch_size: 256
   specialized_config:
-    num_episodes: 10000
+    num_episodes: 5000
     do_render: False
 
 opponent1:

@@ -73,6 +73,7 @@ class NewAgent(Agent):
         self.agent = AgentFactory.create_agent_from_checkpoint(
             checkpoint_path, agent_type, observation_space, action_space
         )
+        print(f"Agent loaded from {checkpoint_path}")
 
     def get_step(self, observation: list[float]) -> list[float]:
         action = self.agent.act(observation).tolist()
