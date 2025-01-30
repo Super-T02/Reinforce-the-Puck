@@ -35,7 +35,7 @@ class TrainingRun:
             self._checkpoint_manager_opponent = CheckpointManager(
                 environment.name, 5, "best"
             )
-            self._has_two_agents = False
+            self._has_two_agents = True
 
     def run(self, num_runs: int = 1):
         """Run the training process.
