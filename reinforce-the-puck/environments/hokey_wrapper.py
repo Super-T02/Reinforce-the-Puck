@@ -55,7 +55,6 @@ class HokeyEnvWrapper(BaseEnvWrapper):
         self.reward_calculator = AdaptiveHockeyRewardCalculator()
         self._start_training_after_steps = start_training_after_steps
         self._steps = 0
-        self.started_training = False
         self.reset()
 
     def reset(self):
@@ -164,7 +163,7 @@ class HokeyEnvWrapper(BaseEnvWrapper):
         )
         return reward_agent, reward_opponent
 
-    def run_train_episode(self, i: int) -> float:
+    def run_train_episode(self, i: int, train: bool = True) -> float:
         """Run a single episode of the training.
 
         Args:
@@ -193,8 +192,7 @@ class HokeyEnvWrapper(BaseEnvWrapper):
                 if done or trunc:
                     break
 
-            if self._start_training_after_steps < self._steps:
-                self.started_training = True
+            if self.started_training and train:
                 self.agent.train(
                     reward_agent
                     if isinstance(reward_agent, float)
@@ -213,9 +211,7 @@ class HokeyEnvWrapper(BaseEnvWrapper):
             self._logger.info(
                 "Episode %10d: Total reward opponent: %4.2f", i, reward_opponent
             )
-
-        # todo: return reward_opponent (not compatible with the current implementation yet)
-        return reward_agent
+        return reward_agent, reward_opponent
 
     def evaluate(self, n_episodes: int) -> list[float]:
         """Evaluate the agent in the environment.

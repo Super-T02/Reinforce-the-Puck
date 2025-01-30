@@ -52,7 +52,6 @@ class BaseEnvWrapper:
         self._do_render = False
         self._start_training_after_steps = start_training_after_steps
         self._steps = 0
-        self.started_training = False
         self.reset()
 
     @property
@@ -108,7 +107,7 @@ class BaseEnvWrapper:
         self._logger.info("Episode finished. Total reward: %f", reward)
         return reward
 
-    def run_train_episode(self, i: int) -> float:
+    def run_train_episode(self, i: int, train: bool = True) -> float:
         """Run a single episode of the training.
 
         Args:
@@ -133,13 +132,22 @@ class BaseEnvWrapper:
                     break
 
             # Start training with experience
-            if self._start_training_after_steps < self._steps:
-                self.started_training = True
+            if self.started_training and train:
                 self.agent.train(
                     reward if isinstance(reward, float) else reward.item()
                 )  # backwards compatibility (some rewards are floats, some are tensors)
             self._logger.info("Episode %10d: Total reward: %4.2f", i, reward)
         return reward
+
+    @property
+    def started_training(self) -> bool:
+        """
+        Return whether the training has started.
+
+        Returns:
+            bool: Whether the training has started.
+        """
+        return self._start_training_after_steps < self._steps
 
     def evaluate(self, n_episodes: int) -> list[float]:
         """Evaluate the agent in the environment.

@@ -56,14 +56,14 @@ class TrainingRun:
     def train(self):
         """Train the agent in the environment."""
         self._logger.info("Starting training [%d]...", self._num_episodes)
+        # Start warmup
+        while not self._environment.started_training:
+            self._environment.run_train_episode(-1, train=False)
+
+        # Start training
         for i in range(self._num_episodes):
             self._environment.run_train_episode(i)
             if i % self._agent_config.eval_freq == 0 and i != 0:
-                if not self._environment.started_training:
-                    self._logger.info(
-                        f"Currently: {self._environment._steps} of {self._environment._start_training_after_steps} steps ({self._environment._steps/self._environment._start_training_after_steps * 100} %)"
-                    )
-                    continue
                 self.evaluate()
         self._logger.info("Training finished.")
 
