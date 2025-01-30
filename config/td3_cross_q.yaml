@@ -26,17 +26,14 @@ env3:
 agent1:
   type: td3_cross
   # checkpoint: Hockey-v0/td3_cross/td3_cross_hockey_2025-01-26_17-26-21_100/checkpoint_best.pth
-  opponent:
-    # checkpoint: Hockey-v0/sac/best_jona_2025_01_28.pth
-    weak: False
-    type: basic_opponent
+  opponent_name: "opponent1"
   env_id: 2
   eps: 1
   eval_freq: 50
   eval_episodes: 20
   discount: 0.99
   actor_hidden_sizes: [516, 256]
-  critic_hidden_sizes: [1024, 516, 256, 128]
+  critic_hidden_sizes: [2048, 1024, 516]
   policy_delay: 3
   update_target_every: -1
   noise_sigma: 0.2
@@ -46,17 +43,18 @@ agent1:
   num_runs: 1
   mutation_config:
     enabled: false
-    means: []
-    mins: []
-    maxs: []
-    vars: []
-    prob: []
-    parameters: []
   trainer_config:
-    learning_rate_actor: 0.0003
-    learning_rate_critic: 0.0003
-    log_name: td3_cross_hockey
+    learning_rate_actor: 0.001
+    learning_rate_critic: 0.001
+    beta1: 0.5
+    log_name: td3_cross_hockey_BatchRenorm_new
     batch_size: 256
   specialized_config:
     num_episodes: 10000
     do_render: False
+
+opponent1:
+  type: "basic_opponent_strong"
+  trainer_config:
+    learning_rate_actor: 0.0007
+    learning_rate_critic: 0.0003

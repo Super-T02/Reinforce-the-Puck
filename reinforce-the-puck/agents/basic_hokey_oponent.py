@@ -37,3 +37,12 @@ class BasicHokeyOpponentWrapper(BaseAgent):
         info: dict[str, any],
     ) -> "BaseAgent":
         pass  # Override this method to avoid exceptions, but pass because this agent is not trainable
+
+    def save_eval_result(self, rewards):
+        pass  # Override this method to avoid exceptions, but pass because this agent is not trainable
+
+    def save_checkpoint(self, checkpoint_name):
+        pass  # Override this method to avoid exceptions, but pass because this agent is not trainable
+
+    def save_statistics_async(self, statistics, filename):
+        pass  # Override this method to avoid exceptions, but pass because this agent is not trainable

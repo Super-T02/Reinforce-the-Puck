@@ -235,9 +235,8 @@ class SACAgent(BaseAgent):
 
     def update_alpha(self, batch):
         _, log_probs = self.policy.sample(batch.observations)
-        alpha_loss = -(
-            self._log_alpha * (log_probs + self._target_entropy).detach()
-        ).mean()
+        temp = (log_probs + self._target_entropy).to(self._log_alpha.device).detach()
+        alpha_loss = -(self._log_alpha * temp).mean()
         self.alpha_optimizer.zero_grad()
         alpha_loss.backward()
         self.alpha_optimizer.step()

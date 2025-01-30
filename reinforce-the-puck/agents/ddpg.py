@@ -56,6 +56,10 @@ class DDPGAgent(BaseAgent):
         return torch.optim.Adam(
             chain(*[q.parameters() for q in q_nets]),
             lr=self._config.trainer_config.learning_rate_critic,
+            betas=(
+                self._config.trainer_config.beta1,
+                self._config.trainer_config.beta2,
+            ),
             eps=0.000001,
         )
 
@@ -255,6 +259,25 @@ class DDPGAgent(BaseAgent):
         """
         q_loss = self._compute_q_loss(batch)
 
+        # Handle BPER
+        if self._config.buffer_type == "BPER":
+            indices, priority_weights = batch.indices, batch.priority_weights
+            priority_weights = torch.tensor(
+                priority_weights, dtype=self._config.specialized_config.dtype
+            )
+            priority_weights = priority_weights.to(
+                self._config.specialized_config.device
+            )
+
+            # Reweight the loss
+            q_loss = (q_loss * priority_weights).mean()
+
+            # Update priorities in the replay buffer
+            self._feedback_buffer.update_priorities(
+                indices, batch.rewards.cpu().numpy()
+            )
+
+        # Backpropagate the loss
         self.Q_optimizer.zero_grad()
         q_loss.backward()
         self.Q_optimizer.step()

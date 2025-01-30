@@ -20,6 +20,7 @@ class HokeyEnvWrapper(BaseEnvWrapper):
         agent: BaseAgent = None,
         opponent_agent: BaseAgent = None,
         mode: int = h_env.Mode.NORMAL,
+        start_training_after_steps: int = 10000,
         winner_weight: float = 10.0,
         closeness_puck_weight: float = 0.5,
         touch_puck_weight: float = 0.0,
@@ -52,7 +53,8 @@ class HokeyEnvWrapper(BaseEnvWrapper):
         self.name = "Hockey-v0"
 
         self.reward_calculator = AdaptiveHockeyRewardCalculator()
-
+        self._start_training_after_steps = start_training_after_steps
+        self._steps = 0
         self.reset()
 
     def reset(self):
@@ -159,9 +161,9 @@ class HokeyEnvWrapper(BaseEnvWrapper):
         self._logger.info(
             "Episode finished. Total reward opponent: %f", reward_opponent
         )
-        return reward_agent
+        return reward_agent, reward_opponent
 
-    def run_train_episode(self, i: int) -> float:
+    def run_train_episode(self, i: int, train: bool = True) -> float:
         """Run a single episode of the training.
 
         Args:
@@ -186,17 +188,22 @@ class HokeyEnvWrapper(BaseEnvWrapper):
                 reward_opponent += self.compute_reward_agent(
                     *self._last_opponent_observation
                 )
+                self._steps += 1
                 if done or trunc:
                     break
 
-            self.agent.train(
-                reward_agent if isinstance(reward_agent, float) else reward_agent.item()
-            )  # backwards compatibility (some rewards are floats, some are tensors)
-            # self.opponent_agent.train(
-            #     reward_opponent
-            #     if isinstance(reward_opponent, float)
-            #     else reward_opponent.item()
-            # )  # backwards compatibility (some rewards are floats, some are tensors)
+            if self.started_training and train:
+                self.agent.train(
+                    reward_agent
+                    if isinstance(reward_agent, float)
+                    else reward_agent.item()
+                )  # backwards compatibility (some rewards are floats, some are tensors)
+
+                self.opponent_agent.train(
+                    reward_opponent
+                    if isinstance(reward_opponent, float)
+                    else reward_opponent.item()
+                )  # backwards compatibility (some rewards are floats, some are tensors)
 
             self._logger.info(
                 "Episode %10d: Total reward agent: %4.2f", i, reward_agent
@@ -204,9 +211,7 @@ class HokeyEnvWrapper(BaseEnvWrapper):
             self._logger.info(
                 "Episode %10d: Total reward opponent: %4.2f", i, reward_opponent
             )
-
-        # todo: return reward_opponent (not compatible with the current implementation yet)
-        return reward_agent
+        return reward_agent, reward_opponent
 
     def evaluate(self, n_episodes: int) -> list[float]:
         """Evaluate the agent in the environment.
@@ -219,11 +224,13 @@ class HokeyEnvWrapper(BaseEnvWrapper):
         """
         with self.agent.evaluate_context(), self.opponent_agent.evaluate_context():
             rewards = []
+            rewards_opponent = []
             for i in range(n_episodes):
                 self.reset()
                 self.agent.reset()
                 self.opponent_agent.reset()
-                rewards.append(self.run_eval())
+                r_agent, r_opponent = self.run_eval()
+                rewards.append(r_agent), rewards_opponent.append(r_opponent)
         if self.record:
             self.save_gif()
-        return rewards
+        return rewards, rewards_opponent

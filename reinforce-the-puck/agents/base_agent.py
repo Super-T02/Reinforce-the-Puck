@@ -4,7 +4,7 @@ from unittest.mock import DEFAULT
 import numpy as np
 import torch
 from agents.base_trainer import BaseTrainer
-from components.memory import Batch, Memory
+from components.memory import BalancedPrioritizedMemory, Batch, Memory
 from gymnasium import spaces
 from utils.config import AgentConfig
 
@@ -83,7 +83,20 @@ class BaseAgent(BaseTrainer):
         self._name = name
         self._config = config
 
-        self._feedback_buffer = Memory(self._config.memory_size)
+        # Buffer
+        if config.buffer_type == "BPER":
+            self._logger.info("Using Balanced Prioritized Experience Replay")
+            self._feedback_buffer = BalancedPrioritizedMemory(
+                max_size=config.memory_size,
+                alpha=config.buffer_alpha,
+                beta=config.buffer_beta,
+                beta_increment=config.buffer_beta_increment,
+                decay_steps=config.buffer_decay_steps
+                // config.trainer_config.batch_size,  # Decay over 200k steps
+            )
+        else:
+            self._logger.info("Using Experience Replay")
+            self._feedback_buffer = Memory(self._config.memory_size)
         self._observation_space = observation_space
         self._action_space = action_space
         self._obs_dim = self._observation_space.shape[0]
@@ -199,15 +212,21 @@ class BaseAgent(BaseTrainer):
             batch_size (int): The number of experiences to sample.
 
         Returns:
-            Batch: The batch of experiences.
+            tuple: The batch of experiences, indices, weights.
         """
-        sample = self._feedback_buffer.sample(batch_size)
+        sample = None
+        indices = None
+        priority_weights = None
+        if self._config.buffer_type == "BPER":
+            sample, indices, priority_weights = self._feedback_buffer.sample(batch_size)
+        else:
+            sample = self._feedback_buffer.sample(batch_size)
         state = self.to_torch(np.vstack(sample[:, 0]))
         action = self.to_torch(np.vstack(sample[:, 1]))
         next_state = self.to_torch(np.vstack(sample[:, 2]))
         reward = self.to_torch(np.vstack(sample[:, 3]))
         done = self.to_torch(np.vstack(sample[:, 4]))
-        return Batch(state, action, next_state, reward, done)
+        return Batch(state, action, next_state, reward, done, indices, priority_weights)
 
     def _get_train_config(self):
         return self._config.to_dict()

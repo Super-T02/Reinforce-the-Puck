@@ -2,9 +2,7 @@ import logging
 import os
 
 import gymnasium as gym
-import imageio
 from agents.base_agent import BaseAgent
-from PIL import Image
 from utils import model_dir, workspace_dir
 
 
@@ -18,6 +16,7 @@ class BaseEnvWrapper:
         env_name: str,
         max_steps: int,
         do_render: bool = False,
+        start_training_after_steps: int = 10000,
         agent: BaseAgent = None,
     ):
         """
@@ -51,6 +50,8 @@ class BaseEnvWrapper:
         self.record_path = os.path.join(workspace_dir, "gifs")
         self.frames = []
         self._do_render = False
+        self._start_training_after_steps = start_training_after_steps
+        self._steps = 0
         self.reset()
 
     @property
@@ -106,7 +107,7 @@ class BaseEnvWrapper:
         self._logger.info("Episode finished. Total reward: %f", reward)
         return reward
 
-    def run_train_episode(self, i: int) -> float:
+    def run_train_episode(self, i: int, train: bool = True) -> float:
         """Run a single episode of the training.
 
         Args:
@@ -126,14 +127,27 @@ class BaseEnvWrapper:
                 done = self._last_observation[2]
                 trunc = self._last_observation[3]
                 reward += self._last_observation[1]
+                self._steps += 1
                 if done or trunc:
                     break
 
-            self.agent.train(
-                reward if isinstance(reward, float) else reward.item()
-            )  # backwards compatibility (some rewards are floats, some are tensors)
+            # Start training with experience
+            if self.started_training and train:
+                self.agent.train(
+                    reward if isinstance(reward, float) else reward.item()
+                )  # backwards compatibility (some rewards are floats, some are tensors)
             self._logger.info("Episode %10d: Total reward: %4.2f", i, reward)
         return reward
+
+    @property
+    def started_training(self) -> bool:
+        """
+        Return whether the training has started.
+
+        Returns:
+            bool: Whether the training has started.
+        """
+        return self._start_training_after_steps < self._steps
 
     def evaluate(self, n_episodes: int) -> list[float]:
         """Evaluate the agent in the environment.

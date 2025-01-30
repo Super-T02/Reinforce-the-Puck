@@ -3,11 +3,14 @@
 import argparse
 import logging
 import os
+import time
 
 import numpy as np
 from agents.agent_factory import AgentFactory
+from agents.basic_hokey_oponent import BasicHokeyOpponentWrapper
 from environments.base_wrapper import BaseEnvWrapper
 from environments.environment_factory import EnvironmentFactory
+from environments.hokey_wrapper import HokeyEnvWrapper
 from utils import config_dir, logger
 from utils.checkpoint import Checkpoint, CheckpointManager
 from utils.config import AgentConfig, global_config
@@ -26,7 +29,15 @@ class TrainingRun:
         self._agent_config = agent_config
         self._num_episodes = num_episodes
         self._logger = logging.getLogger(__name__)
-        self._checkpoint_manager = CheckpointManager(environment.name, 5, "best")
+        self._checkpoint_manager_agent = CheckpointManager(environment.name, 5, "best")
+        self._has_two_agents = False
+        if isinstance(self._environment, HokeyEnvWrapper) and not isinstance(
+            self._environment.opponent_agent, BasicHokeyOpponentWrapper
+        ):
+            self._checkpoint_manager_opponent = CheckpointManager(
+                environment.name, 5, "best"
+            )
+            self._has_two_agents = True
 
     def run(self, num_runs: int = 1):
         """Run the training process.
@@ -45,38 +56,75 @@ class TrainingRun:
     def train(self):
         """Train the agent in the environment."""
         self._logger.info("Starting training [%d]...", self._num_episodes)
-        rewards = []
+        # Start warmup
+        while not self._environment.started_training:
+            self._environment.run_train_episode(-1, train=False)
+
+        # Start training
         for i in range(self._num_episodes):
-            rewards += [self._environment.run_train_episode(i)]
+            self._environment.run_train_episode(i)
             if i % self._agent_config.eval_freq == 0 and i != 0:
                 self.evaluate()
-        rewards = np.array(rewards)
         self._logger.info("Training finished.")
 
     def evaluate(self):
         """Evaluate the agent in the environment."""
+        if isinstance(self._environment, HokeyEnvWrapper):
+            self._eval_agent_and_opponent()
+        else:
+            self._eval_agent()
+
+    def _eval_agent(self) -> None:
         self._logger.info("Starting evaluation...")
         rewards = self._environment.evaluate(self._agent_config.eval_episodes)
         self._logger.info("Evaluation finished.")
         self._environment.agent.save_eval_result(rewards)
         mean_reward = np.mean(rewards)
         self._add_checkpoint(mean_reward)
-        self._checkpoint_manager.save_last_checkpoint()
-        self._checkpoint_manager.save_best_checkpoint()
+        self._checkpoint_manager_agent.save_last_checkpoint()
+        self._checkpoint_manager_agent.save_best_checkpoint()
 
-    def _add_checkpoint(self, mean_reward: float):
+    def _eval_agent_and_opponent(self) -> None:
+        self._logger.info("Starting evaluation...")
+        rewards_agent, rewards_opponent = self._environment.evaluate(
+            self._agent_config.eval_episodes
+        )
+        self._logger.info(
+            f"Evaluation finished. Agent: {np.mean(rewards_agent)}, Opponent: {np.mean(rewards_opponent)}"
+        )
+        self._environment.agent.save_eval_result(rewards_agent)
+        mean_agent, mean_opponent = np.mean(rewards_agent), np.mean(rewards_opponent)
+        self._add_checkpoint(mean_agent, mean_opponent)
+        self._checkpoint_manager_agent.save_last_checkpoint()
+        self._checkpoint_manager_agent.save_best_checkpoint()
+
+        if self._has_two_agents:
+            self._environment.opponent_agent.save_eval_result(rewards_opponent)
+            self._checkpoint_manager_opponent.save_last_checkpoint()
+            self._checkpoint_manager_opponent.save_best_checkpoint()
+
+    def _add_checkpoint(self, mean_reward: float, mean_reward_opponent: float = None):
         """Adds a checkpoint to the Manager."""
         checkpoint = Checkpoint(
             self._environment.agent,
             self._environment.name,
             mean_reward,
         )
-        self._checkpoint_manager.add_checkpoint(checkpoint)
+        self._checkpoint_manager_agent.add_checkpoint(checkpoint)
+
+        # Add opponent
+        if mean_reward_opponent is not None and self._has_two_agents:
+            checkpoint_opponent = Checkpoint(
+                self._environment.opponent_agent,
+                self._environment.name,
+                mean_reward_opponent,
+            )
+            self._checkpoint_manager_opponent.add_checkpoint(checkpoint_opponent)
 
     def _mutate(self):
         """Mutate the best agent."""
         self._logger.info("Mutating the agent...")
-        best_agent_config = self._checkpoint_manager.get_best_config(
+        best_agent_config = self._checkpoint_manager_agent.get_best_config(
             self._agent_config.type
         )
         self._agent_config = best_agent_config.mutate()
@@ -168,6 +216,7 @@ class TrainCLI:
                 max_steps=max_steps,
                 do_render=agent_config.specialized_config.do_render,
                 mode=env.mode,
+                start_training_after_steps=env.start_training_after_steps,
             )
 
             env.agent = AgentFactory.create_agent_from_config(

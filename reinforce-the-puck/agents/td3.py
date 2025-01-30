@@ -3,7 +3,7 @@ import torch
 from agents.base_agent import AgentMode
 from agents.ddpg import DDPGAgent
 from components.networks import Feedforward
-from components.noise import ClippedColoredNoise, ClippedGaussianNoise, ColoredNoise
+from components.noise import ClippedColoredNoise, ColoredNoise
 from utils.config import TD3AgentConfig, global_config
 
 
@@ -27,8 +27,8 @@ class TD3Agent(DDPGAgent):
             (self._action_n,), config.noise_sigma, config.noise_beta
         )
         # Smooths the target policy
-        self._target_smoothing_noise = ClippedGaussianNoise(
-            (self._action_n,), 0.1, config.noise_clip
+        self._target_smoothing_noise = ClippedColoredNoise(
+            (self._action_n,), config.noise_sigma, config.noise_beta, config.noise_clip
         )
 
         # Create 2nd Q network

@@ -1,11 +1,107 @@
 from typing import Any
-from unittest import result
 
 import numpy as np
 import torch
 import torch.distributions as dist
 import torch.nn as nn
 from utils.config import global_config
+
+
+class BatchRenorm1d(nn.Module):
+    """
+    Batch Renormalization (a better version of Batch Normalization introduced by:
+    Ioffe, Sergey. "Batch renormalization: Towards reducing minibatch dependence in batch-normalized models." Advances in neural information processing systems 30 (2017)
+    https://proceedings.neurips.cc/paper/2017/file/c54e7837e0cd0ced286cb5995327d1ab-Paper.pdf
+    """
+
+    def __init__(self, num_features, eps=1e-5, momentum=0.99, r_max=5.0, d_max=3.0):
+        """
+        Initialize the BatchRenorm1d layer.
+
+        Args:
+            num_features (int): Number of features.
+            eps (float, optional): Epsilon for numerical stabilities (sqrt). Defaults to 1e-5.
+            momentum (float, optional): Keep previous smoothing. Defaults to 0.99.
+            r_max (float, optional): Maximal value for r. Defaults to 5.0.
+            d_max (float, optional): Maximal value for d. Defaults to 3.0.
+        """
+        super(BatchRenorm1d, self).__init__()
+        self.num_features = num_features
+        self.eps = eps
+        self.momentum = momentum
+        self.r_max = r_max  # Maximum allowed value for r
+        self.d_max = d_max  # Maximum allowed value for d
+
+        # Learnable parameters
+        self.weight = nn.Parameter(torch.ones(num_features))
+        self.bias = nn.Parameter(torch.zeros(num_features))
+
+        # Running statistics
+        self.register_buffer("running_mean", torch.zeros(num_features))
+        self.register_buffer("running_var", torch.ones(num_features))
+
+        # Initialize r and d
+        self.r = 1.0
+        self.d = 0.0
+
+    def forward(self, x):
+        """
+        Forward pass through the BatchRenorm1d layer.
+
+        Args:
+            x (torch.Tensor): Input tensor.
+
+        Raises:
+            ValueError: If input is not 2D.
+
+        Returns:
+            torch.Tensor: Output tensor.
+        """
+        if self.training:
+            # Ensure input is 2D (batch_size, num_features)
+            if x.dim() != 2:
+                raise ValueError(f"Expected input to be 2D, but got {x.dim()}D tensor")
+
+            # Compute batch statistics over [batch_size]
+            batch_mean = x.mean(0, keepdim=True)  # Shape: [1, num_features]
+            batch_var = x.var(
+                0, keepdim=True, unbiased=False
+            )  # Shape: [1, num_features]
+
+            # Update running statistics
+            self.running_mean = (
+                self.momentum * batch_mean.squeeze()
+                + (1 - self.momentum) * self.running_mean
+            ).detach()
+            self.running_var = (
+                self.momentum * batch_var.squeeze()
+                + (1 - self.momentum) * self.running_var
+            ).detach()
+
+            # Compute r and d as per the paper
+            r = (batch_var + self.eps).sqrt() / (
+                self.running_var + self.eps
+            ).sqrt().detach()
+            r = torch.clamp(
+                r, 1 / self.r_max, self.r_max
+            ).detach()  # Clamp r to [1/r_max, r_max]
+
+            d = (batch_mean - self.running_mean) / (
+                self.running_var + self.eps
+            ).sqrt().detach()
+            d = torch.clamp(
+                d, -self.d_max, self.d_max
+            ).detach()  # Clamp d to [-d_max, d_max]
+
+            # Apply batch renormalization
+            x_hat = (x - batch_mean) / (batch_var + self.eps).sqrt().detach()
+            x_hat = x_hat * r + d
+        else:
+            # During inference, use running statistics
+            x_hat = (x - self.running_mean) / (self.running_var + self.eps).sqrt()
+
+        # Apply learnable scale and shift
+        return self.weight * x_hat.detach() + self.bias
 
 
 class Feedforward(torch.nn.Module):
@@ -54,7 +150,7 @@ class Feedforward(torch.nn.Module):
 
         self.use_batch_norm = kwargs.get("use_batch_norm", False)
         self._batch_norms = torch.nn.ModuleList(
-            [torch.nn.BatchNorm1d(size) for size in layer_sizes[1:]]
+            [BatchRenorm1d(size) for size in layer_sizes[1:]]
             if self.use_batch_norm
             else [None] * len(layer_sizes)
         )
@@ -92,7 +188,7 @@ class Feedforward(torch.nn.Module):
         Returns:
             torch.Tensor: Output tensor.
         """
-        if isinstance(x, np.ndarray):
+        if isinstance(x, np.ndarray) or isinstance(x, list):
             x = torch.tensor(x, dtype=self._dtype)
         x = x.to(self._device)
         with torch.no_grad():
