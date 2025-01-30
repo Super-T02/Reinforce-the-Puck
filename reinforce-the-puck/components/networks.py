@@ -188,7 +188,7 @@ class Feedforward(torch.nn.Module):
         Returns:
             torch.Tensor: Output tensor.
         """
-        if isinstance(x, np.ndarray):
+        if isinstance(x, np.ndarray) or isinstance(x, list):
             x = torch.tensor(x, dtype=self._dtype)
         x = x.to(self._device)
         with torch.no_grad():
