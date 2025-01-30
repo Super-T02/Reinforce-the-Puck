@@ -7,6 +7,7 @@ import time
 
 import numpy as np
 from agents.agent_factory import AgentFactory
+from agents.basic_hokey_oponent import BasicHokeyOpponentWrapper
 from environments.base_wrapper import BaseEnvWrapper
 from environments.environment_factory import EnvironmentFactory
 from environments.hokey_wrapper import HokeyEnvWrapper
@@ -29,10 +30,14 @@ class TrainingRun:
         self._num_episodes = num_episodes
         self._logger = logging.getLogger(__name__)
         self._checkpoint_manager_agent = CheckpointManager(environment.name, 5, "best")
-        if isinstance(self._environment, HokeyEnvWrapper):
+        self._has_two_agents = False
+        if isinstance(self._environment, HokeyEnvWrapper) and not isinstance(
+            self._environment.opponent_agent, BasicHokeyOpponentWrapper
+        ):
             self._checkpoint_manager_opponent = CheckpointManager(
                 environment.name, 5, "best"
             )
+            self._has_two_agents = False
 
     def run(self, num_runs: int = 1):
         """Run the training process.
@@ -64,7 +69,7 @@ class TrainingRun:
 
     def evaluate(self):
         """Evaluate the agent in the environment."""
-        if isinstance(self._environment, HokeyEnvWrapper):
+        if self._has_two_agents:
             self._eval_agent_and_opponent()
         else:
             self._eval_agent()
