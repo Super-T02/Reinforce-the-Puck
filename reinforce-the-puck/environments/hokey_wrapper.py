@@ -162,7 +162,7 @@ class HokeyEnvWrapper(BaseEnvWrapper):
         self._logger.info(
             "Episode finished. Total reward opponent: %f", reward_opponent
         )
-        return reward_agent
+        return reward_agent, reward_opponent
 
     def run_train_episode(self, i: int) -> float:
         """Run a single episode of the training.
@@ -200,11 +200,12 @@ class HokeyEnvWrapper(BaseEnvWrapper):
                     if isinstance(reward_agent, float)
                     else reward_agent.item()
                 )  # backwards compatibility (some rewards are floats, some are tensors)
-                # self.opponent_agent.train(
-                #     reward_opponent
-                #     if isinstance(reward_opponent, float)
-                #     else reward_opponent.item()
-                # )  # backwards compatibility (some rewards are floats, some are tensors)
+
+                self.opponent_agent.train(
+                    reward_opponent
+                    if isinstance(reward_opponent, float)
+                    else reward_opponent.item()
+                )  # backwards compatibility (some rewards are floats, some are tensors)
 
             self._logger.info(
                 "Episode %10d: Total reward agent: %4.2f", i, reward_agent
@@ -227,11 +228,13 @@ class HokeyEnvWrapper(BaseEnvWrapper):
         """
         with self.agent.evaluate_context(), self.opponent_agent.evaluate_context():
             rewards = []
+            rewards_opponent = []
             for i in range(n_episodes):
                 self.reset()
                 self.agent.reset()
                 self.opponent_agent.reset()
-                rewards.append(self.run_eval())
+                r_agent, r_opponent = self.run_eval()
+                rewards.append(r_agent), rewards_opponent.append(r_opponent)
         if self.record:
             self.save_gif()
-        return rewards
+        return rewards, rewards_opponent
