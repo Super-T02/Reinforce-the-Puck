@@ -31,9 +31,7 @@ class TrainingRun:
         self._logger = logging.getLogger(__name__)
         self._checkpoint_manager_agent = CheckpointManager(environment.name, 5, "best")
         self._has_two_agents = False
-        if isinstance(self._environment, HokeyEnvWrapper) and not isinstance(
-            self._environment.opponent_agent, BasicHokeyOpponentWrapper
-        ):
+        if isinstance(self._environment, HokeyEnvWrapper):
             self._checkpoint_manager_opponent = CheckpointManager(
                 environment.name, 5, "best"
             )
