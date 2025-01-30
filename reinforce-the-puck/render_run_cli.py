@@ -128,6 +128,7 @@ if __name__ == "__main__":
         env.agent = AgentFactory.create_agent_from_checkpoint(
             args.agent, args.agent_type, env.observation_space, env.action_space
         )
+        print("Spacess: ", env.observation_space, env.action_space)
         if env.name == "Hockey-v0":
             env.opponent_agent = AgentFactory.create_agent_from_config(
                 opponent_config, env.observation_space, env.action_space

@@ -95,7 +95,7 @@ class BaseAgent(BaseTrainer):
                 // config.trainer_config.batch_size,  # Decay over 200k steps
             )
         else:
-            self._logger("Using Experience Replay")
+            self._logger.info("Using Experience Replay")
             self._feedback_buffer = Memory(self._config.memory_size)
         self._observation_space = observation_space
         self._action_space = action_space
