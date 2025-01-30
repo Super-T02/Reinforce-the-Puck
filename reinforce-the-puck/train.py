@@ -31,7 +31,9 @@ class TrainingRun:
         self._logger = logging.getLogger(__name__)
         self._checkpoint_manager_agent = CheckpointManager(environment.name, 5, "best")
         self._has_two_agents = False
-        if isinstance(self._environment, HokeyEnvWrapper):
+        if isinstance(self._environment, HokeyEnvWrapper) and not isinstance(
+            self._environment.opponent_agent, BasicHokeyOpponentWrapper
+        ):
             self._checkpoint_manager_opponent = CheckpointManager(
                 environment.name, 5, "best"
             )
@@ -67,7 +69,7 @@ class TrainingRun:
 
     def evaluate(self):
         """Evaluate the agent in the environment."""
-        if self._has_two_agents:
+        if isinstance(self._environment, HokeyEnvWrapper):
             self._eval_agent_and_opponent()
         else:
             self._eval_agent()
@@ -91,11 +93,15 @@ class TrainingRun:
             f"Evaluation finished. Agent: {np.mean(rewards_agent)}, Opponent: {np.mean(rewards_opponent)}"
         )
         self._environment.agent.save_eval_result(rewards_agent)
-        self._environment.opponent_agent.save_eval_result(rewards_opponent)
         mean_agent, mean_opponent = np.mean(rewards_agent), np.mean(rewards_opponent)
         self._add_checkpoint(mean_agent, mean_opponent)
-        self._checkpoint_manager_agent.save_last_checkpoint(), self._checkpoint_manager_opponent.save_last_checkpoint()
-        self._checkpoint_manager_agent.save_best_checkpoint(), self._checkpoint_manager_opponent.save_best_checkpoint()
+        self._checkpoint_manager_agent.save_last_checkpoint()
+        self._checkpoint_manager_agent.save_best_checkpoint()
+
+        if self._has_two_agents:
+            self._environment.opponent_agent.save_eval_result(rewards_opponent)
+            self._checkpoint_manager_opponent.save_last_checkpoint()
+            self._checkpoint_manager_opponent.save_best_checkpoint()
 
     def _add_checkpoint(self, mean_reward: float, mean_reward_opponent: float = None):
         """Adds a checkpoint to the Manager."""
@@ -107,7 +113,7 @@ class TrainingRun:
         self._checkpoint_manager_agent.add_checkpoint(checkpoint)
 
         # Add opponent
-        if mean_reward_opponent is not None:
+        if mean_reward_opponent is not None and self._has_two_agents:
             checkpoint_opponent = Checkpoint(
                 self._environment.opponent_agent,
                 self._environment.name,

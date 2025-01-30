@@ -20,7 +20,7 @@ env3:
   id: 2
   mode: 0 # 0: normal, 1: shooting, 2: defense
   max_steps: 1000
-  start_training_after_steps: 1
+  start_training_after_steps: 100000
   # train_both: False # TODO: Implement this
   do_render: True
 
@@ -30,7 +30,7 @@ agent1:
   opponent_name: "opponent1"
   env_id: 2
   eps: 1
-  eval_freq: 1
+  eval_freq: 50
   eval_episodes: 20
   discount: 0.99
   actor_hidden_sizes: [516, 256]
