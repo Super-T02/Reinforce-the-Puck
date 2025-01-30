@@ -76,7 +76,8 @@ class NewAgent(Agent):
         print(f"Agent loaded from {checkpoint_path}")
 
     def get_step(self, observation: list[float]) -> list[float]:
-        action = self.agent.act(observation).tolist()
+        with self.agent.evaluate_context():
+            action = self.agent.act(observation).tolist()
         return action
 
     def on_start_game(self, game_id) -> None:
