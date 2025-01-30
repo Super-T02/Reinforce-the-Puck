@@ -300,6 +300,8 @@ class TrainerConfig(ConfigGroup):
     def __init__(self):
         self.checkpoint_dir = os.path.join(model_dir, "checkpoints")
         self.learning_rate = 0.001
+        self.beta1 = 0.9
+        self.beta2 = 0.999
         self.batch_size = 32
         self.log_freq = 10
         self.save_checkpoint_freq = 100

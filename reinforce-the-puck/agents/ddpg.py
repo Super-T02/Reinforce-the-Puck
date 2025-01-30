@@ -56,6 +56,10 @@ class DDPGAgent(BaseAgent):
         return torch.optim.Adam(
             chain(*[q.parameters() for q in q_nets]),
             lr=self._config.trainer_config.learning_rate_critic,
+            betas=(
+                self._config.trainer_config.beta1,
+                self._config.trainer_config.beta2,
+            ),
             eps=0.000001,
         )
 

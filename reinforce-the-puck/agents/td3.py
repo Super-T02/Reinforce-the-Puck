@@ -27,8 +27,8 @@ class TD3Agent(DDPGAgent):
             (self._action_n,), config.noise_sigma, config.noise_beta
         )
         # Smooths the target policy
-        self._target_smoothing_noise = ClippedGaussianNoise(
-            (self._action_n,), 0.1, config.noise_clip
+        self._target_smoothing_noise = ClippedColoredNoise(
+            (self._action_n,), config.noise_sigma, config.noise_beta, config.noise_clip
         )
 
         # Create 2nd Q network
