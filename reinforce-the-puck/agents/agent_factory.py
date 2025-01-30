@@ -15,6 +15,7 @@ from utils.config import (
     SACAgentConfig,
     TD3AgentConfig,
     TD3CrossAgentConfig,
+    global_config,
     model_dir,
 )
 
@@ -105,7 +106,7 @@ class AgentFactory:
         """
         This fuctions loads an agent configuration by loading the checkpoint file and extracting the hidden layer sizes of the policy and critic networks.
         """
-        checkpoint = torch.load(path)
+        checkpoint = torch.load(path, map_location=torch.device(global_config.device))
         if agent_type.upper() == "SAC":
             q1 = checkpoint[0]
             q2 = checkpoint[1]
