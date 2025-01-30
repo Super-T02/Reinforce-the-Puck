@@ -262,7 +262,12 @@ class DDPGAgent(BaseAgent):
         # Handle BPER
         if self._config.buffer_type == "BPER":
             indices, priority_weights = batch.indices, batch.priority_weights
-            priority_weights = priority_weights.to(self.device)
+            priority_weights = torch.tensor(
+                priority_weights, dtype=self._config.specialized_config.dtype
+            )
+            priority_weights = priority_weights.to(
+                self._config.specialized_config.device
+            )
 
             # Reweight the loss
             q_loss = (q_loss * priority_weights).mean()

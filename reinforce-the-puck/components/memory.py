@@ -163,7 +163,7 @@ class BalancedPrioritizedMemory(Memory):
             rewards (np.ndarray): Reward of the indices
         """
         # Scale Rewards to [0,100]
-        normalized_rewards = self.normalize_reward(rewards)
+        normalized_rewards = self.normalize_reward(rewards).squeeze()
         self.priorities[indices] = (normalized_rewards + 1e-5) ** self.alpha
         self.max_priority = max(self.max_priority, self.priorities.max())
 
