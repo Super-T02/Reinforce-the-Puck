@@ -8,7 +8,23 @@ from utils.config import global_config
 
 
 class BatchRenorm1d(nn.Module):
+    """
+    Batch Renormalization (a better version of Batch Normalization introduced by:
+    Ioffe, Sergey. "Batch renormalization: Towards reducing minibatch dependence in batch-normalized models." Advances in neural information processing systems 30 (2017)
+    https://proceedings.neurips.cc/paper/2017/file/c54e7837e0cd0ced286cb5995327d1ab-Paper.pdf
+    """
+
     def __init__(self, num_features, eps=1e-5, momentum=0.99, r_max=5.0, d_max=3.0):
+        """
+        Initialize the BatchRenorm1d layer.
+
+        Args:
+            num_features (int): Number of features.
+            eps (float, optional): Epsilon for numerical stabilities (sqrt). Defaults to 1e-5.
+            momentum (float, optional): Keep previous smoothing. Defaults to 0.99.
+            r_max (float, optional): Maximal value for r. Defaults to 5.0.
+            d_max (float, optional): Maximal value for d. Defaults to 3.0.
+        """
         super(BatchRenorm1d, self).__init__()
         self.num_features = num_features
         self.eps = eps
@@ -29,6 +45,18 @@ class BatchRenorm1d(nn.Module):
         self.d = 0.0
 
     def forward(self, x):
+        """
+        Forward pass through the BatchRenorm1d layer.
+
+        Args:
+            x (torch.Tensor): Input tensor.
+
+        Raises:
+            ValueError: If input is not 2D.
+
+        Returns:
+            torch.Tensor: Output tensor.
+        """
         if self.training:
             # Ensure input is 2D (batch_size, num_features)
             if x.dim() != 2:
