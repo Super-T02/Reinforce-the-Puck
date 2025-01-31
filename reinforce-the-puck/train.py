@@ -88,12 +88,16 @@ class TrainingRun:
         """Warmup the agent in the environment."""
         while not self._environment.started_training:
             self._environment.run_train_episode(-1, train=False)
-            (
-                self._environment.agent,
-                self._environment.opponent_agent,
-            ) = self._select_random_agent_and_opponent(self._agents)
-        self._environment.agent = self._agents[0]
-        self._environment.opponent_agent = self._agents[1]
+
+            if isinstance(self._environment, HokeyEnvWrapper):
+                (
+                    self._environment.agent,
+                    self._environment.opponent_agent,
+                ) = self._select_random_agent_and_opponent(self._agents)
+
+        if isinstance(self._environment, HokeyEnvWrapper):
+            self._environment.agent = self._agents[0]
+            self._environment.opponent_agent = self._agents[1]
 
     def evaluate(self):
         """Evaluate the agent in the environment."""
