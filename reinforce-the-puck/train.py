@@ -6,13 +6,14 @@ import os
 
 import numpy as np
 from agents.agent_factory import AgentFactory
+from agents.base_agent import BaseAgent
 from agents.basic_hokey_oponent import BasicHokeyOpponentWrapper
 from environments.base_wrapper import BaseEnvWrapper
 from environments.environment_factory import EnvironmentFactory
 from environments.hokey_wrapper import HokeyEnvWrapper
 from utils import config_dir, logger
 from utils.checkpoint import Checkpoint, CheckpointManager
-from utils.config import AgentConfig, global_config
+from utils.config import AgentConfig, EnvironmentConfig, global_config
 
 
 class TrainingRun:
@@ -23,24 +24,30 @@ class TrainingRun:
         environment: BaseEnvWrapper,
         agent_config: AgentConfig,
         num_episodes: int,
+        agents: list[BaseAgent],
+        new_agents_after_eval: int = 0,
+        train_all: bool = False,
     ):
         self._environment = environment
         self._agent_config = agent_config
         self._num_episodes = num_episodes
         self._logger = logging.getLogger(__name__)
         self._checkpoint_manager_agent = CheckpointManager(environment.name, 5, "best")
-        self._has_two_agents = False
-        if (
-            isinstance(self._environment, HokeyEnvWrapper)
-            and not isinstance(
-                self._environment.opponent_agent, BasicHokeyOpponentWrapper
-            )
-            and self._environment.train_both
-        ):
+        self._agents = agents  # At 0 is the agent, at 1 ... n are the opponents
+        self._new_agents_after_eval = new_agents_after_eval
+        self._train_all = train_all
+        if self.use_opponent:
             self._checkpoint_manager_opponent = CheckpointManager(
                 environment.name, 5, "best"
             )
-            self._has_two_agents = True
+
+    @property
+    def use_opponent(self) -> bool:
+        """Use opponent for training."""
+        return (
+            isinstance(self._environment, HokeyEnvWrapper)
+            and self._environment.train_both
+        )
 
     def run(self, num_runs: int = 1):
         """Run the training process.
@@ -50,6 +57,7 @@ class TrainingRun:
         4. Mutate the best agent.
         """
         for i in range(num_runs):
+            self.warmup()
             self.train()
             self.evaluate()
             if not self._agent_config.mutation_config.enabled:
@@ -59,25 +67,52 @@ class TrainingRun:
     def train(self):
         """Train the agent in the environment."""
         self._logger.info("Starting training [%d]...", self._num_episodes)
-        # Start warmup
-        while not self._environment.started_training:
-            self._environment.run_train_episode(-1, train=False)
-
+        evals = 0
         # Start training
         for i in range(self._num_episodes):
             self._environment.run_train_episode(i)
+
             if i % self._agent_config.eval_freq == 0 and i != 0:
                 self.evaluate()
+                evals += 1
+                if isinstance(self._environment, HokeyEnvWrapper):
+                    if (
+                        self._new_agents_after_eval > 0
+                        and evals % self._new_agents_after_eval == 0
+                    ):
+                        self.change_agents()
+
         self._logger.info("Training finished.")
+
+    def warmup(self):
+        """Warmup the agent in the environment."""
+        while not self._environment.started_training:
+            self._environment.run_train_episode(-1, train=False)
+            (
+                self._environment.agent,
+                self._environment.opponent_agent,
+            ) = self._select_random_agent_and_opponent(self._agents)
+        self._environment.agent = self._agents[0]
+        self._environment.opponent_agent = self._agents[1]
 
     def evaluate(self):
         """Evaluate the agent in the environment."""
         if isinstance(self._environment, HokeyEnvWrapper):
-            self._eval_agent_and_opponent()
+            self._eval_hockey()
         else:
-            self._eval_agent()
+            self._eval_default()
 
-    def _eval_agent(self) -> None:
+    def change_agents(self):
+        """Change the agents."""
+        (
+            self._environment.agent,
+            self._environment.opponent_agent,
+        ) = self._select_random_agent_and_opponent(self._agents)
+        self._logger.info(
+            f"Changed agents. Agent={self._environment.agent.get_name()}, Opponent={self._environment.opponent_agent.get_name()}"
+        )
+
+    def _eval_default(self) -> None:
         self._logger.info("Starting evaluation...")
         rewards = self._environment.evaluate(self._agent_config.eval_episodes)
         self._logger.info("Evaluation finished.")
@@ -87,7 +122,7 @@ class TrainingRun:
         self._checkpoint_manager_agent.save_last_checkpoint()
         self._checkpoint_manager_agent.save_best_checkpoint()
 
-    def _eval_agent_and_opponent(self) -> None:
+    def _eval_hockey(self) -> None:
         self._logger.info("Starting evaluation...")
         rewards_agent, rewards_opponent = self._environment.evaluate(
             self._agent_config.eval_episodes
@@ -101,28 +136,34 @@ class TrainingRun:
         self._checkpoint_manager_agent.save_last_checkpoint()
         self._checkpoint_manager_agent.save_best_checkpoint()
 
-        if self._has_two_agents:
+        if self.use_opponent and not isinstance(
+            self._environment.opponent_agent, BasicHokeyOpponentWrapper
+        ):
             self._environment.opponent_agent.save_eval_result(rewards_opponent)
             self._checkpoint_manager_opponent.save_last_checkpoint()
             self._checkpoint_manager_opponent.save_best_checkpoint()
 
     def _add_checkpoint(self, mean_reward: float, mean_reward_opponent: float = None):
         """Adds a checkpoint to the Manager."""
-        checkpoint = Checkpoint(
-            self._environment.agent,
-            self._environment.name,
-            mean_reward,
-        )
-        self._checkpoint_manager_agent.add_checkpoint(checkpoint)
+        if not isinstance(self._environment.agent, BasicHokeyOpponentWrapper):
+            checkpoint = Checkpoint(
+                self._environment.agent,
+                self._environment.name,
+                mean_reward,
+            )
+            self._checkpoint_manager_agent.add_checkpoint(checkpoint)
 
         # Add opponent
-        if mean_reward_opponent is not None and self._has_two_agents:
-            checkpoint_opponent = Checkpoint(
-                self._environment.opponent_agent,
-                self._environment.name,
-                mean_reward_opponent,
-            )
-            self._checkpoint_manager_opponent.add_checkpoint(checkpoint_opponent)
+        if mean_reward_opponent is not None and self.use_opponent:
+            if not isinstance(
+                self._environment.opponent_agent, BasicHokeyOpponentWrapper
+            ):
+                checkpoint_opponent = Checkpoint(
+                    self._environment.opponent_agent,
+                    self._environment.name,
+                    mean_reward_opponent,
+                )
+                self._checkpoint_manager_opponent.add_checkpoint(checkpoint_opponent)
 
     def _mutate(self):
         """Mutate the best agent."""
@@ -136,6 +177,33 @@ class TrainingRun:
             self._environment.observation_space,
             self._environment.action_space,
         )
+
+    def _select_random_agent_and_opponent(self, agents: list[BaseAgent]):
+        """Select a random agent and opponent."""
+        # If we train only the agent, select a random opponent
+        num_agents = len(agents)
+        agent = agents[0]
+        opponent = np.random.choice(agents[1:])
+
+        # If we train all agents, select a random agent and opponent
+        if self._train_all:
+            agent_i = np.random.choice(range(num_agents))
+            probs = [1 / (num_agents - 1)] * num_agents
+            probs[agent_i] = 0
+            opponent_i = np.random.choice(num_agents, p=probs)
+            if agent_i == opponent_i:
+                raise ValueError("Agent and opponent should not be the same.")
+            agent = agents[agent_i]
+            opponent = agents[opponent_i]
+
+            # If the agent is a BasicHokeyOpponentWrapper, swap the agents or select base agent
+            if isinstance(agent, BasicHokeyOpponentWrapper) and isinstance(
+                opponent, BasicHokeyOpponentWrapper
+            ):
+                agent = agents[0]
+            elif isinstance(agent, BasicHokeyOpponentWrapper):
+                agent, opponent = opponent, agent
+        return agent, opponent
 
 
 class TrainCLI:
@@ -193,7 +261,7 @@ class TrainCLI:
         """Load the agent, and environment classes."""
 
         for agent_config in global_config.get_agent_configs():
-            env_config = next(
+            env_config: EnvironmentConfig = next(
                 (
                     env
                     for env in global_config.get_environments()
@@ -227,13 +295,14 @@ class TrainCLI:
             env.agent = AgentFactory.create_agent_from_config(
                 agent_config, env.observation_space, env.action_space
             )
-
+            agents = [env.agent]
             if env.name == "Hockey-v0":
-                env.opponent_agent = AgentFactory.create_agent_from_config(
-                    global_config.get_opponent_config(agent_config.opponent_name),
-                    env.observation_space,
-                    env.action_space,
+                agents = self.generate_opponents(
+                    env.agent,
+                    agent_config.opponent_names,
+                    env,
                 )
+                env.opponent_agent = agents[1]
                 env.train_both = env_config.train_both
                 logging.info(
                     "Created opponent agent. Type: %s",
@@ -248,9 +317,41 @@ class TrainCLI:
                     if self._args.num_episodes is None
                     else self._args.num_episodes
                 ),
+                agents=agents,
+                new_agents_after_eval=env_config.new_agents_after_eval,
+                train_all=env_config.train_all,
             )
             # self.training_runs.append(training_run)
             training_run.run(agent_config.num_runs)
+
+    def generate_opponents(
+        self, agent: BaseAgent, opponent_names: list[str], env: HokeyEnvWrapper
+    ) -> list[BaseAgent]:
+        """Generate agents for the training.
+
+        Args:
+            agent (BaseAgent): The agent to train.
+            opponent_names (list[str]): List of opponent names.
+            env (HokeyEnvWrapper): The environment.
+
+        Returns:
+            list[BaseAgent]: List of agents.
+        """
+        if not isinstance(env, HokeyEnvWrapper):
+            raise ValueError("Environment should be a subclass of HokeyEnvWrapper")
+        if not type(opponent_names) == list:
+            raise ValueError("Opponent names should be a list")
+
+        agents = [agent]
+        for opponent_name in opponent_names:
+            print("Opponent Name: ", opponent_name)
+            agent = AgentFactory.create_agent_from_config(
+                global_config.get_opponent_config(opponent_name),
+                env.observation_space,
+                env.action_space,
+            )
+            agents.append(agent)
+        return agents
 
     def setup(self):
         """Setup the CLI."""
