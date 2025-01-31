@@ -187,7 +187,7 @@ class DDPGAgent(BaseAgent):
         Args:
             path (str): The path to the file where the agent is saved.
         """
-        self.restore_state(torch.load(path))
+        self.restore_state(torch.load(path, weights_only=False))
 
     def train(self, last_reward=np.nan):
         """Train the agent."""

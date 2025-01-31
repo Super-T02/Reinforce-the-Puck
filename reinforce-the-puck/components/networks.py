@@ -215,7 +215,7 @@ class Feedforward(torch.nn.Module):
         Returns:
             Network: Network object.
         """
-        self.load_state_dict(torch.load(path))
+        self.load_state_dict(torch.load(path, weights_only=False))
         return self
 
     def get_loss(self, x: torch.Tensor, y: torch.Tensor, **kwargs) -> object:

@@ -105,7 +105,7 @@ class AgentFactory:
         """
         This fuctions loads an agent configuration by loading the checkpoint file and extracting the hidden layer sizes of the policy and critic networks.
         """
-        checkpoint = torch.load(path)
+        checkpoint = torch.load(path, weights_only=False)
         if agent_type.upper() == "SAC":
             q1 = checkpoint[0]
             q2 = checkpoint[1]

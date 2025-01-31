@@ -129,8 +129,11 @@ if __name__ == "__main__":
             args.agent, args.agent_type, env.observation_space, env.action_space
         )
         if env.name == "Hockey-v0":
-            env.opponent_agent = AgentFactory.create_agent_from_config(
-                opponent_config, env.observation_space, env.action_space
+            env.opponent_agent = AgentFactory.create_agent_from_checkpoint(
+                opponent_config.checkpoint,
+                opponent_config.type,
+                env.observation_space,
+                env.action_space,
             )
             print("Loaded opponent agent: ", env.opponent_agent)
         env.reset()

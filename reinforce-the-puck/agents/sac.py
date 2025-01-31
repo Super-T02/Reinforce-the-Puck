@@ -202,7 +202,7 @@ class SACAgent(BaseAgent):
         Args:
             path (str): The path to the file where the agent is saved.
         """
-        self.restore_state(torch.load(path))
+        self.restore_state(torch.load(path, weights_only=False))
 
     def train_step(self, batch: Batch) -> dict:
         """Perform a single training step.
