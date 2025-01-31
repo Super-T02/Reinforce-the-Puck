@@ -43,7 +43,7 @@ class AgentFactory:
         """
         This function creates an agent from a checkpoint file.
         """
-        if config is None:
+        if config is None and path is not None:
             config = AgentFactory.create_adapted_agent_config_from_checkpoint(
                 path, agent_type
             )
@@ -151,4 +151,8 @@ class AgentFactory:
             config.critic_hidden_sizes = [
                 *critic_hidden_layer_sizes[: -important_critic - 1]
             ]
+            return config
+        else:
+            config = AgentConfig()
+            config.type = agent_type
             return config
