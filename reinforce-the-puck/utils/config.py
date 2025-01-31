@@ -299,6 +299,7 @@ class EnvironmentConfig(ConfigGroup):
         self.env_name = "unnamed"
         self.mode = None
         self.start_training_after_steps = 10000
+        self.train_both = False
         self.id = -1
 
 

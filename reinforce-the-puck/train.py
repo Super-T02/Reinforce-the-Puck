@@ -3,7 +3,6 @@
 import argparse
 import logging
 import os
-import time
 
 import numpy as np
 from agents.agent_factory import AgentFactory
@@ -31,8 +30,12 @@ class TrainingRun:
         self._logger = logging.getLogger(__name__)
         self._checkpoint_manager_agent = CheckpointManager(environment.name, 5, "best")
         self._has_two_agents = False
-        if isinstance(self._environment, HokeyEnvWrapper) and not isinstance(
-            self._environment.opponent_agent, BasicHokeyOpponentWrapper
+        if (
+            isinstance(self._environment, HokeyEnvWrapper)
+            and not isinstance(
+                self._environment.opponent_agent, BasicHokeyOpponentWrapper
+            )
+            and self._environment.train_both
         ):
             self._checkpoint_manager_opponent = CheckpointManager(
                 environment.name, 5, "best"
@@ -190,7 +193,7 @@ class TrainCLI:
         """Load the agent, and environment classes."""
 
         for agent_config in global_config.get_agent_configs():
-            env = next(
+            env_config = next(
                 (
                     env
                     for env in global_config.get_environments()
@@ -198,25 +201,27 @@ class TrainCLI:
                 ),
                 None,
             )
-            if env is None:
+            if env_config is None:
                 self._logger.error(
                     "No environment found for agent %s", agent_config.name
                 )
                 continue
             env_name = (
-                env.env_name
+                env_config.env_name
                 if self._args.environment is None
                 else self._args.environment
             )
             max_steps = (
-                env.max_steps if self._args.max_steps is None else self._args.max_steps
+                env_config.max_steps
+                if self._args.max_steps is None
+                else self._args.max_steps
             )
             env = EnvironmentFactory.create_environment(
                 env_name=env_name,
                 max_steps=max_steps,
                 do_render=agent_config.specialized_config.do_render,
-                mode=env.mode,
-                start_training_after_steps=env.start_training_after_steps,
+                mode=env_config.mode,
+                start_training_after_steps=env_config.start_training_after_steps,
             )
 
             env.agent = AgentFactory.create_agent_from_config(
@@ -229,6 +234,7 @@ class TrainCLI:
                     env.observation_space,
                     env.action_space,
                 )
+                env.train_both = env_config.train_both
                 logging.info(
                     "Created opponent agent. Type: %s",
                     type(env.opponent_agent).__name__,
