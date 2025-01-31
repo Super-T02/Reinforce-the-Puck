@@ -21,6 +21,7 @@ class HokeyEnvWrapper(BaseEnvWrapper):
         opponent_agent: BaseAgent = None,
         mode: int = h_env.Mode.NORMAL,
         start_training_after_steps: int = 10000,
+        train_both: bool = False,
         winner_weight: float = 10.0,
         closeness_puck_weight: float = 0.5,
         touch_puck_weight: float = 0.0,
@@ -51,6 +52,7 @@ class HokeyEnvWrapper(BaseEnvWrapper):
         self.record_path = os.path.join(workspace_dir, "gifs")
         self.frames = []
         self.name = "Hockey-v0"
+        self.train_both = train_both
 
         self.reward_calculator = AdaptiveHockeyRewardCalculator()
         self._start_training_after_steps = start_training_after_steps
@@ -199,11 +201,12 @@ class HokeyEnvWrapper(BaseEnvWrapper):
                     else reward_agent.item()
                 )  # backwards compatibility (some rewards are floats, some are tensors)
 
-                self.opponent_agent.train(
-                    reward_opponent
-                    if isinstance(reward_opponent, float)
-                    else reward_opponent.item()
-                )  # backwards compatibility (some rewards are floats, some are tensors)
+                if self.train_both:
+                    self.opponent_agent.train(
+                        reward_opponent
+                        if isinstance(reward_opponent, float)
+                        else reward_opponent.item()
+                    )  # backwards compatibility (some rewards are floats, some are tensors)
 
             self._logger.info(
                 "Episode %10d: Total reward agent: %4.2f", i, reward_agent

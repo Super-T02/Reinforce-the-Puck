@@ -10,6 +10,7 @@ class BasicHokeyOpponentWrapper(BaseAgent):
     def __init__(self, weak=False):
         self.agent = h_env.BasicOpponent(weak=weak)
         self._mode = AgentMode.DEFAULT
+        self._run_name = "BASIC_OPPONENT(WEAK)" if weak else "BASIC_OPPONENT(STRONG)"
 
     def act(self, observation):
         return self.agent.act(observation)
