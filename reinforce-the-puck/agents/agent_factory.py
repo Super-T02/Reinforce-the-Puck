@@ -5,6 +5,7 @@ from agents.base_agent import BaseAgent
 from agents.basic_hokey_oponent import BasicHokeyOpponentWrapper
 from agents.ddpg import DDPGAgent
 from agents.sac import SACAgent
+from agents.sac_hierarchical import SACHierarchicalAgent
 from agents.td3 import TD3Agent
 from agents.td3_cross import TD3CrossQAgent
 from gymnasium import spaces
@@ -65,7 +66,7 @@ class AgentFactory:
         """
         agent = None
         if isinstance(config, SACAgentConfig):
-            agent = SACAgent(
+            agent = SACHierarchicalAgent(
                 config=config,
                 action_space=action_space,
                 observation_space=observation_space,
