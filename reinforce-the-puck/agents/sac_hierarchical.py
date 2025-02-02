@@ -193,9 +193,8 @@ class SACHierarchicalAgent(BaseAgent):
 
         action, _ = self.lowlevel_policy.predict(combined_input)
 
-        action = action + self._action_noise()
-
         action = action.detach().cpu().numpy()[0]
+        action = action + self._action_noise()
         action = np.clip(action, self._action_space.low, self._action_space.high)
         return action
 

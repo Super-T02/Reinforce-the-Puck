@@ -14,7 +14,7 @@ env1:
 
 agent1:
   type: sac
-  opponent_name: 'opponent1'
+  opponent_names: ['opponent1']
   #checkpoint: 'C:\Users\jonas\OneDrive\Desktop\checkpoint_best.pth'
   env_id: 0
   tau: 0.005 # Target network update rate (Soft update)
