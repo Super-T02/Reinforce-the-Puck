@@ -55,7 +55,7 @@ class SACHierarchicalAgent(BaseAgent):
         self.high_level_policy_optimizer = torch.optim.Adam(
             self.highlevel_policy.parameters(),
             lr=config.trainer_config.learning_rate_actor,
-            eps=0.0003,
+            eps=0.000001,
         )
 
         self.lowlevel_policy = self._create_policy_net(sub_goal_dim=self._action_n)
