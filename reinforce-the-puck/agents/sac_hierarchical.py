@@ -5,6 +5,7 @@ import torch
 from agents.base_agent import AgentMode, BaseAgent
 from components.memory import Batch
 from components.networks import QFunction, StochasticPolicyNetwork
+from components.noise import ClippedColoredNoise
 from gymnasium import spaces
 from utils.config import AgentConfig, SACAgentConfig, global_config
 
@@ -34,6 +35,10 @@ class SACHierarchicalAgent(BaseAgent):
         tunes the temperature hyperparameter
         """
 
+        self._action_noise = ClippedColoredNoise(
+            (self._action_n,), sigma=0.1, beta=1, clip=0.8  # pink noise
+        )
+
         if self._config.alpha_tuning:
             self._log_alpha = torch.zeros(1, requires_grad=True, device=self.device)
 
@@ -50,7 +55,7 @@ class SACHierarchicalAgent(BaseAgent):
         self.high_level_policy_optimizer = torch.optim.Adam(
             self.highlevel_policy.parameters(),
             lr=config.trainer_config.learning_rate_actor,
-            eps=0.0001,
+            eps=0.0003,
         )
 
         self.lowlevel_policy = self._create_policy_net(sub_goal_dim=self._action_n)
@@ -188,6 +193,8 @@ class SACHierarchicalAgent(BaseAgent):
 
         action, _ = self.lowlevel_policy.predict(combined_input)
 
+        action = action + self._action_noise()
+
         action = action.detach().cpu().numpy()[0]
         action = np.clip(action, self._action_space.low, self._action_space.high)
         return action
@@ -202,6 +209,7 @@ class SACHierarchicalAgent(BaseAgent):
             self.Q1.state_dict(),
             self.Q2.state_dict(),
             self.lowlevel_policy.state_dict(),
+            self.highlevel_policy.state_dict(),
             self._log_alpha,
         )
 
@@ -214,6 +222,7 @@ class SACHierarchicalAgent(BaseAgent):
         self.Q1.load_state_dict(state[0])
         self.Q2.load_state_dict(state[1])
         self.lowlevel_policy.load_state_dict(state[2])
+        self.highlevel_policy.load_state_dict(state[3])
         self._log_alpha = state[3]
         self._copy_nets()
 
@@ -302,6 +311,7 @@ class SACHierarchicalAgent(BaseAgent):
         """
         # 1) Sub-Goals vom High-Level
         sub_goals, _ = self.highlevel_policy.sample(batch.observations)
+        batch.observations = batch.observations.to(self.device)
 
         # 2) Combined Input = (obs, sub_goals)
         combined_obs = torch.cat([batch.observations, sub_goals], dim=-1)
@@ -332,6 +342,15 @@ class SACHierarchicalAgent(BaseAgent):
         # Naiv: High-Level kriegt die "Environment Rewards" für alle Subgoals
         policy_loss = -torch.mean(log_probs * batch.rewards)
 
+        """
+        Example for Intuition:
+
+        log_prob, reward
+        100%    ->   +10
+        20%     ->   -2
+        2%      ->   -20
+        """
+
         self.high_level_policy_optimizer.zero_grad()
         policy_loss.backward()
         self.high_level_policy_optimizer.step()
@@ -341,6 +360,7 @@ class SACHierarchicalAgent(BaseAgent):
     def update_q_values(self, batch):
         with torch.no_grad():
             sub_goals, _ = self.highlevel_policy.sample(batch.next_observations)
+            batch.next_observations = batch.next_observations.to(self.device)
             combined_next_obs = torch.cat([batch.next_observations, sub_goals], dim=-1)
 
             next_actions, next_log_probs = self.lowlevel_policy.sample(

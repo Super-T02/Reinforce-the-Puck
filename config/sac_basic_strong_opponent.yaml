@@ -9,7 +9,7 @@ env1:
   env_name: Hockey-v0
   env_type: gym
   id: 0
-  max_steps: 1000
+  max_steps: 1500
 
 
 agent1:
