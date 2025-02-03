@@ -20,14 +20,16 @@ env3:
   id: 2
   mode: 0 # 0: normal, 1: shooting, 2: defense
   max_steps: 1000
-  start_training_after_steps: 20000
-  train_both: False # TODO: Implement this
+  start_training_after_steps: 60000 # > 20 since multiple agents are trained
+  train_both: False
+  train_all: True
+  new_agents_after_eval: 2
   do_render: True
 
 agent1:
   type: td3
   checkpoint: Hockey-v0/td3/td3_not_cross_hockey_2025-01-28_09-26-13_100/checkpoint_last.pth
-  opponent_name: "opponent3"
+  opponent_names: ["opponent1", "opponent2", "opponent3"]
   env_id: 2
   eps: 1
   eval_freq: 50
@@ -68,7 +70,7 @@ opponent2:
   checkpoint: "Hockey-v0/sac/best_jona_2025_01_28.pth"
   env_id: 0
   tau: 0.005 # Target network update rate (Soft update)
-  memory_size: 1000000
+  memory_size: 100000
   discount: 0.98 # Discount factor
   alpha: 0.1 # Entropy regularization coefficient
   alpha_lr: 0.0003 # Learning rate for alpha
@@ -82,7 +84,7 @@ opponent2:
     learning_rate_actor: 0.0003
     #learning_rate_critic: 0.0003
     learning_rate_critic: 0.0003
-    log_name: agent_sac_hokey
+    log_name: agent_sac_hokey_finetuned
     batch_size: 512
 
 opponent3:
