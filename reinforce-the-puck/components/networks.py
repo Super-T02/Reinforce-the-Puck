@@ -424,3 +424,95 @@ class StochasticPolicyNetwork(Feedforward):
     def mean(self, x: torch.Tensor) -> torch.Tensor:
         mean, _ = self.forward(x)
         return torch.tanh(mean)
+
+
+class HLGaussQFunction(QFunction):
+    """Uses a HL Gaussian Q-Function to model the Q-Values as a Categorial Distribution."""
+
+    def __init__(
+        self,
+        input_size,
+        hidden_sizes,
+        output_size,
+        activation=torch.nn.Tanh,
+        output_activation=torch.nn.Softmax(dim=-1),
+        device=global_config.base_config.device,
+        dtype=global_config.base_config.dtype,
+        num_bins: int = 51,
+        v_min: float = -10,
+        v_max: float = 10,
+        sigma_ratio: float = 0.75,
+        **kwargs,
+    ):
+        super(HLGaussQFunction, self).__init__(
+            input_size,
+            hidden_sizes,
+            num_bins,  # Output size is the number of bins
+            activation,
+            output_activation,
+            self.hl_cross_entropy,
+            device,
+            dtype,
+            **kwargs,
+        )
+        self.v_min = v_min
+        self.v_max = v_max
+        self.num_bins = num_bins
+        self.sigma = ((v_max - v_min) / num_bins) * sigma_ratio
+        self.support = torch.linspace(v_min, v_max, num_bins).to(device)
+        self.goal_output_size = output_size
+
+    def hl_cross_entropy(self, probs, target):
+        """
+        Compute the cross-entropy loss for the HL Gaussian Q-Function.
+
+        Args:
+            probs (torch.Tensor): Predicted Probabilities.
+            target (torch.Tensor): Target values.
+
+        Returns:
+            torch.Tensor: Cross-entropy loss.
+        """
+        return -(target * torch.log(probs + 1e-8)).sum(dim=-1).mean()
+
+    def hl_gauss_projection(self, q_values):
+        """
+        Project scalar Q-values into Gaussian-smoothed categorical distributions.
+
+        Args:
+            q_values (torch.Tensor): Scalar Q-values.
+
+        Returns:
+            torch.Tensor: Gaussian-smoothed categorical distributions.
+        """
+        # Put all on the same device
+        q_values = q_values.to(self._device)  # Shape: [batch_size, num_actions]
+        support = self.support.to(self._device)  # Shape: [num_bins]
+
+        # Compute the Gaussian CDF values
+        cdf_evals = 0.5 * (
+            1
+            + torch.erf(
+                (support - q_values.unsqueeze(-1))
+                / (torch.sqrt(torch.tensor(2.0)) * self.sigma)
+            )
+        )
+
+        # Compute bin probabilities as differences between consecutive CDF values
+        bin_probs = torch.zeros_like(cdf_evals)  # Initialize with zeros
+        bin_probs[..., :-1] = cdf_evals[..., 1:] - cdf_evals[..., :-1]  # Differences
+        bin_probs[..., -1] = cdf_evals[..., -1]  # Include the last bin
+
+        # Normalize the probabilities
+        z = cdf_evals[..., -1] - cdf_evals[..., 0]  # Total probability mass
+        bin_probs = bin_probs / (z.unsqueeze(-1) + 1e-8)
+
+        return bin_probs
+
+    def Qvalues(self, observations, actions):
+        probs = super().Qvalues(observations, actions).to(self._device)
+        return torch.matmul(probs, self.support).cpu()
+
+    def get_loss(self, x, y, do_forward=True):
+        y = self.hl_gauss_projection(y)
+        return super().get_loss(x, y, do_forward)

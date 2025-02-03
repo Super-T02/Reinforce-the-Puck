@@ -293,6 +293,19 @@ class TD3CrossAgentConfig(TD3AgentConfig):
         self.use_target_net = False
 
 
+class TD3HLGaussianAgentConfig(TD3AgentConfig):
+    def __init__(self):
+        super().__init__()
+        self.type = "td3_hl_gaussian"
+        self.critic_hidden_sizes = [1024, 512, 256]  # Wider Network
+        self.sigma_ratio = (
+            0.75  # Smoothing factor for the HL Gaussian Distribution in the Q function
+        )
+        self.v_min = -10
+        self.v_max = 10
+        self.num_bins = 51
+
+
 class EnvironmentConfig(ConfigGroup):
     def __init__(self):
         self.max_steps = 1000
@@ -337,6 +350,7 @@ class Config:
         "basic_opponent_weak": AgentConfig,
         "basic_opponent_strong": AgentConfig,
         "td3_cross": TD3CrossAgentConfig,
+        "td3_hl_gaussian": TD3HLGaussianAgentConfig,
     }
 
     def __init__(self):

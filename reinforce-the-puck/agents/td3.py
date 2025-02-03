@@ -2,9 +2,9 @@ import numpy as np
 import torch
 from agents.base_agent import AgentMode
 from agents.ddpg import DDPGAgent
-from components.networks import Feedforward
+from components.networks import Feedforward, HLGaussQFunction
 from components.noise import ClippedColoredNoise, ColoredNoise
-from utils.config import TD3AgentConfig, global_config
+from utils.config import TD3AgentConfig, TD3HLGaussianAgentConfig, global_config
 
 
 class TD3Agent(DDPGAgent):
@@ -137,3 +137,29 @@ class TD3Agent(DDPGAgent):
 
     def __del__(self):
         return super().__del__()
+
+
+class TD3HLGaussianAgent(TD3Agent):
+    def __init__(
+        self,
+        observation_space,
+        action_space,
+        config: TD3HLGaussianAgentConfig,
+        name="TD3HLGaussian",
+        **kwargs
+    ):
+        super().__init__(observation_space, action_space, config, name, **kwargs)
+
+    def _create_q_net(self, output_size, lr=None, **kwargs):
+        return HLGaussQFunction(
+            input_size=self._obs_dim + self._action_n,
+            output_size=output_size,
+            hidden_sizes=self._config.critic_hidden_sizes,
+            learning_rate=lr,
+            num_bins=self._config.num_bins,
+            sigma_ratio=self._config.sigma_ratio,
+            v_min=self._config.v_min,
+            v_max=self._config.v_max,
+            device=self._config.specialized_config.device,
+            **kwargs,
+        )

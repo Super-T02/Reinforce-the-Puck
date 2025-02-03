@@ -5,7 +5,7 @@ from agents.base_agent import BaseAgent
 from agents.basic_hokey_oponent import BasicHokeyOpponentWrapper
 from agents.ddpg import DDPGAgent
 from agents.sac import SACAgent
-from agents.td3 import TD3Agent
+from agents.td3 import TD3Agent, TD3HLGaussianAgent
 from agents.td3_cross import TD3CrossQAgent
 from gymnasium import spaces
 from matplotlib.pylab import f
@@ -15,6 +15,7 @@ from utils.config import (
     SACAgentConfig,
     TD3AgentConfig,
     TD3CrossAgentConfig,
+    TD3HLGaussianAgentConfig,
     model_dir,
 )
 
@@ -66,6 +67,12 @@ class AgentFactory:
         agent = None
         if isinstance(config, SACAgentConfig):
             agent = SACAgent(
+                config=config,
+                action_space=action_space,
+                observation_space=observation_space,
+            )
+        elif isinstance(config, TD3HLGaussianAgentConfig):
+            agent = TD3HLGaussianAgent(
                 config=config,
                 action_space=action_space,
                 observation_space=observation_space,
@@ -151,6 +158,15 @@ class AgentFactory:
             config.critic_hidden_sizes = [
                 *critic_hidden_layer_sizes[: -important_critic - 1]
             ]
+            return config
+        elif agent_type.upper() == "TD3_HL_GAUSSIAN":
+            q = checkpoint[0]
+            policy = checkpoint[1]
+            config = TD3HLGaussianAgentConfig()
+            critic_hidden_layer_sizes = _get_hidden_layer_sizes(q)
+            actor_hidden_layer_sizes = _get_hidden_layer_sizes(policy)
+            config.actor_hidden_sizes = [*actor_hidden_layer_sizes[:-1]]
+            config.critic_hidden_sizes = [*critic_hidden_layer_sizes[:-1]]
             return config
         else:
             config = AgentConfig()
