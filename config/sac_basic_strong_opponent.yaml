@@ -9,12 +9,12 @@ env1:
   env_name: Hockey-v0
   env_type: gym
   id: 0
-  max_steps: 1000
+  max_steps: 1500
 
 
 agent1:
   type: sac
-  opponent_name: 'opponent1'
+  opponent_names: ['opponent1']
   #checkpoint: 'C:\Users\jonas\OneDrive\Desktop\checkpoint_best.pth'
   env_id: 0
   tau: 0.005 # Target network update rate (Soft update)

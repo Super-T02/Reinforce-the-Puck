@@ -142,7 +142,7 @@ class AgentConfig(ConfigGroup):
         self.type = "none"
         self.name = "BasicOpponent"
         self.checkpoint = None
-        self.opponent_name = "undefined"
+        self.opponent_names = ["undefined"]
         self.version = 1
         self.epochs = 10
         self.eval_freq = 50
@@ -299,6 +299,9 @@ class EnvironmentConfig(ConfigGroup):
         self.env_name = "unnamed"
         self.mode = None
         self.start_training_after_steps = 10000
+        self.train_both = False  # Train both agents simultaneously
+        self.train_all = False  # Train all agents in the environment
+        self.new_agents_after_eval = 1  # Change agents after n evaluations
         self.id = -1
 
 
