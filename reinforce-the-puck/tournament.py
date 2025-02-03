@@ -1,13 +1,14 @@
 """This file contains the tournament logic, where agents can compete against each other to determine the best one."""
 
 import argparse
+import datetime
 import logging
 import os
 import random
 import time
-from ast import parse
 
 import numpy as np
+import pandas as pd
 import tabulate
 import yaml
 from agents.agent_factory import AgentFactory
@@ -15,7 +16,7 @@ from agents.base_agent import BaseAgent
 from agents.basic_hokey_oponent import BasicHokeyOpponentWrapper
 from environments.hokey_wrapper import HokeyEnvWrapper
 from openskill.models import PlackettLuce, PlackettLuceRating
-from utils import config_dir, logger
+from utils import config_dir, logger, logs_dir
 
 
 class Player:
@@ -31,6 +32,9 @@ class Tournament:
         self._model = PlackettLuce()
         self._agents: dict[str, Player] = {}
         self._logger = logging.getLogger(__name__)
+        self._stats = pd.DataFrame(
+            columns=["game", "p1", "p2", "p1_score", "p2_score", "winner"]
+        )
 
         self._do_render: bool = do_render
         self._n_epochs: int = n_epochs
@@ -114,6 +118,14 @@ class Tournament:
             if p2_score > p1_score
             else "Tie"
         )
+        self._stats.loc[len(self._stats)] = [
+            len(self._stats),
+            p1.name,
+            p2.name,
+            p1_score,
+            p2_score,
+            won,
+        ]
         return p1, p2, won
 
     def simulate(self, n_games: int = 100, max_skill_gap: int = 25) -> None:
@@ -195,10 +207,44 @@ class Tournament:
         table = []
         for player in players:
             table.append(
-                [player.name, player.type, player.rate_obj.mu, player.rate_obj.sigma]
+                [
+                    player.name,
+                    player.type,
+                    player.rate_obj.mu,
+                    player.rate_obj.sigma,
+                    self.get_player_avg_score(player.name),
+                ]
             )
 
-        print(tabulate.tabulate(table, headers=["Name", "Type", "Rating", "Sigma"]))
+        print(
+            tabulate.tabulate(
+                table, headers=["Name", "Type", "Rating", "Sigma", "Avg. Score"]
+            )
+        )
+
+    def get_player_avg_score(self, name: str) -> float:
+        """Returns the average score of the player with the given name.
+
+        Args:
+            name (str): The name of the player.
+
+        Returns:
+            float: The average score of the player.
+        """
+        return (
+            self._stats[self._stats["p1"] == name]["p1_score"].mean()
+            + self._stats[self._stats["p2"] == name]["p2_score"].mean()
+        )
+
+    def save_stats(self, path: str) -> None:
+        """Save the statistics of the tournament to a file.
+
+        Args:
+            path (str): The path to the file.
+        """
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        self._stats.to_csv(path, index=False)
+        self._logger.info(f"Saved the tournament statistics to {path}.")
 
 
 if __name__ == "__main__":
@@ -222,5 +268,10 @@ if __name__ == "__main__":
     tournament.add_benchmarks()
     tournament.simulate(n_games=args.n_games)
     tournament.show_result_table()
+    tournament.save_stats(
+        os.path.join(
+            logs_dir, "tournaments", f"tournament_results{datetime.datetime.now()}.csv"
+        )
+    )
     end = time.perf_counter()
     print(f"Finished in {end - start:.2f} seconds.")
