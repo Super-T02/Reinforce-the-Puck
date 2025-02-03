@@ -1,0 +1,202 @@
+"""This file contains the tournament logic, where agents can compete against each other to determine the best one."""
+
+import argparse
+import logging
+import os
+import random
+
+import numpy as np
+import tabulate
+import yaml
+from agents.agent_factory import AgentFactory
+from agents.base_agent import BaseAgent
+from agents.basic_hokey_oponent import BasicHokeyOpponentWrapper
+from environments.hokey_wrapper import HokeyEnvWrapper
+from openskill.models import PlackettLuce, PlackettLuceRating
+from utils import config_dir, logger
+
+
+class Player:
+    def __init__(self, name: str, agent: BaseAgent, rate_obj: PlackettLuceRating):
+        self.name: str = name
+        self.agent: BaseAgent = agent
+        self.type = agent.get_config().type
+        self.rate_obj: PlackettLuceRating = rate_obj
+
+
+class Tournament:
+    def __init__(self, n_epochs: int, do_render: bool = False):
+        self._model = PlackettLuce()
+        self._agents: dict[str, Player] = {}
+        self._logger = logging.getLogger(__name__)
+
+        self._do_render: bool = do_render
+        self._n_epochs: int = n_epochs
+
+    def from_yaml(self, path: str) -> None:
+        """Loads the agents from a yaml file.
+
+        Args:
+            path (str): The path to the yaml file.
+        """
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"File {path} does not exist.")
+
+        with open(path, "r") as f:
+            cfg = yaml.safe_load(f)
+
+        o_space, a_space = (
+            HokeyEnvWrapper(1).observation_space,
+            HokeyEnvWrapper(1).action_space,
+        )
+
+        for agent_name, c in cfg.items():
+            self._logger.info(
+                f"Loading agent {agent_name} from checkpoint {c['checkpoint']}"
+            )
+            agent = AgentFactory.create_agent_from_checkpoint(
+                c["checkpoint"], c["type"], o_space, a_space
+            )
+            agent.set_name(agent_name)
+            self.add_agent(agent)
+
+    def add_agent(self, agent: BaseAgent) -> None:
+        if agent.get_name() in self._agents:
+            raise ValueError(f"Agent with name {agent.get_name()} already exists.")
+        name = agent.get_name()
+        self._agents[name] = Player(name, agent, self._model.rating(name=name))
+
+    def add_benchmarks(self) -> None:
+        """Adds the benchmark agents to the tournament."""
+        weak, strong = BasicHokeyOpponentWrapper(True), BasicHokeyOpponentWrapper(False)
+        self.add_agent(weak)
+        self.add_agent(strong)
+
+    def remove_agent(self, name: str) -> None:
+        if name not in self._agents:
+            raise ValueError(f"Agent with name {name} does not exist.")
+        del self._agents[name]
+
+    def single_simulation(self, p1: Player, p2: Player) -> tuple[Player, Player, str]:
+        """Given two players, simulates a single game between them and returns the updated players.
+
+        Args:
+            p1 (Player): First player.
+            p2 (Player): Second player.
+
+        Returns:
+            tuple[Player, Player, str]: Rerated players. The winner of the game.
+        """
+        env = HokeyEnvWrapper(
+            max_steps=100000,
+            do_render=self._do_render,
+            agent=p1.agent,
+            opponent_agent=p2.agent,
+            winner_weight=1,
+            closeness_puck_weight=0,
+            touch_puck_weight=0,
+            puck_direction_weight=0,
+        )
+        env._logger.setLevel(logging.ERROR)
+        p1_score, p2_score = env.evaluate(self._n_epochs)
+        p1_score, p2_score = int(np.sum(p1_score)), int(np.sum(p2_score))
+        print(p1_score, p2_score)
+        p1_new, p2_new = self._model.rate(
+            [[p1.rate_obj], [p2.rate_obj]], scores=[p1_score, p2_score]
+        )
+        print(p1_new, p2_new)
+        p1.rate_obj = p1_new[0]
+        p2.rate_obj = p2_new[0]
+        won = (
+            p1.name
+            if p1_score > p2_score
+            else p2.name
+            if p2_score > p1_score
+            else "Tie"
+        )
+        return p1, p2, won
+
+    def simulate(self, n_games: int = 100, n_parallel: int = 1) -> None:
+        """Simulates the tournament with the given number of parallel games.
+
+        Args:
+            n_games (int, optional): Number of games to simulate. Defaults to 100.
+            n_parallel (int, optional): Number of parallel games. Defaults to 1.
+        """
+        n_parallel = min(1, n_parallel)
+
+        for i in range(n_games):
+            p1, p2 = self.sample_players(2)
+            self._logger.info(
+                f"Starting game {i + 1}/{n_games}. {p1.name} vs {p2.name}"
+            )
+            p1, p2, won = self.single_simulation(p1, p2)
+            self._logger.info(
+                f"Game {i + 1}/{n_games} finished. Won {won}. {p1.name} rating: {p1.rate_obj.mu}, {p2.name} rating: {p2.rate_obj.mu}"
+            )
+            self._agents[p1.name] = p1
+            self._agents[p2.name] = p2
+
+    def sample_players(self, tournament_size: int = 4) -> tuple[Player, Player]:
+        """Samples two players from the matchmaking pool.
+
+
+        Args:
+            tournament_size (int, optional): The number of players to sample from. Defaults to 4. If it is equal to 2, it is equivalent to uniformly sampling two players.
+
+        Returns:
+            tuple[Player, Player]: Two players.
+        """
+        if len(self._agents) < 2:
+            raise ValueError("Not enough agents to sample from.")
+        pool = random.sample([a for a in self._agents.values()], tournament_size)
+        # Find the two highest rated players
+        ranked = sorted(pool, key=lambda x: x.rate_obj.mu, reverse=True)
+        return ranked[0], ranked[1]
+
+    def get_rating(self, name: str) -> float:
+        """Returns the rating of the agent with the given name.
+
+        Args:
+            name (str): The name of the agent.
+
+        Returns:
+            float: The rating of the agent.
+        """
+        if name not in self._agents:
+            raise ValueError(f"Agent with name {name} does not exist.")
+        return self._agents[name].rate_obj.mu, self._agents[name].rate_obj.sigma
+
+    def show_result_table(self):
+        """Prints the result table of the tournament."""
+        players = self._agents.values()
+        players = sorted(players, key=lambda x: x.rate_obj.mu, reverse=True)
+
+        table = []
+        for player in players:
+            table.append(
+                [player.name, player.type, player.rate_obj.mu, player.rate_obj.sigma]
+            )
+
+        print(tabulate.tabulate(table, headers=["Name", "Type", "Rating", "Sigma"]))
+
+
+if __name__ == "__main__":
+    logger.init_logger(os.path.join(config_dir, "logging.yaml"))
+
+    parser = argparse.ArgumentParser(description="Tournament runner.")
+    parser.add_argument("config", type=str, help="Path to the config file.")
+    parser.add_argument(
+        "--n_epochs",
+        type=int,
+        default=10,
+        help="Number of epochs to simulate per game.",
+    )
+    parser.add_argument("--render", action="store_true", help="Render the games.")
+
+    args = parser.parse_args()
+    tournament = Tournament(args.n_epochs, args.render)
+    tournament.from_yaml(args.config)
+    tournament.add_benchmarks()
+    tournament.simulate(n_games=100)
+    tournament.show_result_table()
