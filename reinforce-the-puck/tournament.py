@@ -4,6 +4,8 @@ import argparse
 import logging
 import os
 import random
+import time
+from ast import parse
 
 import numpy as np
 import tabulate
@@ -114,17 +116,13 @@ class Tournament:
         )
         return p1, p2, won
 
-    def simulate(
-        self, n_games: int = 100, n_parallel: int = 1, max_skill_gap: int = 25
-    ) -> None:
+    def simulate(self, n_games: int = 100, max_skill_gap: int = 25) -> None:
         """Simulates the tournament with the given number of parallel games.
 
         Args:
             n_games (int, optional): Number of games to simulate. Defaults to 100.
-            n_parallel (int, optional): Number of parallel games. Defaults to 1.
             max_skill_gap (int, optional): Maximum skill gap between two players. Defaults to 25.
         """
-        n_parallel = min(1, n_parallel)
         for i in range(n_games):
             p1, p2 = self.sample_players(int(len(self._agents) * 0.3), max_skill_gap)
             self._logger.info(
@@ -214,11 +212,15 @@ if __name__ == "__main__":
         default=10,
         help="Number of epochs to simulate per game.",
     )
+    parser.add_argument("--n_games", type=int, default=100, help="Number of games.")
     parser.add_argument("--render", action="store_true", help="Render the games.")
 
+    start = time.perf_counter()
     args = parser.parse_args()
     tournament = Tournament(args.n_epochs, args.render)
     tournament.from_yaml(args.config)
     tournament.add_benchmarks()
-    tournament.simulate(n_games=100)
+    tournament.simulate(n_games=args.n_games)
     tournament.show_result_table()
+    end = time.perf_counter()
+    print(f"Finished in {end - start:.2f} seconds.")
