@@ -100,11 +100,9 @@ class Tournament:
         env._logger.setLevel(logging.ERROR)
         p1_score, p2_score = env.evaluate(self._n_epochs)
         p1_score, p2_score = int(np.sum(p1_score)), int(np.sum(p2_score))
-        print(p1_score, p2_score)
         p1_new, p2_new = self._model.rate(
             [[p1.rate_obj], [p2.rate_obj]], scores=[p1_score, p2_score]
         )
-        print(p1_new, p2_new)
         p1.rate_obj = p1_new[0]
         p2.rate_obj = p2_new[0]
         won = (
@@ -116,17 +114,19 @@ class Tournament:
         )
         return p1, p2, won
 
-    def simulate(self, n_games: int = 100, n_parallel: int = 1) -> None:
+    def simulate(
+        self, n_games: int = 100, n_parallel: int = 1, max_skill_gap: int = 25
+    ) -> None:
         """Simulates the tournament with the given number of parallel games.
 
         Args:
             n_games (int, optional): Number of games to simulate. Defaults to 100.
             n_parallel (int, optional): Number of parallel games. Defaults to 1.
+            max_skill_gap (int, optional): Maximum skill gap between two players. Defaults to 25.
         """
         n_parallel = min(1, n_parallel)
-
         for i in range(n_games):
-            p1, p2 = self.sample_players(2)
+            p1, p2 = self.sample_players(int(len(self._agents) * 0.3), max_skill_gap)
             self._logger.info(
                 f"Starting game {i + 1}/{n_games}. {p1.name} vs {p2.name}"
             )
@@ -137,22 +137,44 @@ class Tournament:
             self._agents[p1.name] = p1
             self._agents[p2.name] = p2
 
-    def sample_players(self, tournament_size: int = 4) -> tuple[Player, Player]:
-        """Samples two players from the matchmaking pool.
+    def sample_players(
+        self, tournament_size: int = 4, max_skill_gap: int = 25
+    ) -> tuple[Player, Player]:
+        """Samples two players from the matchmaking pool. Selects the players based on their skill level.
+        A player with a higher skill level is more likely to be selected:
 
+        1. Sample `tournament_size` players from the pool.
+        2. Calculate the probability of selecting each player based on their skill level. (softmax)
+        3. Sample two players in the pool based on the probabilities from step 2.
+        4. Ensure that the skill gap between the two players is less than `max_skill_gap`.
+
+        If for some reason the skill gap is too large, repeat the process up to 100 times. (This is to avoid infinite loops)
 
         Args:
             tournament_size (int, optional): The number of players to sample from. Defaults to 4. If it is equal to 2, it is equivalent to uniformly sampling two players.
+            max_skill_gap (int, optional): The maximum skill gap between the two players. Defaults to 25.
 
         Returns:
             tuple[Player, Player]: Two players.
         """
         if len(self._agents) < 2:
             raise ValueError("Not enough agents to sample from.")
-        pool = random.sample([a for a in self._agents.values()], tournament_size)
-        # Find the two highest rated players
-        ranked = sorted(pool, key=lambda x: x.rate_obj.mu, reverse=True)
-        return ranked[0], ranked[1]
+        max_skill_gap = max(0, max_skill_gap)
+        tournament_size = max(2, tournament_size)
+        for _ in range(100):
+            pool = random.sample([a for a in self._agents.values()], tournament_size)
+            mus = [a.rate_obj.mu for a in pool]
+            probs = np.exp(mus) / np.sum(np.exp(mus))
+            idx = np.random.choice(len(pool), size=2, p=probs, replace=False)
+            selected = [pool[i] for i in idx]
+
+            # Ensure that the skill gap is not too large
+            if abs(selected[0].rate_obj.mu - selected[1].rate_obj.mu) <= max_skill_gap:
+                return selected[0], selected[1]
+
+        raise ValueError(
+            "Could not find two players with a skill gap less than the maximum skill gap."
+        )
 
     def get_rating(self, name: str) -> float:
         """Returns the rating of the agent with the given name.
