@@ -8,11 +8,15 @@ env1:
   env_name: Pendulum-v1
   id: 0
   max_steps: 1000
+  start_training_after_steps: 20000
+  train_both: False
+  train_all: False
 
 env2:
   env_name: LunarLander-v3
   id: 1
   max_steps: 1000
+  start_training_after_steps: 10
 
 env3:
   env_name: Hockey-v0
@@ -30,30 +34,35 @@ agent1:
   type: td3_hl_gaussian
   # checkpoint: Hockey-v0/td3/td3_not_cross_hockey_2025-01-28_09-26-13_100/checkpoint_last.pth
   opponent_names: ["opponent1"]
-  env_id: 2
+  env_id: 0
   eps: 1
   eval_freq: 50
-  eval_episodes: 20
-  discount: 0.99
-  actor_hidden_sizes: [516, 256]
-  critic_hidden_sizes: [1024, 516, 256, 128]
-  policy_delay: 3
+  eval_episodes: 5
+  discount: 0.95
+  actor_hidden_sizes: [128, 128]
+  critic_hidden_sizes: [128, 128, 64]
+  policy_delay: 2
   update_target_every: -1
   noise_sigma: 0.2
-  noise_clip: 0.8
+  noise_clip: 0.5
   noise_beta: 1.0 # Pink noise
   memory_size: 100000
-  buffer_type: BPER # Balanced Prioritized Experience Replay
+  # buffer_type: BPER # Balanced Prioritized Experience Replay
   num_runs: 1
+  sigma_ratio: 0.8
+  v_min: -10
+  v_max: 10
+  n_bins: 51
   mutation_config:
     enabled: false
   trainer_config:
-    learning_rate_actor: 0.0003
-    learning_rate_critic: 0.0003
-    log_name: td3_hl_gaussian
-    batch_size: 256
+    learning_rate_actor: 0.003
+    learning_rate_critic: 0.003
+    eps: 0.0003125
+    log_name: td3_hl_gaussian_pendulum
+    batch_size: 128
   specialized_config:
-    num_episodes: 15000
+    num_episodes: 150
     do_render: False
 
 opponent1:

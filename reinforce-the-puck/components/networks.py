@@ -435,7 +435,7 @@ class HLGaussQFunction(QFunction):
         hidden_sizes,
         output_size,
         activation=torch.nn.Tanh,
-        output_activation=torch.nn.Softmax(dim=-1),
+        output_activation=None,
         device=global_config.base_config.device,
         dtype=global_config.base_config.dtype,
         num_bins: int = 51,
@@ -459,10 +459,10 @@ class HLGaussQFunction(QFunction):
         self.v_max = v_max
         self.num_bins = num_bins
         self.sigma = ((v_max - v_min) / num_bins) * sigma_ratio
-        self.support = torch.linspace(v_min, v_max, num_bins).to(device)
+        self.support = torch.linspace(v_min, v_max, num_bins + 1).to(device)
         self.goal_output_size = output_size
 
-    def hl_cross_entropy(self, probs, target):
+    def hl_cross_entropy(self, logits, target):
         """
         Compute the cross-entropy loss for the HL Gaussian Q-Function.
 
@@ -473,46 +473,74 @@ class HLGaussQFunction(QFunction):
         Returns:
             torch.Tensor: Cross-entropy loss.
         """
-        return -(target * torch.log(probs + 1e-8)).sum(dim=-1).mean()
-
-    def hl_gauss_projection(self, q_values):
-        """
-        Project scalar Q-values into Gaussian-smoothed categorical distributions.
-
-        Args:
-            q_values (torch.Tensor): Scalar Q-values.
-
-        Returns:
-            torch.Tensor: Gaussian-smoothed categorical distributions.
-        """
-        # Put all on the same device
-        q_values = q_values.to(self._device)  # Shape: [batch_size, num_actions]
-        support = self.support.to(self._device)  # Shape: [num_bins]
-
-        # Compute the Gaussian CDF values
-        cdf_evals = 0.5 * (
-            1
-            + torch.erf(
-                (support - q_values.unsqueeze(-1))
-                / (torch.sqrt(torch.tensor(2.0)) * self.sigma)
-            )
+        loss = torch.nn.functional.cross_entropy(
+            logits.squeeze(), self.transform_to_probs(target.squeeze())
         )
 
-        # Compute bin probabilities as differences between consecutive CDF values
-        bin_probs = torch.zeros_like(cdf_evals)  # Initialize with zeros
-        bin_probs[..., :-1] = cdf_evals[..., 1:] - cdf_evals[..., :-1]  # Differences
-        bin_probs[..., -1] = cdf_evals[..., -1]  # Include the last bin
+        # Debug
+        # print("Shape of logits: ", logits.shape)
+        # print("Min/Max Logits: ", torch.min(logits), torch.max(logits))
+        # print("Shape of target: ", target.shape)
+        # print("Min/Max Target: ", torch.min(target), torch.max(target))
+        # print("Shape of probs: ", self.transform_to_probs(target).shape)
+        # print("Shape of loss: ", loss.shape)
+        # print(
+        #     "Min/Max Prob: ",
+        #     torch.min(self.transform_to_probs(target)),
+        #     torch.max(self.transform_to_probs(target)),
+        # )
+        # print("Loss: ", loss)
+        if torch.isnan(loss).any():
+            raise ValueError("Loss is NaN")
 
-        # Normalize the probabilities
-        z = cdf_evals[..., -1] - cdf_evals[..., 0]  # Total probability mass
-        bin_probs = bin_probs / (z.unsqueeze(-1) + 1e-8)
+        return loss
 
-        return bin_probs
+    def transform_to_probs(self, target: torch.Tensor) -> torch.Tensor:
+        """Transform the target tensor to probs.
+
+        Args:
+            target (torch.Tensor): Target tensor.
+
+        Returns:
+            torch.Tensor: Transformed tensor.
+        """
+        # Put all on the same device
+        target = target.to(self._device)  # Shape: [batch_size, batch_size]
+        support = self.support.to(self._device)  # Shape: [num_bins]
+
+        cdf_evals = torch.special.erf(
+            (support - target.unsqueeze(-1))
+            / (torch.sqrt(torch.tensor(2.0)) * self.sigma)
+        )
+        z = cdf_evals[..., -1] - cdf_evals[..., 0]
+        bin_probs = cdf_evals[..., 1:] - cdf_evals[..., :-1]
+
+        # Debug
+        # print("Shape of target: ", target.shape)
+        # print("Shape of support: ", support.shape)
+        # print("Shape of cdf_evals: ", cdf_evals.shape)
+        # print("Shape of z: ", z.shape)
+        # print("Any NaNs in z: ", torch.isnan(z).any())
+
+        return bin_probs / (z.unsqueeze(-1) + 1e-5)
+
+    def transform_from_probs(self, probs: torch.Tensor) -> torch.Tensor:
+        """Transform the probs tensor to target.
+
+        Args:
+            probs (torch.Tensor): Probs tensor.
+
+        Returns:
+            torch.Tensor: Transformed tensor.
+        """
+        centers = (self.support[:-1] + self.support[1:]) / 2
+        return torch.sum(probs * centers, dim=-1)
 
     def Qvalues(self, observations, actions):
         probs = super().Qvalues(observations, actions).to(self._device)
-        return torch.matmul(probs, self.support).cpu()
+        return self.transform_from_probs(probs).cpu().reshape(-1, self.goal_output_size)
 
-    def get_loss(self, x, y, do_forward=True):
-        y = self.hl_gauss_projection(y)
-        return super().get_loss(x, y, do_forward)
+    def forward(self, x):
+        result = super().forward(x).to(self._device)
+        probs = torch.softmax(result, dim=-1)
+        return probs

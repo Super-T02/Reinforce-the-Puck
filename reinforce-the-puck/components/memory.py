@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 import torch
 from utils.config import global_config
@@ -142,7 +144,11 @@ class BalancedPrioritizedMemory(Memory):
         effective_priorities = (
             self.priorities[: self.size] * self.memory_strength[: self.size]
         )
-        probs = effective_priorities / effective_priorities.sum()
+        probs = effective_priorities / (effective_priorities.sum() + 1e-5)
+        if np.isnan(probs).any():
+            logging.warning("Memory: Probs contain NaNs: %s", probs)
+            probs = np.ones_like(probs) / self.size
+
         indices = np.random.choice(self.size, batch_size, p=probs)
 
         # Compute importance sampling weights

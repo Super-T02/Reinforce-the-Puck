@@ -60,7 +60,7 @@ class DDPGAgent(BaseAgent):
                 self._config.trainer_config.beta1,
                 self._config.trainer_config.beta2,
             ),
-            eps=0.000001,
+            eps=self._config.trainer_config.eps,
         )
 
     def _create_q_net(self, out: int, lr: float = 0.0, **kwargs) -> QFunction:

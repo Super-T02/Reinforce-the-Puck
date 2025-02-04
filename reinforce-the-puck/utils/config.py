@@ -324,6 +324,7 @@ class TrainerConfig(ConfigGroup):
         self.learning_rate = 0.001
         self.beta1 = 0.9
         self.beta2 = 0.999
+        self.eps = 1e-8
         self.batch_size = 32
         self.log_freq = 10
         self.save_checkpoint_freq = 100

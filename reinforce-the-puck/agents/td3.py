@@ -130,9 +130,26 @@ class TD3Agent(DDPGAgent):
         next_actions = torch.tensor(next_actions, dtype=global_config.base_config.dtype)
         q1 = self.Q_target.Qvalues(batch.next_observations, next_actions)
         q2 = self.Q2_target.Qvalues(batch.next_observations, next_actions)
-        target_q = batch.rewards + self._config.discount * (
-            1 - batch.dones
-        ) * torch.min(q1, q2)
+
+        # Ensure shape is [batch_size]
+        # rewards = batch.rewards.reshape(-1)
+        # dones = batch.dones.reshape(-1)
+        # q1 = q1.reshape(-1)
+        # q2 = q2.reshape(-1)
+
+        rewards = batch.rewards
+        dones = batch.dones
+
+        # Compute the target Q values
+        target_q = rewards + self._config.discount * (1 - dones) * torch.min(q1, q2)
+
+        # Debugging
+        # print("Shape of rewards: ", rewards.shape)
+        # print("Shape of dones: ", dones.shape)
+        # print("Shape of q1: ", q1.shape)
+        # print("Shape of q2: ", q2.shape)
+        # print("Shape of target_q: ", target_q.shape)
+
         return target_q
 
     def __del__(self):
