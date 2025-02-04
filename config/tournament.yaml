@@ -1,0 +1,15 @@
+td3_bper_smaller_buffer_base:
+  checkpoint: "models/Hockey-v0/td3/td3_hockey_bper_smaller_buffer_2025-01-30_16-56-17_100/checkpoint_best.pth"
+  type: td3
+td3_pink_target_noise:
+  checkpoint: "models/Hockey-v0/td3/td3_hockey_pink_target_noise_continued_2025-01-30_16-49-23_100/checkpoint_best.pth"
+  type: td3
+td3_base_long_training:
+  checkpoint: "models/Hockey-v0/td3/td3_not_cross_hockey_2025-01-28_09-26-13_100/checkpoint_best.pth"
+  type: td3
+sac1:
+  checkpoint: "models/Hockey-v0/sac/best_jona_2025_01_28.pth"
+  type: sac
+td3_cross:
+  checkpoint: "models/Hockey-v0/td3_cross/td3_cross_hockey_BatchRenorm_new_2025-01-29_20-52-50_100/checkpoint_best.pth"
+  type: td3_cross
