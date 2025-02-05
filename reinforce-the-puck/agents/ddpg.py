@@ -36,25 +36,20 @@ class DDPGAgent(BaseAgent):
         self.policy = self._create_policy_net(**kwargs)
         self.policy_target = self._create_policy_net(**kwargs)
         self._copy_nets()
-        self.policy_optimizer = torch.optim.Adam(
-            self.policy.parameters(),
-            lr=config.trainer_config.learning_rate_actor,
-            eps=0.000001,
-        )
-        self.Q_optimizer = self._create_q_optim([self.Q])
+        self._create_optimizers()
         self.epoch = 0
 
-    def _create_q_optim(self, q_nets: list[QFunction]) -> torch.optim.Optimizer:
+    def _create_q_optim(self, q_net: QFunction) -> torch.optim.Optimizer:
         """Create the optimizer for the Q networks.
 
         Args:
-            q_nets (list[QFunction]): The Q networks.
+            q_net (QFunction): The Q networks.
 
         Returns:
             torch.optim.Optimizer: The optimizer.
         """
         return torch.optim.Adam(
-            chain(*[q.parameters() for q in q_nets]),
+            q_net.parameters(),
             lr=self._config.trainer_config.learning_rate_critic,
             betas=(
                 self._config.trainer_config.beta1,
@@ -62,6 +57,18 @@ class DDPGAgent(BaseAgent):
             ),
             eps=0.000001,
         )
+
+    def _create_policy_optim(self) -> torch.optim.Optimizer:
+        return torch.optim.Adam(
+            self.policy.parameters(),
+            lr=self._config.trainer_config.learning_rate_actor,
+            eps=0.000001,
+        )
+
+    def _create_optimizers(self) -> None:
+        """Create the optimizers for the networks."""
+        self.Q_optimizer = self._create_q_optim(self.Q)
+        self.policy_optimizer = self._create_policy_optim()
 
     def _create_q_net(self, out: int, lr: float = 0.0, **kwargs) -> QFunction:
         """Create the Q network.
@@ -162,6 +169,7 @@ class DDPGAgent(BaseAgent):
         self.Q.load_state_dict(state[0])
         self.policy.load_state_dict(state[1])
         self._copy_nets()
+        self._create_optimizers()
 
     def reset(self) -> "DDPGAgent":
         """Reset the agent.
@@ -278,10 +286,18 @@ class DDPGAgent(BaseAgent):
             )
 
         # Backpropagate the loss
-        self.Q_optimizer.zero_grad()
-        q_loss.backward()
-        self.Q_optimizer.step()
+        self._backpropagate(q_loss)
         return q_loss
+
+    def _backpropagate(self, loss: torch.Tensor) -> None:
+        """Backpropagate the loss through the network.
+
+        Args:
+            loss (torch.Tensor): The loss to backpropagate.
+        """
+        self.Q_optimizer.zero_grad()
+        loss.backward()
+        self.Q_optimizer.step()
 
     def _optimize_actor(self, batch: Batch) -> torch.Tensor:
         """Optimize the policy network.

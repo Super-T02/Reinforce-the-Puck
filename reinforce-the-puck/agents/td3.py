@@ -38,7 +38,11 @@ class TD3Agent(DDPGAgent):
         self.Q2_target = self._create_q_net(1, **kwargs)
         self._last_actor_loss = torch.nan
         self._copy_nets()
-        self.Q_optimizer = self._create_q_optim([self.Q, self.Q2])
+        self._create_optimizers()
+
+    def _create_optimizers(self):
+        super()._create_optimizers()
+        self._Q2_optim = self._create_q_optim(self.Q2)
 
     def _copy_nets(self):
         super()._copy_nets()
@@ -72,6 +76,11 @@ class TD3Agent(DDPGAgent):
         target.load_state_dict(result)
 
     def restore_state(self, state):
+        """Restore the agent state.
+
+        Args:
+            state (State Dict): The state to restore.
+        """
         self.Q2.load_state_dict(state[2])
         super().restore_state(state)
 
@@ -110,6 +119,18 @@ class TD3Agent(DDPGAgent):
         q1_loss = self.Q.get_loss(x, target_q)
         q2_loss = self.Q2.get_loss(x, target_q)
         return q1_loss + q2_loss
+
+    def _backpropagate(self, loss):
+        """Backpropagate the loss through the network.
+
+        Args:
+            loss (Loss): The loss to backpropagate.
+        """
+        self._Q_optim.zero_grad()
+        self._Q2_optim.zero_grad()
+        loss.backward()
+        self._Q_optim.step()
+        self._Q2_optim.step()
 
     def _compute_target_q(self, batch):
         """Compute the target Q values for the batch.
