@@ -25,19 +25,29 @@ class DDPGAgent(BaseAgent):
         **kwargs,
     ):
         super().__init__(name, observation_space, action_space, config)
+
         self._config: DDPGAgentConfig = config
+
+        # Action noise
         self._action_noise = OUNoise((self._action_n))
 
+        # Create Q networks
         self.Q = self._create_q_net(
             1, config.trainer_config.learning_rate_critic, **kwargs
         )
         self.Q_target = self._create_q_net(1, **kwargs)
 
+        # Create policy networks
         self.policy = self._create_policy_net(**kwargs)
         self.policy_target = self._create_policy_net(**kwargs)
+
+        # Copy the networks and create optimizers
         self._copy_nets()
         self._create_optimizers()
+
         self.epoch = 0
+
+    ### INITIALIZATION - START ###
 
     def _create_q_optim(self, q_net: QFunction) -> torch.optim.Optimizer:
         """Create the optimizer for the Q networks.
@@ -59,6 +69,11 @@ class DDPGAgent(BaseAgent):
         )
 
     def _create_policy_optim(self) -> torch.optim.Optimizer:
+        """Create the optimizer for the policy network.
+
+        Returns:
+            torch.optim.Optimizer: The optimizer.
+        """
         return torch.optim.Adam(
             self.policy.parameters(),
             lr=self._config.trainer_config.learning_rate_actor,
@@ -90,7 +105,9 @@ class DDPGAgent(BaseAgent):
         )
 
     def _policy_activation(self) -> callable:
-        """Activation function for the policy network.
+        """Activation function for the policy network:
+
+        `y = (tanh(x) + 1) * (high - low) / 2 + low`
 
         Returns:
             callable: The activation function.
@@ -119,13 +136,18 @@ class DDPGAgent(BaseAgent):
             **kwargs,
         )
 
+    ### Target Networks - START ###
+
     def _copy_nets(self) -> None:
         """Copy the weights from the policy and Q networks to the target networks."""
         self.Q_target.load_state_dict(self.Q.state_dict())
         self.policy_target.load_state_dict(self.policy.state_dict())
 
+    ###  - START ###
+
     def act(self, state) -> any:
         """Select an action based on the given state.
+        If the agent is in training mode: Add noise to the action.
 
         Args:
             state: The current state of the environment.
@@ -151,6 +173,8 @@ class DDPGAgent(BaseAgent):
             action: The target action.
         """
         return self.policy_target.predict(state)
+
+    ### SAVE/LOAD - START ###
 
     def state(self) -> tuple:
         """Get the state of the agent.
@@ -197,8 +221,14 @@ class DDPGAgent(BaseAgent):
         """
         self.restore_state(torch.load(path, weights_only=False))
 
+    ### TRAINING - START ###
+
     def train(self, last_reward=np.nan):
-        """Train the agent."""
+        """Train the agent. Update the target networks if necessary.
+
+        Args:
+            last_reward (float): The last reward received by the agent. Defaults to np.nan.
+        """
         if self._mode != AgentMode.TRAIN:
             raise ValueError("Agent is not in training mode.")
 
@@ -219,6 +249,7 @@ class DDPGAgent(BaseAgent):
         """
         if self._mode != AgentMode.TRAIN:
             raise ValueError("Agent is not in training mode.")
+
         critic_loss = self._optimize_critic(batch)
         actor_loss = self._optimize_actor(batch)
 
@@ -226,7 +257,9 @@ class DDPGAgent(BaseAgent):
         return losses
 
     def _compute_target_q(self, batch: Batch) -> torch.Tensor:
-        """Calculate the target Q values.
+        """Calculate the target Q values:
+
+        `Q_target = r + gamma * (1 - done) * Q_target(s', pi_target(s'))`
 
         Args:
             batch (Batch): The training batch.
@@ -242,7 +275,9 @@ class DDPGAgent(BaseAgent):
         )
 
     def _compute_q_loss(self, batch: Batch) -> torch.Tensor:
-        """Compute the Q loss.
+        """Compute the Q loss:
+
+        `Q_loss = Q(obs, act) - target_q`
 
         Args:
             batch (Batch): The training batch.
@@ -257,7 +292,7 @@ class DDPGAgent(BaseAgent):
         return q_loss
 
     def _optimize_critic(self, batch: Batch) -> torch.Tensor:
-        """Optimize the Q network.
+        """Optimize the Q network and handle the BPER buffer.
 
         Args:
             batch (Batch): The training batch.
@@ -269,24 +304,34 @@ class DDPGAgent(BaseAgent):
 
         # Handle BPER
         if self._config.buffer_type == "BPER":
-            indices, priority_weights = batch.indices, batch.priority_weights
-            priority_weights = torch.tensor(
-                priority_weights, dtype=self._config.specialized_config.dtype
-            )
-            priority_weights = priority_weights.to(
-                self._config.specialized_config.device
-            )
-
-            # Reweight the loss
-            q_loss = (q_loss * priority_weights).mean()
-
-            # Update priorities in the replay buffer
-            self._feedback_buffer.update_priorities(
-                indices, batch.rewards.cpu().numpy()
-            )
+            q_loss = self._handle_bper(batch, q_loss)
 
         # Backpropagate the loss
         self._backpropagate(q_loss)
+        return q_loss
+
+    def _handle_bper(self, batch: Batch, old_loss: torch.Tensor) -> torch.Tensor:
+        """Handle the BPER buffer.
+
+        Args:
+            batch (Batch): The training batch.
+
+        Returns:
+            torch.Tensor: The new actor loss.
+        """
+
+        # Convert the priority weights to a tensor
+        indices, priority_weights = batch.indices, batch.priority_weights
+        priority_weights = torch.tensor(
+            priority_weights, dtype=self._config.specialized_config.dtype
+        ).to(self._config.specialized_config.device)
+
+        # Reweight the loss
+        # q_loss = (old_loss * priority_weights).mean()
+        q_loss = old_loss  # Not Sure if this is correct
+
+        # Update priorities in the replay buffer
+        self._feedback_buffer.update_priorities(indices, batch.rewards.cpu().numpy())
         return q_loss
 
     def _backpropagate(self, loss: torch.Tensor) -> None:
@@ -314,6 +359,8 @@ class DDPGAgent(BaseAgent):
         actor_loss.backward()
         self.policy_optimizer.step()
         return actor_loss
+
+    ### REST - START ###
 
     def __del__(self):
         return super().__del__()
