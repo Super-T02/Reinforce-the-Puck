@@ -302,36 +302,14 @@ class DDPGAgent(BaseAgent):
         """
         q_loss = self._compute_q_loss(batch)
 
-        # Handle BPER
+        # Update the priorities in the buffer
         if self._config.buffer_type == "BPER":
-            q_loss = self._handle_bper(batch, q_loss)
+            self._feedback_buffer.update_priorities(
+                batch.indices, batch.rewards.cpu().numpy()
+            )
 
         # Backpropagate the loss
         self._backpropagate(q_loss)
-        return q_loss
-
-    def _handle_bper(self, batch: Batch, old_loss: torch.Tensor) -> torch.Tensor:
-        """Handle the BPER buffer.
-
-        Args:
-            batch (Batch): The training batch.
-
-        Returns:
-            torch.Tensor: The new actor loss.
-        """
-
-        # Convert the priority weights to a tensor
-        indices, priority_weights = batch.indices, batch.priority_weights
-        priority_weights = torch.tensor(
-            priority_weights, dtype=self._config.specialized_config.dtype
-        ).to(self._config.specialized_config.device)
-
-        # Reweight the loss
-        # q_loss = (old_loss * priority_weights).mean()
-        q_loss = old_loss  # Not Sure if this is correct
-
-        # Update priorities in the replay buffer
-        self._feedback_buffer.update_priorities(indices, batch.rewards.cpu().numpy())
         return q_loss
 
     def _backpropagate(self, loss: torch.Tensor) -> None:
