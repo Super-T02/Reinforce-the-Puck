@@ -2,17 +2,8 @@
 
 base_config:
   dtype: float32
-  num_episodes: 1000
+  num_episodes: 10000
 
-env1:
-  env_name: Pendulum-v1
-  id: 0
-  max_steps: 1000
-
-env2:
-  env_name: LunarLander-v3
-  id: 1
-  max_steps: 1000
 
 env3:
   env_name: Hockey-v0
@@ -23,16 +14,17 @@ env3:
   start_training_after_steps: 10
   train_both: False
   train_all: True # Train all agents -> If true all agents will be trained
-  new_agents_after_eval: 2 # Change agents after 2 evaluations
-  do_render: True
+  new_agents_after_eval: 10 # Change agents after 2 evaluations
+  do_render: false
 
 agent1:
   type: td3
-  opponent_names: ["opponent1", "opponent2", "opponent3"]
+  opponent_names: ["opponent1", "opponent2"]
   env_id: 2
   eps: 1
   eval_freq: 5
-  eval_episodes: 2
+  eval_episodes: 5
+  checkpoint: "C:/Users/jonas/OneDrive/Desktop/checkpoints/td3_hockey_foundation_default/checkpoint_best.pth"
   discount: 0.99
   actor_hidden_sizes: [516, 256]
   critic_hidden_sizes: [1024, 516, 256, 128]
@@ -41,8 +33,8 @@ agent1:
   noise_sigma: 0.1
   noise_clip: 0.5
   noise_beta: 1.0 # Pink noise
-  memory_size: 100000
-  buffer_type: ER
+  memory_size: 10000
+  buffer_type: BPER
   num_runs: 1
   mutation_config:
     enabled: false
@@ -64,10 +56,11 @@ opponent1:
 opponent2:
   type: sac
   opponent_name: "opponent1"
-  checkpoint: "Hockey-v0/sac/best_jona_2025_01_28.pth"
+  checkpoint: "C:/Users/jonas/OneDrive/Desktop/checkpoints/sac_hockey_foundation_default/checkpoint_best.pth"
   env_id: 0
   tau: 0.005 # Target network update rate (Soft update)
-  memory_size: 1000000
+  memory_size: 10000
+  buffer_type: BPER
   discount: 0.98 # Discount factor
   alpha: 0.1 # Entropy regularization coefficient
   alpha_lr: 0.0003 # Learning rate for alpha
@@ -83,29 +76,3 @@ opponent2:
     learning_rate_critic: 0.0003
     log_name: sac_delete
     batch_size: 512
-
-opponent3:
-  type: td3
-  checkpoint: Hockey-v0/td3/td3_hockey_bper_smaller_buffer_2025-01-30_16-56-17_100/checkpoint_last.pth
-  env_id: 2
-  eps: 1
-  eval_freq: 50
-  eval_episodes: 20
-  discount: 0.99
-  actor_hidden_sizes: [516, 256]
-  critic_hidden_sizes: [1024, 516, 256]
-  policy_delay: 3
-  update_target_every: -1
-  noise_sigma: 0.1
-  noise_clip: 0.8
-  noise_beta: 1.0 # Pink noise
-  memory_size: 100000
-  buffer_type: BPER # Balanced Prioritized Experience Replay
-  num_runs: 1
-  mutation_config:
-    enabled: false
-  trainer_config:
-    learning_rate_actor: 0.0003
-    learning_rate_critic: 0.0003
-    log_name: td3_delete_opponent
-    batch_size: 256
