@@ -4,7 +4,13 @@ from unittest.mock import DEFAULT
 import numpy as np
 import torch
 from agents.base_trainer import BaseTrainer
-from components.memory import BalancedPrioritizedMemory, Batch, Memory
+from components.memory import (
+    BalancedPrioritizedMemory,
+    Batch,
+    Memory,
+    MemoryInterface,
+    PrioritizedMemory,
+)
 from gymnasium import spaces
 from utils.config import AgentConfig
 
@@ -82,6 +88,7 @@ class BaseAgent(BaseTrainer):
         super().__init__(config.trainer_config)
         self._name = name
         self._config = config
+        self._feedback_buffer: MemoryInterface = MemoryInterface()
 
         # Buffer
         if config.buffer_type == "BPER":
@@ -93,6 +100,16 @@ class BaseAgent(BaseTrainer):
                 beta_increment=config.buffer_beta_increment,
                 decay_steps=config.buffer_decay_steps
                 // config.trainer_config.batch_size,  # Decay over 200k steps
+            )
+        elif config.buffer_type == "PER":
+            self._logger.info(
+                f"Using Prioritized Experience Replay [alpha={config.buffer_alpha}, beta={config.buffer_beta}]"
+            )
+            self._feedback_buffer = PrioritizedMemory(
+                max_size=config.memory_size,
+                alpha=config.buffer_alpha,
+                beta=config.buffer_beta,
+                decay_steps=config.buffer_decay_steps,
             )
         else:
             self._logger.info("Using Experience Replay")
@@ -217,7 +234,7 @@ class BaseAgent(BaseTrainer):
         sample = None
         indices = None
         priority_weights = None
-        if self._config.buffer_type == "BPER":
+        if self._config.buffer_type in ["BPER", "PER"]:
             sample, indices, priority_weights = self._feedback_buffer.sample(batch_size)
         else:
             sample = self._feedback_buffer.sample(batch_size)

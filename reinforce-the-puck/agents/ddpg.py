@@ -286,9 +286,18 @@ class DDPGAgent(BaseAgent):
             torch.Tensor: The Q loss.
         """
         target_q = self._compute_target_q(batch)
+
         q_loss = self.Q.get_loss(
             torch.cat([batch.observations, batch.actions], dim=1), target_q
         )
+
+        # Update the priorities in the buffer
+        if self._config.buffer_type == "PER":
+            q_loss = self._feedback_buffer.weight_loss(q_loss, batch.indices)
+            self._feedback_buffer.update_priorities(
+                batch.indices, target_q.cpu().numpy()
+            )
+
         return q_loss
 
     def _optimize_critic(self, batch: Batch) -> torch.Tensor:
@@ -307,6 +316,8 @@ class DDPGAgent(BaseAgent):
             self._feedback_buffer.update_priorities(
                 batch.indices, batch.rewards.cpu().numpy()
             )
+        elif self._config.buffer_type == "PER":
+            self._feedback_buffer.anneal()
 
         # Backpropagate the loss
         self._backpropagate(q_loss)

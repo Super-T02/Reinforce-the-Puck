@@ -48,6 +48,25 @@ class SumTree:
         self.current_idx = (self.current_idx + 1) % self.capacity
         self.size = min(self.size + 1, self.capacity)
 
+    def max(self):
+        """Get the maximum priority in the SumTree."""
+        return np.max(self.tree[-self.capacity :])
+
+    def total(self):
+        """Get the total sum of priorities."""
+        return self.tree[0]
+
+    def get_leafs(self, indices: np.array) -> tuple[np.array, np.array]:
+        """Get the leafs of the SumTree based on indices.
+
+        Args:
+            indices (np.array): Array of indices.
+
+        Returns:
+            tuple: (tree, data) of the leafs.
+        """
+        return self.tree[indices], self.data[indices - (self.capacity - 1)]
+
     def leaf2global(self, leaf):
         """Convert a leaf index to a global index.
 

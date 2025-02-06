@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+from components.data_structures import SumTree
 from utils.config import global_config
 
 
@@ -23,7 +24,23 @@ class Batch:
         self.priority_weights = priority_weights
 
 
-class Memory:
+class MemoryInterface:
+    """Interface for the Memory buffer."""
+
+    def __init__(self, max_size: int):
+        pass
+
+    def add_transition(self, transitions_new: list) -> "MemoryInterface":
+        pass
+
+    def sample(self, batch: int = 1, indices: np.ndarray = None) -> np.ndarray:
+        pass
+
+    def get_all_transitions(self):
+        pass
+
+
+class Memory(MemoryInterface):
     """Memory buffer to store transitions."""
 
     def __init__(self, max_size=global_config.base_config.max_memory_size):
@@ -85,6 +102,115 @@ class Memory:
             np.ndarray: All transitions.
         """
         return self.transitions[0 : self.size]
+
+
+class PrioritizedMemory(MemoryInterface):
+    """Prioritized Memory buffer based on:
+    Schaul, Tom. "Prioritized Experience Replay." arXiv preprint arXiv:1511.05952 (2015).
+    """
+
+    def __init__(
+        self,
+        max_size=global_config.base_config.max_memory_size,
+        alpha: int = 0.6,
+        beta: int = 0.4,
+        decay_steps: int = 100,
+    ):
+        self._max_size = max_size
+        self._memory = SumTree(max_size)
+        self._alpha = alpha  # Controls how much prioritization is used
+        self._beta = beta  # Importance sampling weight
+        self._decay_steps = decay_steps  # Steps after which beta is incremented
+        self._beta_increment = self._compute_increment(beta, decay_steps)
+        self._alpha_increment = self._compute_increment(alpha, decay_steps)
+
+    def _compute_increment(self, value: float, train_steps: int) -> float:
+        """Compute the increment for the value.
+
+        Args:
+            value (float): Initial value.
+            train_steps (int): Training steps.
+
+        Returns:
+            float: Increment for the value.
+        """
+        return (1.0 - value) / (train_steps - 0.05 * train_steps)
+
+    def add_transition(self, transitions_new: list) -> "PrioritizedMemory":
+        """Add a new transition to the buffer.
+
+        Args:
+            transitions_new (list): New experiences.
+
+        Returns:
+            PrioritizedMemory: Own object
+        """
+        priority = self._memory.max() ** self._alpha  # Initial priority
+        self._memory.add(priority, transitions_new)
+        return self
+
+    def sample(self, batch_size: int) -> tuple:
+        """Sample a batch of transitions from the prioritized memory.
+
+        Args:
+            batch_size (int): Batch size.
+
+        Returns:
+            tuple: Tuple containing the batch, indices and importance weights
+        """
+        indices, priorities, batch = self._memory.sample_batch(batch_size, self._alpha)
+        return np.asarray(batch), np.asarray(indices), np.asarray(priorities)
+
+    def update_priorities(self, indices: np.ndarray, td_errors: np.ndarray):
+        """Update the priorities of the transitions and scale the priorities by alpha.
+
+        >>> new_priority = abs(td_error) ** alpha
+
+        Args:
+            indices (np.ndarray): Indices of the transitions.
+            td_errors (np.ndarray): TD errors of the transitions.
+        """
+        for idx, error in zip(indices, np.abs(td_errors)):
+            self._memory.update(idx, error**self._alpha)
+
+    def importance_sampling_weights(self, indices: np.ndarray) -> np.ndarray:
+        """Compute the importance sampling weights for the transitions.
+
+        >>> w_i = (N * P(i)) ** -beta / max(w_i)
+
+        Args:
+            indices (np.ndarray): Indices of the transitions.
+
+        Returns:
+            np.ndarray: Importance sampling weights.
+        """
+        prios, _ = self._memory.get_leafs(indices)
+        probs = prios / self._memory.total()
+        weights = (self._memory.size * probs) ** -self._beta
+        weights /= weights.max()
+        return weights
+
+    def weight_loss(self, loss: torch.Tensor, indices: np.ndarray) -> torch.Tensor:
+        """Weight the loss with the importance sampling weights.
+
+        Args:
+            loss (torch.Tensor): Loss to weight.
+            indices (np.ndarray): Indices of the transitions.
+
+        Returns:
+            torch.Tensor: Weighted loss.
+        """
+        weights = self.importance_sampling_weights(indices)
+        weights = torch.from_numpy(weights).float().to(loss.device)
+        return torch.mean(loss * weights)
+
+    def anneal(self):
+        """Anneal the alpha and beta values by the defined increment."""
+        self._beta = min(1.0, self._beta + self._beta_increment)
+        self._alpha = min(1.0, self._alpha + self._alpha_increment)
+
+    def get_all_transitions(self):
+        return super().get_all_transitions()
 
 
 class BalancedPrioritizedMemory(Memory):

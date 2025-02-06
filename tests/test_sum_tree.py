@@ -128,6 +128,17 @@ def test_batch_sampling(sum_tree):
         assert d in ["data1", "data2", "data3", "data4"]
 
 
+def test_get_max_priority(sum_tree):
+    """Test getting the maximum priority from the tree."""
+    sum_tree.add(1.0, "data1")
+    sum_tree.add(2.0, "data2")
+    sum_tree.add(10.0, "data3")
+    sum_tree.add(4.0, "data4")
+
+    # Check if the max priority is correct
+    assert sum_tree.max() == pytest.approx(10.0)
+
+
 def test_empty_tree_sampling(sum_tree):
     """Test sampling from an empty tree."""
     with pytest.raises(ValueError):
