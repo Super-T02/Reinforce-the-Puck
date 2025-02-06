@@ -146,7 +146,14 @@ class PrioritizedMemory(MemoryInterface):
             PrioritizedMemory: Own object
         """
         priority = self._memory.max() ** self._alpha  # Initial priority
+        if self._memory.size == 0:
+            priority = 1.0  # Initial priority
         self._memory.add(priority, transitions_new)
+
+        # Debug
+        # print("Transitions_new: ", transitions_new)
+        # print("Priority: ", priority)
+
         return self
 
     def sample(self, batch_size: int) -> tuple:
@@ -158,8 +165,18 @@ class PrioritizedMemory(MemoryInterface):
         Returns:
             tuple: Tuple containing the batch, indices and importance weights
         """
-        indices, priorities, batch = self._memory.sample_batch(batch_size, self._alpha)
-        return np.asarray(batch), np.asarray(indices), np.asarray(priorities)
+        indices, priorities, batch = self._memory.sample_batch(batch_size)
+
+        # Debug
+        # print("Indices: ", indices)
+        # print("Priorities: ", priorities)
+        # print("Batch: ", batch)
+
+        return (
+            np.asarray(batch, dtype=object),
+            np.asarray(indices),
+            np.asarray(priorities),
+        )
 
     def update_priorities(self, indices: np.ndarray, td_errors: np.ndarray):
         """Update the priorities of the transitions and scale the priorities by alpha.
@@ -302,6 +319,7 @@ class BalancedPrioritizedMemory(Memory):
         Returns:
             np.ndarray: Normalized rewards
         """
+        rewards = np.abs(rewards)  # Take absolute value (rewards can be negative)
         return (
             (rewards - np.min(self.transitions[:, 3]))
             / (np.max(self.transitions[:, 3]) - np.min(self.transitions[:, 3]) + 1e-5)

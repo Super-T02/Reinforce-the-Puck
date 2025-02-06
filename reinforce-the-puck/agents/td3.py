@@ -133,7 +133,20 @@ class TD3Agent(DDPGAgent):
             actor_loss = self._optimize_actor(batch)
             self._update_target_nets()
             self._last_actor_loss = actor_loss.item()
-        return {"loss": critic_loss.item(), "actor_loss": self._last_actor_loss}
+
+        losses = {
+            "loss": critic_loss.item(),
+            "actor_loss": self._last_actor_loss,
+            "buffer/size": len(self._feedback_buffer),
+        }
+
+        if self._config.buffer_type == "PER":
+            losses["buffer/beta"] = self._feedback_buffer.beta
+            losses["buffer/alpha"] = self._feedback_buffer.alpha
+            losses["buffer/total"] = self._feedback_buffer._memory.total()
+            losses["buffer/max"] = self._feedback_buffer._memory.max()
+
+        return losses
 
     def _compute_q_loss(self, batch):
         """Calculate the critic's loss:
@@ -159,7 +172,9 @@ class TD3Agent(DDPGAgent):
         if self._config.buffer_type == "PER":
             q_loss = self._feedback_buffer.weight_loss(q_loss, batch.indices)
             self._feedback_buffer.update_priorities(
-                batch.indices, target_q.cpu().numpy()
+                batch.indices,
+                target_q.cpu().detach().numpy(),
+                # batch.rewards.cpu().detach().numpy(),
             )
         return q_loss
 

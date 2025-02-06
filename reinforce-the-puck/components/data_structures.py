@@ -157,11 +157,13 @@ class SumTree:
             left_child = 2 * index + 1
             right_child = left_child + 1
 
-            if s <= self.tree[left_child]:
+            if s <= self.tree[left_child] or self.tree[right_child] == 0:
                 index = left_child
-            else:
+            elif s > self.tree[left_child] or self.tree[left_child] == 0:
                 s -= self.tree[left_child]
                 index = right_child
+            else:
+                raise ValueError("Invalid index")
 
         # Convert the leaf index to the data index
         leaf_index = index - (self.capacity - 1)

@@ -253,7 +253,18 @@ class DDPGAgent(BaseAgent):
         critic_loss = self._optimize_critic(batch)
         actor_loss = self._optimize_actor(batch)
 
-        losses = {"loss": critic_loss.item(), "actor_loss": actor_loss.item()}
+        losses = {
+            "loss": critic_loss.item(),
+            "actor_loss": actor_loss.item(),
+            "buffer/size": len(self._feedback_buffer),
+        }
+
+        if self._config.buffer_type == "PER":
+            losses["buffer/beta"] = self._feedback_buffer.beta
+            losses["buffer/alpha"] = self._feedback_buffer.alpha
+            losses["buffer/total"] = self._feedback_buffer._memory.total()
+            losses["buffer/max"] = self._feedback_buffer._memory.max()
+
         return losses
 
     def _compute_target_q(self, batch: Batch) -> torch.Tensor:

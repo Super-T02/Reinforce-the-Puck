@@ -1,5 +1,4 @@
 from enum import Enum
-from unittest.mock import DEFAULT
 
 import numpy as np
 import torch
@@ -88,7 +87,7 @@ class BaseAgent(BaseTrainer):
         super().__init__(config.trainer_config)
         self._name = name
         self._config = config
-        self._feedback_buffer: MemoryInterface = MemoryInterface()
+        self._feedback_buffer: MemoryInterface = None
 
         # Buffer
         if config.buffer_type == "BPER":
