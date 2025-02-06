@@ -1,0 +1,42 @@
+# Please refer to the documentation for more information on the configuration file.
+
+base_config:
+  dtype: float32
+  num_episodes: 3000
+  do_render: true
+
+env1:
+  env_name: Hockey-v0
+  env_type: gym
+  id: 0
+  max_steps: 1000
+
+
+agent1:
+  type: mue
+  opponent_names: ['opponent1']
+  env_id: 0
+  memory_size: 10000
+
+  agent_a_path: "C:/Users/jonas/OneDrive/Desktop/checkpoints/sac_hockey_foundation_default/checkpoint_best.pth"
+  agent_a_type: 'sac'
+  agent_b_path: "C:/Users/jonas/OneDrive/Desktop/checkpoints/td3_hockey_foundation_default/checkpoint_best.pth"
+  agent_b_type: 'td3'
+
+  gamma: 0.99
+  hidden_size: [512, 512]
+
+
+  trainer_config:
+    learning_rate: 0.003
+    log_name: mue_hockey
+    batch_size: 512
+
+
+opponent1:
+  type: 'basic_opponent_strong'
+  trainer_config:
+    learning_rate_actor: 0.0007
+    learning_rate_critic: 0.0003
+    log_name: agent_sac_hokey
+    batch_size: 512

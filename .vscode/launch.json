@@ -3,7 +3,7 @@
     {
       "args": [
         "--config_path",
-        "config/sac.yaml"
+        "config/mue.yaml"
       ],
       "console": "integratedTerminal",
       "cwd": "${workspaceFolder}",

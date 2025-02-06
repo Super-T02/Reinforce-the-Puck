@@ -238,6 +238,17 @@ class AgentConfig(ConfigGroup):
         setattr(goal, param, value)
 
 
+class MueAgentConfig(AgentConfig):
+    def __init__(self):
+        super().__init__()
+        self.agent_a_path = None
+        self.agent_b_path = None
+        self.agent_a_type = ""
+        self.agent_b_type = ""
+        self.hidden_size = [256, 256]
+        self.gamma = 0.99
+
+
 class SACAgentConfig(AgentConfig):
     def __init__(self):
         super().__init__()
@@ -338,6 +349,7 @@ class Config:
         "basic_opponent_weak": AgentConfig,
         "basic_opponent_strong": AgentConfig,
         "td3_cross": TD3CrossAgentConfig,
+        "mue": MueAgentConfig,
     }
 
     def __init__(self):
