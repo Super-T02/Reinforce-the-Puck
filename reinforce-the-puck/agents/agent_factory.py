@@ -72,7 +72,7 @@ class AgentFactory:
                 action_space=action_space,
                 observation_space=observation_space,
             )
-        if isinstance(config, SACAgentConfig):
+        elif isinstance(config, SACAgentConfig):
             agent = SACAgent(
                 config=config,
                 action_space=action_space,
