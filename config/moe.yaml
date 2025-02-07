@@ -11,17 +11,22 @@ env1:
   id: 0
   max_steps: 1000
 
+  train_both: False
+  train_all: False
+  new_agents_after_eval: 3
+  do_render: False
+
 
 agent1:
   type: moe
-  opponent_names: ['opponent2']
+  opponent_names: ['opponent1','opponent2','opponent3']
   env_id: 0
   memory_size: 100000
 
-  agent_a_path: "C:/Users/jonas/OneDrive/Desktop/checkpoints/sac_hockey_foundation_default/checkpoint_best.pth"
-  agent_a_type: 'sac'
-  agent_b_path: "C:/Users/jonas/OneDrive/Desktop/checkpoints/td3_hockey_foundation_default/checkpoint_best.pth"
-  agent_b_type: 'td3'
+  agent_a_path: "../final_checkpoints/01-30-sac-foundation/checkpoint_best.pth"
+  agent_a_type: "sac"
+  agent_b_path: "../final_checkpoints/01-01-td3/td3.pth"
+  agent_b_type: "td3"
 
   gamma: 0.99
   hidden_size: [512, 512]
@@ -35,31 +40,15 @@ agent1:
 
 opponent1:
   type: 'basic_opponent_strong'
-  trainer_config:
-    learning_rate_actor: 0.0007
-    learning_rate_critic: 0.0003
-    log_name: sac
-    batch_size: 512
 
 opponent2:
   type: td3
-  #checkpoint: "C:/Users/jonas/OneDrive/Desktop/checkpoints/sac_hockey_foundation_default/checkpoint_best.pth"
-  agent_b_path: "C:/Users/jonas/OneDrive/Desktop/checkpoints/td3_hockey_foundation_default/checkpoint_best.pth"
-  env_id: 0
-  tau: 0.005 # Target network update rate (Soft update)
-  memory_size: 1000000
-  discount: 0.98 # Discount factor
-  alpha: 0.1 # Entropy regularization coefficient
-  alpha_lr: 0.0003 # Learning rate for alpha
-  log_std_min: -20 #lower bound for log_std
-  log_std_max: 2 #upper bound for log_std
+  checkpoint: "../final_checkpoints/01-01-td3/td3.pth"
+  actor_hidden_sizes: [516, 256]
+  critic_hidden_sizes: [1024, 516, 256, 128]
+
+opponent3:
+  type: sac
+  checkpoint: "../final_checkpoints/01-30-sac-foundation/checkpoint_best.pth"
   actor_hidden_sizes: [512, 256]
   critic_hidden_sizes: [512, 256, 64]
-  alpha_tuning: True
-  trainer_config:
-    #learning_rate_actor: 0.0003
-    learning_rate_actor: 0.0003
-    #learning_rate_critic: 0.0003
-    learning_rate_critic: 0.0003
-    log_name: sac_delete
-    batch_size: 512
