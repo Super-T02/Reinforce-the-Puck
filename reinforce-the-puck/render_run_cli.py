@@ -124,37 +124,30 @@ if __name__ == "__main__":
         args.env, max_steps=1500, do_render=True, mode=args.mode
     )
 
-    try:
-        env.agent = AgentFactory.create_agent_from_checkpoint(
-            args.agent, args.agent_type, env.observation_space, env.action_space
-        )
-        if env.name == "Hockey-v0":
-            if opponent_config.checkpoint is not None:
-                env.opponent_agent = AgentFactory.create_agent_from_checkpoint(
-                    opponent_config.checkpoint,
-                    opponent_config.type,
-                    env.observation_space,
-                    env.action_space,
-                )
-            else:
-                env.opponent_agent = AgentFactory.create_agent_from_config(
-                    opponent_config, env.observation_space, env.action_space
-                )
-            print("Loaded opponent agent: ", env.opponent_agent)
-        env.reset()
-        if args.gif:
-            env.record = True
-            base = os.path.join(workspace_dir, "gifs")
-            os.makedirs(base, exist_ok=True)
-            env.record_path = os.path.join(
-                base, f"{env.name}_{datetime.datetime.now()}.gif"
+    env.agent = AgentFactory.create_agent_from_checkpoint(
+        args.agent, args.agent_type, env.observation_space, env.action_space
+    )
+    if env.name == "Hockey-v0":
+        if opponent_config.checkpoint is not None:
+            env.opponent_agent = AgentFactory.create_agent_from_checkpoint(
+                opponent_config.checkpoint,
+                opponent_config.type,
+                env.observation_space,
+                env.action_space,
             )
-        env.render()
-    except Exception as e:
-        print(f"Error loading agent: {e}")
-        print(
-            "Hint: Make sure that the agent is trained for this environment. Otherwise the layer input shapes (action space, observation space) might not match."
+        else:
+            env.opponent_agent = AgentFactory.create_agent_from_config(
+                opponent_config, env.observation_space, env.action_space
+            )
+        print("Loaded opponent agent: ", env.opponent_agent)
+    env.reset()
+    if args.gif:
+        env.record = True
+        base = os.path.join(workspace_dir, "gifs")
+        os.makedirs(base, exist_ok=True)
+        env.record_path = os.path.join(
+            base, f"{env.name}_{datetime.datetime.now()}.gif"
         )
-        exit(1)
+    env.render()
 
     run_agent_on_environment(env, n_episodes=args.episodes, max_steps=args.max_steps)

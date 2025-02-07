@@ -162,10 +162,11 @@ class AgentConfig(ConfigGroup):
             BaseConfig()
         )  # Set all public attributes to None to enable inheritance from BaseConfig (See from_yaml)
         for attr in dir(self.specialized_config):
-            if not attr.startswith("_") and not callable(
-                getattr(self.specialized_config, attr)
-            ):
-                setattr(self.specialized_config, attr, None)
+            if not attr == "device":
+                if not attr.startswith("_") and not callable(
+                    getattr(self.specialized_config, attr)
+                ):
+                    setattr(self.specialized_config, attr, None)
 
     def to_dict(self):
         dict_ = super().to_dict()
@@ -237,6 +238,17 @@ class AgentConfig(ConfigGroup):
         setattr(goal, param, value)
 
 
+class MoeAgentConfig(AgentConfig):
+    def __init__(self):
+        super().__init__()
+        self.agent_a_path = None
+        self.agent_b_path = None
+        self.agent_a_type = ""
+        self.agent_b_type = ""
+        self.hidden_size = [256, 256]
+        self.gamma = 0.99
+
+
 class SACAgentConfig(AgentConfig):
     def __init__(self):
         super().__init__()
@@ -255,6 +267,12 @@ class SACAgentConfig(AgentConfig):
         self.log_std_max = 2
         self.alpha_lr = 0.0003
         self.alpha_tuning = True
+
+
+class HierarchicalAgentConfig(SACAgentConfig):
+    def __init__(self):
+        super().__init__()
+        self.type = "sac_hierarchical"
 
 
 class DDPGAgentConfig(AgentConfig):
@@ -334,9 +352,11 @@ class Config:
         "ddpg": DDPGAgentConfig,
         "td3": TD3AgentConfig,
         "sac": SACAgentConfig,
+        "sac_hierarchical": HierarchicalAgentConfig,
         "basic_opponent_weak": AgentConfig,
         "basic_opponent_strong": AgentConfig,
         "td3_cross": TD3CrossAgentConfig,
+        "moe": MoeAgentConfig,
     }
 
     def __init__(self):

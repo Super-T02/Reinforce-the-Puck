@@ -309,6 +309,13 @@ class BalancedPrioritizedMemory(Memory):
         self._max_priority = max(self._max_priority, self.priorities[idx])
         return self
 
+    def sample_indices_efficient(self, batch_size, probs):
+        cdf = np.cumsum(probs)  # Build cumulative distribution
+        cdf[-1] = 1.0  # Sicherstellen, dass der letzte Wert exakt 1 ist
+        random_vals = np.random.rand(batch_size)
+        indices = np.searchsorted(cdf, random_vals)  # binary search -> log(n)
+        return indices
+
     def sample(self, batch_size: int) -> tuple:
         """Sample from the balanced prioritized experience replay buffer.
         Therefore, the following steps are performed:
@@ -331,7 +338,8 @@ class BalancedPrioritizedMemory(Memory):
         )
         probs = effective_priorities / (effective_priorities.sum() + 1e-5)
 
-        indices = np.random.choice(self.size, batch_size, p=probs)
+        # indices = np.random.choice(self.size, batch_size, p=probs)
+        indices = self.sample_indices_efficient(batch_size, probs)
 
         # Compute importance sampling weights
         weights = (self.size * probs[indices]) ** -self.beta
