@@ -125,6 +125,13 @@ class BalancedMemory(Memory):
         self.memory_strength -= self._decay_steps
         self.memory_strength[self.current_idx] = self._max_priority
 
+    def sample_indices_efficient(self, batch_size, probs):
+        cdf = np.cumsum(probs)  # Build cumulative distribution
+        cdf[-1] = 1.0  # Sicherstellen, dass der letzte Wert exakt 1 ist
+        random_vals = np.random.rand(batch_size)
+        indices = np.searchsorted(cdf, random_vals)  # binary search -> log(n)
+        return indices
+
     def sample(self, batch_size: int = 1) -> np.ndarray:
         """Sample a batch of transitions from the balanced memory.
 
@@ -135,8 +142,9 @@ class BalancedMemory(Memory):
             np.ndarray: Batch of transitions.
         """
         strength = self.memory_strength[: self.size]
-        probs = strength / strength.sum()
-        indices = np.random.choice(self.size, batch_size, p=probs)
+        probs = strength / (strength.sum() + 1e-5)
+        # indices = np.random.choice(self.size, batch_size, p=probs)
+        indices = self.sample_indices_efficient(batch_size, probs)
         return super().sample(batch_size, indices=indices)
 
 
