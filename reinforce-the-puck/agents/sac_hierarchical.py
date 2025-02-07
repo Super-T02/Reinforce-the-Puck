@@ -6,7 +6,7 @@ from agents.base_agent import AgentMode, BaseAgent
 from components.memory import Batch
 from components.networks import QFunction, StochasticPolicyNetwork
 from gymnasium import spaces
-from utils.config import AgentConfig, SACAgentConfig, global_config
+from utils.config import AgentConfig, HierarchicalAgentConfig, global_config
 
 
 class SACHierarchicalAgent(BaseAgent):
@@ -18,14 +18,12 @@ class SACHierarchicalAgent(BaseAgent):
         self,
         observation_space: spaces.box.Box,
         action_space: spaces.box.Box,
-        config: SACAgentConfig,
+        config: HierarchicalAgentConfig,
     ):
-        self._config: SACAgentConfig = config
+        self._config: HierarchicalAgentConfig = config
         print("Config: ", self._config.trainer_config.learning_rate_actor)
         self.device = self._config.specialized_config.device
         super().__init__("SAC", observation_space, action_space, config)
-
-      
 
         # Alpha Tuning
         if self._config.alpha_tuning:
@@ -75,7 +73,6 @@ class SACHierarchicalAgent(BaseAgent):
             device=self.device,
             learning_rate=config.trainer_config.learning_rate_critic,
         )
-     
 
         self.lowlevel_policy = self._create_policy_net(sub_goal_dim=self._action_n)
 
@@ -119,9 +116,7 @@ class SACHierarchicalAgent(BaseAgent):
 
         self._copy_nets()
 
-     
         self.epoch = 0
-
 
     def create_optimizer(self):
         config = self._config
@@ -236,7 +231,7 @@ class SACHierarchicalAgent(BaseAgent):
         self.create_optimizer()
         self._copy_nets()
 
-    def reset(self) -> "SACAgent":
+    def reset(self) -> "HierarchicalAgent":
         return self
 
     def save(self, path: str) -> None:
@@ -248,7 +243,9 @@ class SACHierarchicalAgent(BaseAgent):
 
     def update_alpha(self, batch):
         sub_goals, _ = self.highlevel_policy.sample(batch.observations)
-        combined_obs = torch.cat([batch.observations.to(self.device), sub_goals], dim=-1)
+        combined_obs = torch.cat(
+            [batch.observations.to(self.device), sub_goals], dim=-1
+        )
         _, log_probs = self.lowlevel_policy.sample(combined_obs)
         temp = (log_probs + self._target_entropy).to(self.device).detach()
         alpha_loss = -(self._log_alpha * temp).mean()
@@ -260,7 +257,9 @@ class SACHierarchicalAgent(BaseAgent):
 
     def update_lowlevel_policy(self, batch):
         sub_goals, _ = self.highlevel_policy.sample(batch.observations)
-        combined_obs = torch.cat([batch.observations.to(self.device), sub_goals], dim=-1)
+        combined_obs = torch.cat(
+            [batch.observations.to(self.device), sub_goals], dim=-1
+        )
         actions_pred, log_probs = self.lowlevel_policy.sample(combined_obs)
         q1_pred = self.Q1.Qvalues(batch.observations, actions_pred)
         q2_pred = self.Q2.Qvalues(batch.observations, actions_pred)
@@ -274,7 +273,9 @@ class SACHierarchicalAgent(BaseAgent):
     def update_highlevel_q_values(self, batch):
         # Sample current sub-goals for the current observations
         subgoals_current, _ = self.highlevel_policy.sample(batch.observations)
-        critic_input = torch.cat([batch.observations.to(self.device), subgoals_current], dim=1)
+        critic_input = torch.cat(
+            [batch.observations.to(self.device), subgoals_current], dim=1
+        )
 
         # Compute target Q-value without computing gradients
         with torch.no_grad():
@@ -287,7 +288,9 @@ class SACHierarchicalAgent(BaseAgent):
             target_q2_high = self.Q2_high_target.Qvalues(
                 batch.next_observations.to(self.device), next_subgoals
             )
-            target_q_min_high = torch.min(target_q1_high, target_q2_high).to(self.device)
+            target_q_min_high = torch.min(target_q1_high, target_q2_high).to(
+                self.device
+            )
             target_q_high = batch.rewards.to(self.device) + self._config.discount * (
                 1 - batch.dones.to(self.device)
             ) * (target_q_min_high - self.alpha * next_log_probs)
@@ -308,9 +311,15 @@ class SACHierarchicalAgent(BaseAgent):
         return q1_high_loss, q2_high_loss
 
     def update_highlevel_policy(self, batch: Batch) -> torch.Tensor:
-        subgoals, log_probs = self.highlevel_policy.sample(batch.observations.to(self.device))
-        q1_high_pred = self.Q1_high.Qvalues(batch.observations.to(self.device), subgoals)
-        q2_high_pred = self.Q2_high.Qvalues(batch.observations.to(self.device), subgoals)
+        subgoals, log_probs = self.highlevel_policy.sample(
+            batch.observations.to(self.device)
+        )
+        q1_high_pred = self.Q1_high.Qvalues(
+            batch.observations.to(self.device), subgoals
+        )
+        q2_high_pred = self.Q2_high.Qvalues(
+            batch.observations.to(self.device), subgoals
+        )
         q_high_pred_min = torch.min(q1_high_pred, q2_high_pred).to(self.device)
         policy_loss = -(q_high_pred_min - self.alpha * log_probs).mean()
         self.high_level_policy_optimizer.zero_grad()
@@ -319,21 +328,26 @@ class SACHierarchicalAgent(BaseAgent):
         return policy_loss
 
     def update_q_values(self, batch):
-
-        
-
         with torch.no_grad():
-            sub_goals, _ = self.highlevel_policy.sample(batch.next_observations.to(self.device))          
-            combined_next_obs = torch.cat([batch.next_observations.to(self.device), sub_goals], dim=-1)
+            sub_goals, _ = self.highlevel_policy.sample(
+                batch.next_observations.to(self.device)
+            )
+            combined_next_obs = torch.cat(
+                [batch.next_observations.to(self.device), sub_goals], dim=-1
+            )
             next_actions, next_log_probs = self.lowlevel_policy.sample(
                 combined_next_obs
             )
-            target_q1 = self.Q1_target.Qvalues(batch.next_observations.to(self.device), next_actions)
-            target_q2 = self.Q2_target.Qvalues(batch.next_observations.to(self.device), next_actions)
-            target_q_min = torch.min(target_q1, target_q2).to(self.device)
-            target_q = batch.rewards.to(self.device) + self._config.discount * (1 - batch.dones.to(self.device)) * (
-                target_q_min - self.alpha * next_log_probs
+            target_q1 = self.Q1_target.Qvalues(
+                batch.next_observations.to(self.device), next_actions
             )
+            target_q2 = self.Q2_target.Qvalues(
+                batch.next_observations.to(self.device), next_actions
+            )
+            target_q_min = torch.min(target_q1, target_q2).to(self.device)
+            target_q = batch.rewards.to(self.device) + self._config.discount * (
+                1 - batch.dones.to(self.device)
+            ) * (target_q_min - self.alpha * next_log_probs)
         q1_loss = self.Q1.get_loss(
             torch.cat([batch.observations, batch.actions], dim=1), target_q
         ).mean()
