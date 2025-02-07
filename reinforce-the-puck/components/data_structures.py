@@ -179,7 +179,6 @@ class SumTree:
     def sample_batch(self, batch_size: int) -> tuple[list, list, list]:
         """Sample a batch of transitions from the SumTree.
 
-
         Args:
             batch_size (int): Number of transitions to sample.
 
@@ -189,19 +188,20 @@ class SumTree:
         if self.size < batch_size:
             raise ValueError("The memory buffer is too small for the batch size.")
 
-        batch = [[], [], []]  # Index, Priority, Data
-        segment = self.tree[0] / batch_size
+        # Generate random values for sampling
+        s_values = np.random.uniform(0, self.tree[0], batch_size)
 
-        for i in range(batch_size):
-            a = segment * i
-            b = segment * (i + 1)
-            s = np.random.uniform(a, b)
-            index, priority, data = self.sample(s)
-            batch[0].append(index)
-            batch[1].append(priority)
-            batch[2].append(data)
+        indices = []
+        priorities = []
+        data = []
 
-        return (*batch,)
+        for s in s_values:
+            index, priority, d = self.sample(s)
+            indices.append(index)
+            priorities.append(priority)
+            data.append(d)
+
+        return indices, priorities, data
 
     def get_sum(self):
         """Get the total sum of priorities."""
