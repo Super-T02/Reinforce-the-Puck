@@ -5,6 +5,7 @@ from agents.base_agent import BaseAgent
 from agents.basic_hokey_oponent import BasicHokeyOpponentWrapper
 from agents.ddpg import DDPGAgent
 from agents.sac import SACAgent
+from agents.sac_hierarchical import SACHierarchicalAgent
 from agents.td3 import TD3Agent
 from agents.td3_cross import TD3CrossQAgent
 from gymnasium import spaces
@@ -12,6 +13,7 @@ from matplotlib.pylab import f
 from utils.config import (
     AgentConfig,
     DDPGAgentConfig,
+    HierarchicalAgentConfig,
     SACAgentConfig,
     TD3AgentConfig,
     TD3CrossAgentConfig,
@@ -64,7 +66,13 @@ class AgentFactory:
         This function creates an agent from a configuration object.
         """
         agent = None
-        if isinstance(config, SACAgentConfig):
+        if isinstance(config, HierarchicalAgentConfig):
+            agent = SACHierarchicalAgent(
+                config=config,
+                action_space=action_space,
+                observation_space=observation_space,
+            )
+        elif isinstance(config, SACAgentConfig):
             agent = SACAgent(
                 config=config,
                 action_space=action_space,
@@ -116,7 +124,17 @@ class AgentFactory:
             critic_hidden_layer_sizes = _get_hidden_layer_sizes(q1)
             config.actor_hidden_sizes = [*actior_hidden_layer_sizes[:-1]]
             config.critic_hidden_sizes = [*critic_hidden_layer_sizes[:-1]]
-
+            return config
+        if agent_type.upper() == "SAC_HIERARCHICAL":
+            q1 = checkpoint[0]
+            q2 = checkpoint[1]
+            policy = checkpoint[2]
+            config = HierarchicalAgentConfig()
+            actior_hidden_layer_sizes = _get_hidden_layer_sizes(policy)
+            actior_hidden_layer_sizes = actior_hidden_layer_sizes[:-2]
+            critic_hidden_layer_sizes = _get_hidden_layer_sizes(q1)
+            config.actor_hidden_sizes = [*actior_hidden_layer_sizes[:-1]]
+            config.critic_hidden_sizes = [*critic_hidden_layer_sizes[:-1]]
             return config
 
         elif agent_type.upper() == "TD3":
