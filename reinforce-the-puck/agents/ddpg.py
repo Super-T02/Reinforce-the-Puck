@@ -1,5 +1,4 @@
 import os
-from itertools import chain
 
 import numpy as np
 import torch
@@ -256,12 +255,12 @@ class DDPGAgent(BaseAgent):
         losses = {
             "loss": critic_loss.item(),
             "actor_loss": actor_loss.item(),
-            "buffer/size": len(self._feedback_buffer),
         }
 
         if self._config.buffer_type == "PER":
-            losses["buffer/beta"] = self._feedback_buffer.beta
-            losses["buffer/alpha"] = self._feedback_buffer.alpha
+            losses["buffer/size"] = self._feedback_buffer._memory.size
+            losses["buffer/beta"] = self._feedback_buffer._beta
+            losses["buffer/alpha"] = self._feedback_buffer._alpha
             losses["buffer/total"] = self._feedback_buffer._memory.total()
             losses["buffer/max"] = self._feedback_buffer._memory.max()
 

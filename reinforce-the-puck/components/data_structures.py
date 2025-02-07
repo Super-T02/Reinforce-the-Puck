@@ -56,6 +56,10 @@ class SumTree:
         """Get the total sum of priorities."""
         return self.tree[0]
 
+    def get_all_leafs(self):
+        """Get all the leafs of the SumTree. Which are filled with data."""
+        return self.tree[self.leaf2global(0) : self.leaf2global(self.size)], self.data
+
     def get_leafs(self, indices: np.array) -> tuple[np.array, np.array]:
         """Get the leafs of the SumTree based on indices.
 

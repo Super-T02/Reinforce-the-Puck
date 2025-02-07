@@ -137,12 +137,12 @@ class TD3Agent(DDPGAgent):
         losses = {
             "loss": critic_loss.item(),
             "actor_loss": self._last_actor_loss,
-            "buffer/size": len(self._feedback_buffer),
         }
 
         if self._config.buffer_type == "PER":
-            losses["buffer/beta"] = self._feedback_buffer.beta
-            losses["buffer/alpha"] = self._feedback_buffer.alpha
+            losses["buffer/size"] = self._feedback_buffer._memory.size
+            losses["buffer/beta"] = self._feedback_buffer._beta
+            losses["buffer/alpha"] = self._feedback_buffer._alpha
             losses["buffer/total"] = self._feedback_buffer._memory.total()
             losses["buffer/max"] = self._feedback_buffer._memory.max()
 
@@ -174,7 +174,7 @@ class TD3Agent(DDPGAgent):
             self._feedback_buffer.update_priorities(
                 batch.indices,
                 target_q.cpu().detach().numpy(),
-                # batch.rewards.cpu().detach().numpy(),
+                batch.rewards.cpu().detach().numpy(),
             )
         return q_loss
 

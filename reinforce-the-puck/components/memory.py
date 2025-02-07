@@ -122,19 +122,18 @@ class PrioritizedMemory(MemoryInterface):
         self._beta = beta  # Importance sampling weight
         self._decay_steps = decay_steps  # Steps after which beta is incremented
         self._beta_increment = self._compute_increment(beta, decay_steps)
-        self._alpha_increment = self._compute_increment(alpha, decay_steps)
 
-    def _compute_increment(self, value: float, train_steps: int) -> float:
+    def _compute_increment(self, value: float, decay_steps: int) -> float:
         """Compute the increment for the value.
 
         Args:
             value (float): Initial value.
-            train_steps (int): Training steps.
+            decay_steps (int): Decaying steps.
 
         Returns:
             float: Increment for the value.
         """
-        return (1.0 - value) / (train_steps - 0.05 * train_steps)
+        return (1.0 - value) / (decay_steps * decay_steps)
 
     def add_transition(self, transitions_new: list) -> "PrioritizedMemory":
         """Add a new transition to the buffer.
@@ -145,7 +144,7 @@ class PrioritizedMemory(MemoryInterface):
         Returns:
             PrioritizedMemory: Own object
         """
-        priority = self._memory.max() ** self._alpha  # Initial priority
+        priority = self._memory.max()  # Initial priority
         if self._memory.size == 0:
             priority = 1.0  # Initial priority
         self._memory.add(priority, transitions_new)
@@ -170,7 +169,7 @@ class PrioritizedMemory(MemoryInterface):
         # Debug
         # print("Indices: ", indices)
         # print("Priorities: ", priorities)
-        # print("Batch: ", batch)
+        # print("Batch: ", np.asarray(batch, dtype=object))
 
         return (
             np.asarray(batch, dtype=object),
@@ -178,7 +177,9 @@ class PrioritizedMemory(MemoryInterface):
             np.asarray(priorities),
         )
 
-    def update_priorities(self, indices: np.ndarray, td_errors: np.ndarray):
+    def update_priorities(
+        self, indices: np.ndarray, td_errors: np.ndarray, rewards: np.ndarray
+    ):
         """Update the priorities of the transitions and scale the priorities by alpha.
 
         >>> new_priority = abs(td_error) ** alpha
@@ -187,8 +188,12 @@ class PrioritizedMemory(MemoryInterface):
             indices (np.ndarray): Indices of the transitions.
             td_errors (np.ndarray): TD errors of the transitions.
         """
-        for idx, error in zip(indices, np.abs(td_errors)):
-            self._memory.update(idx, error**self._alpha)
+        # Combine td_errors and rewards
+        # errors = (np.abs(td_errors) + (np.abs(rewards) + 1)) ** self._alpha
+        errors = (np.abs(td_errors) + 1e-5) ** self._alpha
+
+        for idx, error in zip(indices, errors):
+            self._memory.update(idx, error)
 
     def importance_sampling_weights(self, indices: np.ndarray) -> np.ndarray:
         """Compute the importance sampling weights for the transitions.
@@ -224,7 +229,6 @@ class PrioritizedMemory(MemoryInterface):
     def anneal(self):
         """Anneal the alpha and beta values by the defined increment."""
         self._beta = min(1.0, self._beta + self._beta_increment)
-        self._alpha = min(1.0, self._alpha + self._alpha_increment)
 
     def get_all_transitions(self):
         return super().get_all_transitions()
