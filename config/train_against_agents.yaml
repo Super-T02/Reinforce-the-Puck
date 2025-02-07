@@ -1,0 +1,114 @@
+# Please refer to the documentation for more information on the configuration file.
+
+base_config:
+  dtype: float32
+  num_episodes: 1000
+
+env1:
+  env_name: Pendulum-v1
+  id: 0
+  max_steps: 1000
+
+env2:
+  env_name: LunarLander-v3
+  id: 1
+  max_steps: 1000
+
+env3:
+  env_name: Hockey-v0
+  env_type: gym
+  id: 2
+  mode: 0 # 0: normal, 1: shooting, 2: defense
+  max_steps: 10000
+  start_training_after_steps: 60000 # > 20 since multiple agents are trained
+  train_both: False
+  train_all: True
+  new_agents_after_eval: 5
+  do_render: True
+
+agent1:
+  type: td3
+  checkpoint: Hockey-v0/td3/td3_not_cross_hockey_2025-01-28_09-26-13_100/checkpoint_last.pth
+  opponent_names: ["opponent1", "opponent2", "opponent3"]
+  env_id: 2
+  eps: 1
+  eval_freq: 50
+  eval_episodes: 20
+  discount: 0.99
+  actor_hidden_sizes: [516, 256]
+  critic_hidden_sizes: [1024, 516, 256, 128]
+  # critic_hidden_sizes: [1024, 516, 256]
+  policy_delay: 3
+  update_target_every: -1
+  noise_sigma: 0.1
+  noise_clip: 0.5
+  noise_beta: 1.0 # Pink noise
+  memory_size: 100000
+  # buffer_type: BPER # Balanced Prioritized Experience Replay
+  buffer_type: ER
+  num_runs: 1
+  mutation_config:
+    enabled: false
+  trainer_config:
+    learning_rate_actor: 0.0003
+    learning_rate_critic: 0.0003
+    log_name: td3_hockey_not_cross_finetuned
+    batch_size: 256
+  specialized_config:
+    num_episodes: 25000
+    do_render: False
+
+opponent1:
+  type: "basic_opponent_strong"
+  trainer_config:
+    learning_rate_actor: 0.0007
+    learning_rate_critic: 0.0003
+
+opponent2:
+  type: sac
+  opponent_name: "opponent1"
+  checkpoint: "Hockey-v0/sac/best_jona_2025_01_28.pth"
+  env_id: 0
+  tau: 0.005 # Target network update rate (Soft update)
+  memory_size: 100000
+  discount: 0.98 # Discount factor
+  alpha: 0.1 # Entropy regularization coefficient
+  alpha_lr: 0.0003 # Learning rate for alpha
+  log_std_min: -20 #lower bound for log_std
+  log_std_max: 2 #upper bound for log_std
+  actor_hidden_sizes: [512, 256]
+  critic_hidden_sizes: [512, 256, 64]
+  alpha_tuning: True
+  trainer_config:
+    #learning_rate_actor: 0.0003
+    learning_rate_actor: 0.0003
+    #learning_rate_critic: 0.0003
+    learning_rate_critic: 0.0003
+    log_name: agent_sac_hokey_finetuned
+    batch_size: 512
+
+opponent3:
+  type: td3
+  checkpoint: Hockey-v0/td3/td3_hockey_bper_smaller_buffer_2025-01-30_16-56-17_100/checkpoint_last.pth
+  env_id: 2
+  eps: 1
+  eval_freq: 50
+  eval_episodes: 20
+  discount: 0.99
+  actor_hidden_sizes: [516, 256]
+  critic_hidden_sizes: [1024, 516, 256]
+  policy_delay: 3
+  update_target_every: -1
+  noise_sigma: 0.1
+  noise_clip: 0.8
+  noise_beta: 1.0 # Pink noise
+  memory_size: 100000
+  buffer_type: BPER # Balanced Prioritized Experience Replay
+  num_runs: 1
+  mutation_config:
+    enabled: false
+  trainer_config:
+    learning_rate_actor: 0.0003
+    learning_rate_critic: 0.0003
+    log_name: td3_hockey_bper_smaller_buffer_finetuned
+    batch_size: 256
