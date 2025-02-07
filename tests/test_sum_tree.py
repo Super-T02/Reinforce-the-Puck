@@ -143,3 +143,24 @@ def test_empty_tree_sampling(sum_tree):
     """Test sampling from an empty tree."""
     with pytest.raises(ValueError):
         sum_tree.sample_batch(1)  # Sampling from an empty tree should raise an error
+
+
+def test_add_batch(sum_tree):
+    """Test adding a batch of data to the SumTree."""
+    priorities = [1.0, 2.0, 3.0, 4.0]
+    data = ["data1", "data2", "data3", "data4"]
+
+    sum_tree.add_batch(priorities, data)
+
+    # Check if data is stored correctly
+    assert sum_tree.data[0] == "data1"
+    assert sum_tree.data[1] == "data2"
+    assert sum_tree.data[2] == "data3"
+    assert sum_tree.data[3] == "data4"
+
+    # Check if the tree is updated correctly
+    assert sum_tree.tree[-4] == pytest.approx(1.0)
+    assert sum_tree.tree[-3] == pytest.approx(2.0)
+    assert sum_tree.tree[-2] == pytest.approx(3.0)
+    assert sum_tree.tree[-1] == pytest.approx(4.0)
+    assert sum_tree.tree[0] == pytest.approx(10.0)  # Root node sum

@@ -48,6 +48,19 @@ class SumTree:
         self.current_idx = (self.current_idx + 1) % self.capacity
         self.size = min(self.size + 1, self.capacity)
 
+    def add_batch(self, priorities, data_batch):
+        """Add a batch of priorities and data to the SumTree."""
+        for priority, data in zip(priorities, data_batch):
+            idx = self.current_idx + self.capacity - 1
+            self.data[self.current_idx] = data
+            self.tree[idx] = priority
+            self.current_idx = (self.current_idx + 1) % self.capacity
+            self.size = min(self.size + 1, self.capacity)
+
+        # Propagate changes in a single pass
+        for idx in range(self.capacity - 2, -1, -1):
+            self.tree[idx] = self.tree[2 * idx + 1] + self.tree[2 * idx + 2]
+
     def max(self):
         """Get the maximum priority in the SumTree."""
         return np.max(self.tree[-self.capacity :])
