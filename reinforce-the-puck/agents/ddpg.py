@@ -264,7 +264,7 @@ class DDPGAgent(BaseAgent):
             losses["buffer/total"] = self._feedback_buffer._memory.total()
             losses["buffer/max"] = self._feedback_buffer._memory.max()
         else:
-            losses["buffer/size"] = self._feedback_buffer.size
+            losses["buffer/size"] = float(self._feedback_buffer.size)
 
         return losses
 

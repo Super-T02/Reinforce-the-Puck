@@ -329,7 +329,8 @@ class BalancedPrioritizedMemory(Memory):
         effective_priorities = (
             self.priorities[: self.size] * self.memory_strength[: self.size]
         )
-        probs = effective_priorities / effective_priorities.sum()
+        probs = effective_priorities / (effective_priorities.sum() + 1e-5)
+
         indices = np.random.choice(self.size, batch_size, p=probs)
 
         # Compute importance sampling weights
