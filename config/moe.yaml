@@ -14,9 +14,9 @@ env1:
 
 agent1:
   type: moe
-  opponent_names: ['opponent1']
+  opponent_names: ['opponent2']
   env_id: 0
-  memory_size: 10000
+  memory_size: 100000
 
   agent_a_path: "C:/Users/jonas/OneDrive/Desktop/checkpoints/sac_hockey_foundation_default/checkpoint_best.pth"
   agent_a_type: 'sac'
@@ -29,7 +29,7 @@ agent1:
 
   trainer_config:
     learning_rate: 0.003
-    log_name: moe_hockey
+    log_name: mue_hockey
     batch_size: 512
 
 
@@ -39,4 +39,27 @@ opponent1:
     learning_rate_actor: 0.0007
     learning_rate_critic: 0.0003
     log_name: sac
+    batch_size: 512
+
+opponent2:
+  type: td3
+  #checkpoint: "C:/Users/jonas/OneDrive/Desktop/checkpoints/sac_hockey_foundation_default/checkpoint_best.pth"
+  agent_b_path: "C:/Users/jonas/OneDrive/Desktop/checkpoints/td3_hockey_foundation_default/checkpoint_best.pth"
+  env_id: 0
+  tau: 0.005 # Target network update rate (Soft update)
+  memory_size: 1000000
+  discount: 0.98 # Discount factor
+  alpha: 0.1 # Entropy regularization coefficient
+  alpha_lr: 0.0003 # Learning rate for alpha
+  log_std_min: -20 #lower bound for log_std
+  log_std_max: 2 #upper bound for log_std
+  actor_hidden_sizes: [512, 256]
+  critic_hidden_sizes: [512, 256, 64]
+  alpha_tuning: True
+  trainer_config:
+    #learning_rate_actor: 0.0003
+    learning_rate_actor: 0.0003
+    #learning_rate_critic: 0.0003
+    learning_rate_critic: 0.0003
+    log_name: sac_delete
     batch_size: 512
