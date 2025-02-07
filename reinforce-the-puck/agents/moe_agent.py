@@ -35,9 +35,11 @@ class MOEAgent(BaseAgent):
         action = self.router_agent.select_action(state)
         self.last_action = action
         if action == 0:
-            return self.agent_a.act(state)
+            with self.agent_a.evaluate_context():
+                return self.agent_a.act(state)
         else:
-            return self.agent_b.act(state)
+            with self.agent_b.evaluate_context():
+                return self.agent_b.act(state)
 
     def reset(self) -> "MOEAgent":
         """Reset the agent.

@@ -17,6 +17,7 @@ class DoubleQLearningAgent:
     ):
         self.gamma = gamma
         self.device = device
+        self.train_steps = 0
 
         self.input_size = state_dim + 1
 
@@ -82,6 +83,10 @@ class DoubleQLearningAgent:
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
+
+        if self.train_steps % 100 == 0:
+            self.update_target()
+        self.train_steps += 1
 
         return {"loss": loss.item()}
 
