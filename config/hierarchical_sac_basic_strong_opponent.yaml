@@ -28,6 +28,7 @@ agent1:
   critic_hidden_sizes: [512, 256, 64]
   #buffer_type: BPER
   alpha_tuning: True
+  buffer_type: BPER
   trainer_config:
     #learning_rate_actor: 0.0003
     learning_rate_actor: 0.0003

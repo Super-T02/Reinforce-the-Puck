@@ -23,10 +23,7 @@ class Player:
     def __init__(self, name: str, agent: BaseAgent, rate_obj: PlackettLuceRating):
         self.name: str = name
         self.agent: BaseAgent = agent
-        try:
-            self.type = agent.get_config().type
-        except:
-            self.type = "Unknown"  # basic hokey opponent have no config
+        self.type = agent.get_config().type
         self.rate_obj: PlackettLuceRating = rate_obj
 
 

@@ -21,7 +21,6 @@ class SACAgent(BaseAgent):
         config: SACAgentConfig,
     ):
         self._config: SACAgentConfig = config
-        print("Config: ", self._config.trainer_config.learning_rate_actor)
         self.device = self._config.specialized_config.device
         super().__init__("SAC", observation_space, action_space, config)
 
@@ -37,10 +36,6 @@ class SACAgent(BaseAgent):
 
         if self._config.alpha_tuning:
             self._log_alpha = torch.zeros(1, requires_grad=True, device=self.device)
-
-            self.alpha_optimizer = torch.optim.Adam(
-                [self._log_alpha], lr=self._config.alpha_lr
-            )
             # use the hyperparameter from the original paper: https://arxiv.org/pdf/1812.05905 (See D Hyperparameters)
             self._target_entropy = -np.prod(action_space.shape)
             self.alpha = self._log_alpha.exp().item()
@@ -87,21 +82,6 @@ class SACAgent(BaseAgent):
 
         self._copy_nets()  # directly copy to minimize the difference between the target and the policy network
 
-        self.policy_optimizer = torch.optim.Adam(
-            self.policy.parameters(),
-            lr=config.trainer_config.learning_rate_actor,
-            eps=0.000001,
-        )
-        self.Q1_optimizer = torch.optim.Adam(
-            self.Q1.parameters(),
-            lr=config.trainer_config.learning_rate_critic,
-            eps=0.000001,
-        )
-        self.Q2_optimizer = torch.optim.Adam(
-            self.Q2.parameters(),
-            lr=config.trainer_config.learning_rate_critic,
-            eps=0.000001,
-        )
         self.epoch = 0
 
     def _policy_activation(self) -> callable:
@@ -127,6 +107,27 @@ class SACAgent(BaseAgent):
             output_activation=self._policy_activation(),
             log_std_min=self._config.log_std_min,
             log_std_max=self._config.log_std_max,
+        )
+
+    def create_optimizers(self):
+        if self._config.alpha_tuning:
+            self.alpha_optimizer = torch.optim.Adam(
+                [self._log_alpha], lr=self._config.alpha_lr
+            )
+        self.policy_optimizer = torch.optim.Adam(
+            self.policy.parameters(),
+            lr=self._config.trainer_config.learning_rate_actor,
+            eps=0.000001,
+        )
+        self.Q1_optimizer = torch.optim.Adam(
+            self.Q1.parameters(),
+            lr=self._config.trainer_config.learning_rate_critic,
+            eps=0.000001,
+        )
+        self.Q2_optimizer = torch.optim.Adam(
+            self.Q2.parameters(),
+            lr=self._config.trainer_config.learning_rate_critic,
+            eps=0.000001,
         )
 
     def _copy_nets(self) -> None:
@@ -177,6 +178,10 @@ class SACAgent(BaseAgent):
         self.Q2.load_state_dict(state[1])
         self.policy.load_state_dict(state[2])
         self._log_alpha = state[3]
+
+        # recreate optimizers
+        self.create_optimizers()
+
         self._copy_nets()
 
     def reset(self) -> "SACAgent":
@@ -202,7 +207,10 @@ class SACAgent(BaseAgent):
         Args:
             path (str): The path to the file where the agent is saved.
         """
-        self.restore_state(torch.load(path, weights_only=False))
+        print("Device: ", self.device)
+        self.restore_state(
+            torch.load(path, weights_only=False, map_location=self.device)
+        )
 
     def train_step(self, batch: Batch) -> dict:
         """Perform a single training step.

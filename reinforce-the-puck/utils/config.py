@@ -162,10 +162,11 @@ class AgentConfig(ConfigGroup):
             BaseConfig()
         )  # Set all public attributes to None to enable inheritance from BaseConfig (See from_yaml)
         for attr in dir(self.specialized_config):
-            if not attr.startswith("_") and not callable(
-                getattr(self.specialized_config, attr)
-            ):
-                setattr(self.specialized_config, attr, None)
+            if not attr == "device":
+                if not attr.startswith("_") and not callable(
+                    getattr(self.specialized_config, attr)
+                ):
+                    setattr(self.specialized_config, attr, None)
 
     def to_dict(self):
         dict_ = super().to_dict()

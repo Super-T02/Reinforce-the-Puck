@@ -76,4 +76,3 @@ opponent2:
     learning_rate_critic: 0.0003
     log_name: sac_delete
     batch_size: 512
-
