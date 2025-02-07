@@ -107,29 +107,19 @@ class Memory(MemoryInterface):
 class BalancedMemory(Memory):
     """Balanced Memory buffer to store transitions."""
 
-    def __init__(
-        self, max_size=global_config.base_config.max_memory_size, decay_steps: int = 100
-    ):
+    def __init__(self, max_size=global_config.base_config.max_memory_size):
         """Initialize the Balanced Memory object.
 
         Args:
             max_size (int, optional): Maximum size of the memory buffer. Defaults to config.MAX_MEMORY_SIZE.
         """
         super().__init__(max_size)
-        self.memory_strength = np.ones((max_size,), dtype=np.float32)
+        self.memory_priorities = np.zeros((max_size,), dtype=np.float32)
 
-    def add_transition(self, transitions_new: list) -> "BalancedMemory":
-        """Add a new transition to the balanced memory.
-
-        Args:
-            transitions_new (list): List of transitions to be added.
-
-        Returns:
-            BalancedMemory: Balanced Memory object.
-        """
-        super().add_transition(transitions_new)
-        self.memory_strength[self.current_idx] = 1.0
-        return self
+        # Precompute decay values and priorities
+        decay_values = np.linspace(10000, 0, max_size)
+        # priorities = decay_values / decay_values.sum()
+        self.memory_priorities[: len(decay_values)] = decay_values
 
     def sample(self, batch_size: int = 1) -> np.ndarray:
         """Sample a batch of transitions from the balanced memory.
@@ -140,16 +130,10 @@ class BalancedMemory(Memory):
         Returns:
             np.ndarray: Batch of transitions.
         """
-        probabilities = (
-            self.memory_strength[: self.size] / self.memory_strength[: self.size].sum()
-        )
-        indices = np.random.choice(self.size, batch_size, p=probabilities)
+        prios = self.memory_priorities[: self.size]
+        probs = prios / prios.sum()
+        indices = np.random.choice(self.size, batch_size, p=probs)
         return super().sample(batch_size, indices=indices)
-
-    def decay_memory_strength(self):
-        """Decay the memory strength to balance early and late experiences."""
-        self.memory_strength[: self.size] -= 1.0 / self.decay_steps
-        self.memory_strength = np.clip(self.memory_strength, 10e-8, 1)
 
 
 class PrioritizedMemory(MemoryInterface):

@@ -4,6 +4,7 @@ import numpy as np
 import torch
 from agents.base_trainer import BaseTrainer
 from components.memory import (
+    BalancedMemory,
     BalancedPrioritizedMemory,
     Batch,
     Memory,
@@ -110,6 +111,9 @@ class BaseAgent(BaseTrainer):
                 beta=config.buffer_beta,
                 decay_steps=config.buffer_decay_steps,
             )
+        elif config.buffer_type == "BER":
+            self._logger.info("Using Balanced Experience Replay (BER)")
+            self._feedback_buffer = BalancedMemory(config.memory_size)
         else:
             self._logger.info("Using Experience Replay")
             self._feedback_buffer = Memory(self._config.memory_size)
