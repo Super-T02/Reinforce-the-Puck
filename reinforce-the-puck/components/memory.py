@@ -124,6 +124,7 @@ class BalancedPrioritizedMemory(Memory):
 
     def sample_indices_efficient(self, batch_size, probs):
         cdf = np.cumsum(probs)  # Build cumulative distribution
+        cdf[-1] = 1.0  # Sicherstellen, dass der letzte Wert exakt 1 ist
         random_vals = np.random.rand(batch_size)
         indices = np.searchsorted(cdf, random_vals)  # binary search -> log(n)
         return indices

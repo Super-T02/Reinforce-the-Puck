@@ -149,7 +149,7 @@ class SACAgent(BaseAgent):
         Returns:
             action: The selected action.
         """
-        action, _ = self.policy.predict(state)
+        action, _ = self.policy.sample(state)
         action = action.detach().cpu().numpy()
         action = np.clip(action, self._action_space.low, self._action_space.high)
         return action

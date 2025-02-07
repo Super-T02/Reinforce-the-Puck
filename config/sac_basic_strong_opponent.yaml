@@ -2,30 +2,31 @@
 
 base_config:
   dtype: float32
-  num_episodes: 10000
-  do_render: true
+  num_episodes: 20000
+  do_render: false
 
 env1:
   env_name: Hockey-v0
   env_type: gym
   id: 0
-  max_steps: 1500
+  max_steps: 1000
 
 
 agent1:
   type: sac
   opponent_names: ['opponent1']
-  #checkpoint: 'C:\Users\jonas\OneDrive\Desktop\checkpoint_best.pth'
+  #checkpoint: "C:/Users/Arb01351/Documents/GitHub/Reinforce-the-Puck/models/Hockey-v0/sac/agent_sac_hokey_2025-02-03_20-57-11_100/checkpoint_last.pth"
   env_id: 0
   tau: 0.005 # Target network update rate (Soft update)
   memory_size: 1000000
-  discount: 0.98 # Discount factor
+  discount: 0.97 # Discount factor
   alpha: 0.1 # Entropy regularization coefficient
   alpha_lr: 0.0003 # Learning rate for alpha
   log_std_min: -20 #lower bound for log_std
   log_std_max: 2 #upper bound for log_std
   actor_hidden_sizes: [512, 256]
   critic_hidden_sizes: [512, 256, 64]
+  #buffer_type: BPER
   alpha_tuning: True
   trainer_config:
     #learning_rate_actor: 0.0003
