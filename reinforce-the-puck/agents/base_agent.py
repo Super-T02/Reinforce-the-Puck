@@ -192,6 +192,12 @@ class BaseAgent(BaseTrainer):
         )
         return self
 
+    def state(self) -> tuple:
+        pass
+
+    def restore_state(self, state: tuple) -> None:
+        pass
+
     def to_torch(self, x: np.ndarray) -> torch.Tensor:
         """
         Convert a numpy array to a PyTorch tensor.

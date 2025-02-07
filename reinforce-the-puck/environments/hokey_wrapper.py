@@ -5,6 +5,7 @@ import hockey.hockey_env as h_env
 import imageio
 import numpy as np
 from agents.base_agent import BaseAgent
+from agents.moe_agent import MOEAgent
 from environments.advanced_reward_calculator import AdaptiveHockeyRewardCalculator
 from environments.base_wrapper import BaseEnvWrapper
 from gymnasium.spaces.box import Box
@@ -86,8 +87,11 @@ class HokeyEnvWrapper(BaseEnvWrapper):
         state_agent = self._last_observation[0]
         state_opponent = self._last_opponent_observation[0]
 
-        # Get actions
         action1 = np.array(self.agent.act(state_agent))
+        # Get actions
+        if isinstance(self.agent, MOEAgent):
+            moe_action = self.agent.last_action
+
         action2 = np.array(self.opponent_agent.act(state_opponent))
 
         # Agent 1
@@ -110,7 +114,14 @@ class HokeyEnvWrapper(BaseEnvWrapper):
         )
 
         if save:
-            self.agent.save_experience(state_agent, action1, *self._last_observation)
+            if isinstance(self.agent, MOEAgent):
+                self.agent.save_experience(
+                    state_agent, moe_action, *self._last_observation
+                )
+            else:
+                self.agent.save_experience(
+                    state_agent, action1, *self._last_observation
+                )
             self.opponent_agent.save_experience(
                 state_opponent, action2, *self._last_opponent_observation
             )

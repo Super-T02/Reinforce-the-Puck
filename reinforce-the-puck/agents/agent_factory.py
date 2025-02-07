@@ -4,6 +4,7 @@ import torch
 from agents.base_agent import BaseAgent
 from agents.basic_hokey_oponent import BasicHokeyOpponentWrapper
 from agents.ddpg import DDPGAgent
+from agents.moe_agent import MOEAgent
 from agents.sac import SACAgent
 from agents.sac_hierarchical import SACHierarchicalAgent
 from agents.td3 import TD3Agent
@@ -14,9 +15,11 @@ from utils.config import (
     AgentConfig,
     DDPGAgentConfig,
     HierarchicalAgentConfig,
+    MoeAgentConfig,
     SACAgentConfig,
     TD3AgentConfig,
     TD3CrossAgentConfig,
+    global_config,
     model_dir,
 )
 
@@ -96,6 +99,24 @@ class AgentFactory:
                 action_space=action_space,
                 observation_space=observation_space,
             )
+        elif isinstance(config, MoeAgentConfig):
+            agent = MOEAgent(
+                config,
+                agent_a=AgentFactory.create_agent_from_checkpoint(
+                    config.agent_a_path,
+                    config.agent_a_type,
+                    observation_space,
+                    action_space,
+                ),
+                agent_b=AgentFactory.create_agent_from_checkpoint(
+                    config.agent_b_path,
+                    config.agent_b_type,
+                    observation_space,
+                    action_space,
+                ),
+                observation_space=observation_space,
+                action_space=action_space,
+            )
         elif isinstance(config, AgentConfig):
             if config.type == "basic_opponent_weak":
                 return BasicHokeyOpponentWrapper(weak=True)
@@ -113,7 +134,9 @@ class AgentFactory:
         """
         This fuctions loads an agent configuration by loading the checkpoint file and extracting the hidden layer sizes of the policy and critic networks.
         """
-        checkpoint = torch.load(path, weights_only=False)
+        checkpoint = torch.load(
+            path, weights_only=False, map_location=global_config.base_config.device
+        )
         if agent_type.upper() == "SAC":
             q1 = checkpoint[0]
             q2 = checkpoint[1]
