@@ -174,6 +174,10 @@ class BaseTrainer:
         """Get the name of the agent."""
         return self._run_name
 
+    def set_name(self, name: str) -> None:
+        """Set the name of the agent."""
+        self._run_name = name
+
     def train_step(self, batch: Batch):
         """
         Perform a single training step.
