@@ -15,7 +15,7 @@ env3:
   train_both: False
   train_all: True # Train all agents -> If true all agents will be trained
   new_agents_after_eval: 10 # Change agents after 2 evaluations
-  do_render: false
+  do_render: True
 
 agent1:
   type: td3
@@ -24,7 +24,7 @@ agent1:
   eps: 1
   eval_freq: 5
   eval_episodes: 5
-  checkpoint: "C:/Users/jonas/OneDrive/Desktop/checkpoints/td3_hockey_foundation_default/checkpoint_best.pth"
+  checkpoint: "C:/Users/Arb01351/Desktop/rl_checkpoints/td3.pth"
   discount: 0.99
   actor_hidden_sizes: [516, 256]
   critic_hidden_sizes: [1024, 516, 256, 128]
@@ -56,7 +56,7 @@ opponent1:
 opponent2:
   type: sac
   opponent_name: "opponent1"
-  checkpoint: "C:/Users/jonas/OneDrive/Desktop/checkpoints/sac_hockey_foundation_default/checkpoint_best.pth"
+  checkpoint: "C:/Users/Arb01351/Desktop/rl_checkpoints/sac_hockey_foundation_default/checkpoint_best.pth"
   env_id: 0
   tau: 0.005 # Target network update rate (Soft update)
   memory_size: 10000

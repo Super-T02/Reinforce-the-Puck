@@ -270,7 +270,9 @@ if __name__ == "__main__":
     tournament.show_result_table()
     tournament.save_stats(
         os.path.join(
-            logs_dir, "tournaments", f"tournament_results{datetime.datetime.now()}.csv"
+            logs_dir,
+            "tournaments",
+            f"tournament_results{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.csv",
         )
     )
     end = time.perf_counter()

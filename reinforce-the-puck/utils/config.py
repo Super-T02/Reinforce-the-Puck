@@ -269,6 +269,12 @@ class SACAgentConfig(AgentConfig):
         self.alpha_tuning = True
 
 
+class HierarchicalAgentConfig(SACAgentConfig):
+    def __init__(self):
+        super().__init__()
+        self.type = "sac_hierarchical"
+
+
 class DDPGAgentConfig(AgentConfig):
     def __init__(self):
         super().__init__()
@@ -346,6 +352,7 @@ class Config:
         "ddpg": DDPGAgentConfig,
         "td3": TD3AgentConfig,
         "sac": SACAgentConfig,
+        "sac_hierarchical": HierarchicalAgentConfig,
         "basic_opponent_weak": AgentConfig,
         "basic_opponent_strong": AgentConfig,
         "td3_cross": TD3CrossAgentConfig,
