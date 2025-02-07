@@ -13,7 +13,7 @@ env1:
 
 
 agent1:
-  type: mue
+  type: moe
   opponent_names: ['opponent1']
   env_id: 0
   memory_size: 10000
@@ -29,7 +29,7 @@ agent1:
 
   trainer_config:
     learning_rate: 0.003
-    log_name: mue_hockey
+    log_name: moe_hockey
     batch_size: 512
 
 
@@ -38,5 +38,5 @@ opponent1:
   trainer_config:
     learning_rate_actor: 0.0007
     learning_rate_critic: 0.0003
-    log_name: agent_sac_hokey
+    log_name: sac
     batch_size: 512

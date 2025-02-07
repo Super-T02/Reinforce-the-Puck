@@ -238,7 +238,7 @@ class AgentConfig(ConfigGroup):
         setattr(goal, param, value)
 
 
-class MueAgentConfig(AgentConfig):
+class MoeAgentConfig(AgentConfig):
     def __init__(self):
         super().__init__()
         self.agent_a_path = None
@@ -349,7 +349,7 @@ class Config:
         "basic_opponent_weak": AgentConfig,
         "basic_opponent_strong": AgentConfig,
         "td3_cross": TD3CrossAgentConfig,
-        "mue": MueAgentConfig,
+        "moe": MoeAgentConfig,
     }
 
     def __init__(self):

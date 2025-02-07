@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -17,6 +19,7 @@ class DoubleQLearningAgent:
     ):
         self.gamma = gamma
         self.device = device
+        self.lr = lr
 
         self.input_size = state_dim + 1
 
@@ -34,7 +37,7 @@ class DoubleQLearningAgent:
         )
         self.q_target_net.load_state_dict(self.q_net.state_dict())
 
-        self.optimizer = optim.Adam(self.q_net.parameters(), lr=lr)
+        self.optimizer = optim.Adam(self.q_net.parameters(), lr=self.lr)
 
     def select_action(self, state: np.ndarray) -> int:
         state_tensor = torch.tensor(
@@ -76,9 +79,9 @@ class DoubleQLearningAgent:
                 next_states, best_next_actions
             ).squeeze(-1)
 
-        td_target = rewards + self.gamma * (1 - dones) * target_q_values
+        td_target = rewards + self.gamma * (1 - dones) * target_q_values.to(self.device)
 
-        loss = F.smooth_l1_loss(current_q, td_target)
+        loss = F.smooth_l1_loss(current_q.to(self.device), td_target)
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
@@ -87,3 +90,19 @@ class DoubleQLearningAgent:
 
     def update_target(self):
         self.q_target_net.load_state_dict(self.q_net.state_dict())
+
+    def state(self) -> tuple:
+        return self.q_net.state_dict(), self.q_target_net.state_dict()
+
+    def save(self, path: str):
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        torch.save(self.state(), path)
+
+    def load(self, path: str) -> None:
+        state = torch.load(path, map_location=torch.device(self.device))
+        self.q_net.load_state_dict(state[0])
+
+    def restore_state(self, state: tuple) -> None:
+        self.q_net.load_state_dict(state[0])
+        self.q_target_net.load_state_dict(state[1])
+        self.optimizer = optim.Adam(self.q_net.parameters(), lr=self.lr)

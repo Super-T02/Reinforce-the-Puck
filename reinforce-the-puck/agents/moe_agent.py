@@ -1,16 +1,19 @@
+import os
+
 import numpy as np
+import torch
 from agents.base_agent import BaseAgent
 from agents.double_q_net import DoubleQLearningAgent
 from agents.sac import SACAgent
 from components.memory import Batch, Memory
 from gymnasium import spaces
-from utils.config import MueAgentConfig, SACAgentConfig
+from utils.config import MoeAgentConfig, SACAgentConfig
 
 
 class MOEAgent(BaseAgent):
     def __init__(
         self,
-        config: MueAgentConfig,
+        config: MoeAgentConfig,
         agent_a: BaseAgent,
         agent_b: BaseAgent,
         observation_space: spaces.box.Box,
@@ -60,3 +63,23 @@ class MOEAgent(BaseAgent):
         loss = self.router_agent.train_step(batch)
         loss["last_action"] = self.last_action
         return loss
+
+    def state(self) -> dict:
+        return (
+            self.router_agent.q_net.state_dict(),
+            self.agent_a.state(),
+            self.agent_b.state(),
+        )
+
+    def save(self, path: str):
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        torch.save(self.state(), path)
+
+    def load(self, path: str) -> None:
+        state = torch.load(
+            path,
+            map_location=torch.device(self._config.specialized_config.device),
+        )
+        self.router_agent.restore_state(state[0])
+        self.agent_a.restore_state(state[1])
+        self.agent_b.restore_state(state[2])

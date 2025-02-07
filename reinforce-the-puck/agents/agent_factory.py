@@ -13,7 +13,7 @@ from matplotlib.pylab import f
 from utils.config import (
     AgentConfig,
     DDPGAgentConfig,
-    MueAgentConfig,
+    MoeAgentConfig,
     SACAgentConfig,
     TD3AgentConfig,
     TD3CrossAgentConfig,
@@ -91,7 +91,7 @@ class AgentFactory:
                 action_space=action_space,
                 observation_space=observation_space,
             )
-        elif isinstance(config, MueAgentConfig):
+        elif isinstance(config, MoeAgentConfig):
             agent = MOEAgent(
                 config,
                 agent_a=AgentFactory.create_agent_from_checkpoint(
