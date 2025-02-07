@@ -114,12 +114,16 @@ class BalancedMemory(Memory):
             max_size (int, optional): Maximum size of the memory buffer. Defaults to config.MAX_MEMORY_SIZE.
         """
         super().__init__(max_size)
-        self.memory_priorities = np.zeros((max_size,), dtype=np.float32)
+        self.memory_strength = np.zeros((max_size,), dtype=np.int32)
+        self._max_priority = max_size  # Maximum priority value
+        self.memory_strength[:] = self._max_priority
+        self._decay_steps = self._max_priority // self.max_size
 
-        # Precompute decay values and priorities
-        decay_values = np.linspace(10000, 0, max_size)
-        # priorities = decay_values / decay_values.sum()
-        self.memory_priorities[: len(decay_values)] = decay_values
+    def add_transition(self, transitions_new):
+        """Add a new transition to the balanced memory."""
+        super().add_transition(transitions_new)
+        self.memory_strength -= self._decay_steps
+        self.memory_strength[self.current_idx] = self._max_priority
 
     def sample(self, batch_size: int = 1) -> np.ndarray:
         """Sample a batch of transitions from the balanced memory.
@@ -130,8 +134,8 @@ class BalancedMemory(Memory):
         Returns:
             np.ndarray: Batch of transitions.
         """
-        prios = self.memory_priorities[: self.size]
-        probs = prios / prios.sum()
+        strength = self.memory_strength[: self.size]
+        probs = strength / strength.sum()
         indices = np.random.choice(self.size, batch_size, p=probs)
         return super().sample(batch_size, indices=indices)
 
@@ -267,17 +271,18 @@ class PrioritizedMemory(MemoryInterface):
 
 
 class BalancedPrioritizedMemory(Memory):
-    def __init__(
-        self, max_size, alpha=0.6, beta=0.4, beta_increment=0.001, decay_steps=100
-    ):
+    def __init__(self, max_size, alpha=0.6, beta=0.4):
         super().__init__(max_size)
         self.alpha = alpha  # Controls how much prioritization is used
         self.beta = beta  # Importance sampling weight
-        self.beta_increment = beta_increment  # Increment for beta
-        self.decay_steps = decay_steps  # Steps after which memory strength decays
         self.priorities = np.zeros((max_size,), dtype=np.float32)  # Priority values
-        self.memory_strength = np.ones((max_size,), dtype=np.float32)  # Memory strength
-        self.max_priority = 1.0  # Initial max priority
+        self._max_strength = max_size  # Maximum Memory Strength
+        self._max_priority = 100  # Maximum priority value
+
+        self.memory_strength = np.zeros((max_size,), dtype=np.int32)
+        self.memory_strength[:] = self._max_strength
+        self.beta_increment = (1.0 - beta) / max_size
+        self._decay_steps = self._max_strength // self.max_size
 
     def add_transition(self, transitions_new: list) -> "BalancedPrioritizedMemory":
         """Add a new transitition to the buffer
@@ -291,14 +296,17 @@ class BalancedPrioritizedMemory(Memory):
         idx = self.current_idx
         super().add_transition(transitions_new)
 
+        # Reduce memory strength
+        self.memory_strength -= self._decay_steps
+        self.memory_strength[self.current_idx] = self._max_strength
+
         # Normalize reward to [0, 100] for prioritization
         reward = transitions_new[3]  # Reward is at index 3
         normalized_reward = self.normalize_reward(reward)
 
         # Set initial priority based on normalized reward
         self.priorities[idx] = (normalized_reward + 1e-5) ** self.alpha
-        self.memory_strength[idx] = 1.0  # Reset memory strength for new transition
-        self.max_priority = max(self.max_priority, self.priorities[idx])
+        self._max_priority = max(self._max_priority, self.priorities[idx])
         return self
 
     def sample(self, batch_size: int) -> tuple:
@@ -344,7 +352,7 @@ class BalancedPrioritizedMemory(Memory):
         # Scale Rewards to [0,100]
         normalized_rewards = self.normalize_reward(rewards).squeeze()
         self.priorities[indices] = (normalized_rewards + 1e-5) ** self.alpha
-        self.max_priority = max(self.max_priority, self.priorities.max())
+        self._max_priority = max(self._max_priority, self.priorities.max())
 
     def normalize_reward(self, rewards: np.ndarray) -> np.ndarray:
         """Normalizes the reward to [0, 100]
@@ -361,8 +369,3 @@ class BalancedPrioritizedMemory(Memory):
             / (np.max(self.transitions[:, 3]) - np.min(self.transitions[:, 3]) + 1e-5)
             * 100
         )
-
-    def decay_memory_strength(self):
-        """Decay the memory strength to balance early and late experiences."""
-        self.memory_strength[: self.size] -= 1.0 / self.decay_steps
-        self.memory_strength = np.clip(self.memory_strength, 0, 1)

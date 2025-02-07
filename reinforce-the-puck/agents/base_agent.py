@@ -97,9 +97,6 @@ class BaseAgent(BaseTrainer):
                 max_size=config.memory_size,
                 alpha=config.buffer_alpha,
                 beta=config.buffer_beta,
-                beta_increment=config.buffer_beta_increment,
-                decay_steps=config.buffer_decay_steps
-                // config.trainer_config.batch_size,  # Decay over 200k steps
             )
         elif config.buffer_type == "PER":
             self._logger.info(
