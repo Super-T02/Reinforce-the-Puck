@@ -1,4 +1,5 @@
 import os
+from logging import getLogger
 
 import torch
 from agents.base_agent import BaseAgent
@@ -69,14 +70,17 @@ class AgentFactory:
         This function creates an agent from a configuration object.
         """
         if config.checkpoint is not None:
+            logger = getLogger("AgentFactory")
             adapted_agent_config = (
                 AgentFactory.create_adapted_agent_config_from_checkpoint(
                     _build_checkpoint_path(config.checkpoint), config.type
                 )
             )
             if "actor_hidden_sizes" in config.__dict__.keys():
+                logger.warning("Overwriting actor_hidden_sizes from checkpoint")
                 config.actor_hidden_sizes = adapted_agent_config.actor_hidden_sizes
             if "critic_hidden_sizes" in config.__dict__.keys():
+                logger.warning("Overwriting critic_hidden_sizes from checkpoint")
                 config.critic_hidden_sizes = adapted_agent_config.critic_hidden_sizes
 
         agent = None
