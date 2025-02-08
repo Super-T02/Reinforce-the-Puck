@@ -14,7 +14,7 @@ critic_hidden_sizes:
 - 512
 - 256
 - 64
-discount: 0.97
+discount: 0.98
 env_id: 0
 epochs: 10
 eval_episodes: 20
@@ -70,9 +70,9 @@ trainer_config:
   learning_rate_actor: 0.0003
   learning_rate_critic: 0.0003
   log_freq: 10
-  log_name: agent_sac_hokey
+  log_name: hierarchical_sac_basic_strong_opponent
   max_checkpoints: 5
   save_checkpoint_freq: 100
-type: sac
+type: sac_hierarchical
 update_target_every: 100
 version: 1
