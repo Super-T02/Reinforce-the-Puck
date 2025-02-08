@@ -337,6 +337,7 @@ class WeightConfig(ConfigGroup):
         self.puck_direction_weight = 1.0
         self.no_touch_penalty = -10.0
         self.timed_penalty_active = False
+        self.block_puck_weight = 3.0
 
 
 class TrainerConfig(ConfigGroup):

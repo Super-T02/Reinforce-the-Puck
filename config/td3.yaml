@@ -32,6 +32,7 @@ env3:
     puck_direction_weight: 1.0 # Puck direction = better
     no_touch_penalty: -1.0 # Penalty for not touching puck after 10% of episode
     timed_penalty_active: True # More time ==> less rewardc
+    block_puck_weight: 1.0 # Blocking puck = better
 
 agent1:
   type: td3
@@ -60,7 +61,7 @@ agent1:
   trainer_config:
     learning_rate_actor: 0.0003
     learning_rate_critic: 0.0003
-    log_name: 08-02-td3-foundation-100k-fine-tuned
+    log_name: 08-02-td3-foundation-100k-fine-tuned-block-puck
     batch_size: 256
   specialized_config:
     num_episodes: 15000
