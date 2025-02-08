@@ -75,7 +75,11 @@ opponent2:
 opponent3:
   type: "td3"
   checkpoint: "Hockey-v0/td3/td3_not_cross_hockey_2025-01-28_09-26-13_100/checkpoint_best.pth"
+  trainer_config:
+    log_name: "OPPONENT_td3_foundation"
 
 opponent4:
   type: "sac"
   checkpoint: ../final_checkpoints/01-30-sac-foundation/checkpoint_best.pth
+  trainer_config:
+    log_name: "OPPONENT_sac_foundation"

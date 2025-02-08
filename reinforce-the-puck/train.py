@@ -37,6 +37,8 @@ class TrainingRun:
         self._agents = agents  # At 0 is the agent, at 1 ... n are the opponents
         self._new_agents_after_eval = new_agents_after_eval
         self._train_all = train_all
+        self._last_eval_results = []
+        self._keep_last_n_evals = 3
         if self.use_opponent:
             self._checkpoint_manager_opponent = CheckpointManager(
                 environment.name, 5, "best"
@@ -82,8 +84,21 @@ class TrainingRun:
                         and evals % self._new_agents_after_eval == 0
                     ):
                         self.change_agents()
+                    elif self._check_convergence():
+                        self.change_agents()
+                        evals = 0
 
         self._logger.info("Training finished.")
+
+    def _check_convergence(self):
+        """Check if the agent has converged."""
+        if len(self._last_eval_results) == self._keep_last_n_evals:
+            mean_rewards = np.array(self._last_eval_results)
+            mean_rewards = mean_rewards[:, 0]
+            if np.std(mean_rewards) < 0.1:
+                self._logger.info("Agent has converged.")
+                return True
+        return False
 
     def warmup(self):
         """Warmup the agent in the environment."""
@@ -113,6 +128,7 @@ class TrainingRun:
             self._environment.agent,
             self._environment.opponent_agent,
         ) = self._select_random_agent_and_opponent(self._agents)
+        self._last_eval_results = []
         self._logger.info(
             f"Changed agents. Agent={self._environment.agent.get_name()}, Opponent={self._environment.opponent_agent.get_name()}"
         )
@@ -126,6 +142,7 @@ class TrainingRun:
         self._add_checkpoint(mean_reward)
         self._checkpoint_manager_agent.save_last_checkpoint()
         self._checkpoint_manager_agent.save_best_checkpoint()
+        self._add_eval_result(mean_reward)
 
     def _eval_hockey(self) -> None:
         self._logger.info("Starting evaluation...")
@@ -147,6 +164,14 @@ class TrainingRun:
             self._environment.opponent_agent.save_eval_result(rewards_opponent)
             self._checkpoint_manager_opponent.save_last_checkpoint()
             self._checkpoint_manager_opponent.save_best_checkpoint()
+
+        self._add_eval_result(mean_agent, mean_opponent)
+
+    def _add_eval_result(self, mean_reward: float, mean_reward_opponent: float = None):
+        """Add the evaluation result to the list."""
+        self._last_eval_results.append((mean_reward, mean_reward_opponent))
+        if len(self._last_eval_results) > self._keep_last_n_evals:
+            self._last_eval_results.pop(0)
 
     def _add_checkpoint(self, mean_reward: float, mean_reward_opponent: float = None):
         """Adds a checkpoint to the Manager."""
