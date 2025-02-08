@@ -14,7 +14,8 @@ class Weights:
         puck_direction_weight: float = 1.0,
         no_touch_penalty: float = -10.0,
         timed_penalty_active: bool = False,
-        block_puck_weight: float = 3.0,
+        block_puck_weight: float = 1.0,
+        stay_in_goal_weight: float = 1.0,
         **kwargs,
     ):
         self.winner_weight = winner_weight
@@ -24,6 +25,7 @@ class Weights:
         self.no_touch_penalty = no_touch_penalty
         self.timed_penalty_active = timed_penalty_active
         self.block_puck_weight = block_puck_weight
+        self.stay_in_goal_weight = stay_in_goal_weight
 
     def get(self, key: str, default: float = 0.0) -> float:
         return getattr(self, key, default)
@@ -231,6 +233,7 @@ class TimedReward:
         self.CENTER_Y = self.H / 2.0
         self.GOAL_SIZE = 75 / 60
         self.SCALE = 60
+        self.my_goal_center = np.array([0.83, 4.0], dtype=np.float32)
 
         # Initialize the reward calculator
         self._step_counter = 0
@@ -281,7 +284,8 @@ class TimedReward:
             reward += self._weights.no_touch_penalty
 
         # Check Prevent goal reward
-        reward += self._prevent_goal_reward(observations)
+        reward += self._calculate_blocking_reward(observations)
+        reward += self._calculate_stay_in_goal_weight(observations)
 
         return reward
 
@@ -296,7 +300,7 @@ class TimedReward:
         puck_speed = np.linalg.norm(puck_vel)
         return puck_speed < 1e-6
 
-    def _prevent_goal_reward(self, observations):
+    def _calculate_blocking_reward(self, observations):
         p1_pos = np.array(observations[0:2], dtype=np.float32)
         p2_pos = np.array(observations[6:8], dtype=np.float32)
         puck_pos = np.array(observations[12:14], dtype=np.float32)
@@ -309,13 +313,29 @@ class TimedReward:
         # Reward for blocking the puck
         reward_block_puck = 0
         if (
-            p1_pos[0] < self.CENTER_X and puck_vel[0] < 0
+            puck_pos[0] < self.CENTER_X and puck_vel[0] < 0
         ):  # Puck in own half, moving toward goal
             if (
                 self._dist_positions(p1_pos, p2_pos) < 50.0 / self.SCALE
             ):  # Close enough to block
                 reward_block_puck += self._weights.block_puck_weight
         return reward_block_puck
+
+    def _calculate_stay_in_goal_weight(self, observations):
+        p1_pos = np.array(observations[0:2], dtype=np.float32)
+        p2_pos = np.array(observations[6:8], dtype=np.float32)
+        puck_pos = np.array(observations[12:14], dtype=np.float32)
+        puck_vel = np.array(observations[14:16], dtype=np.float32)
+
+        p1_pos = p1_pos + [self.CENTER_X, self.CENTER_Y]
+        p2_pos = p2_pos + [self.CENTER_X, self.CENTER_Y]
+        puck_pos = puck_pos + [self.CENTER_X, self.CENTER_Y]
+
+        # Reward for staying in goal
+        reward_stay_in_goal = 0
+        if puck_pos[0] > self.CENTER_X and p1_pos[0] < 1.0:
+            reward_stay_in_goal += self._weights.stay_in_goal_weight
+        return reward_stay_in_goal
 
     def _dist_positions(self, pos1, pos2):
         return math.sqrt((pos1[0] - pos2[0]) ** 2 + (pos1[1] - pos2[1]) ** 2)
