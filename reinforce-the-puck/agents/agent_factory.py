@@ -107,13 +107,17 @@ class AgentFactory:
                     config.agent_a_type,
                     observation_space,
                     action_space,
-                ),
+                )
+                if config.agent_a_path is not None
+                else None,
                 agent_b=AgentFactory.create_agent_from_checkpoint(
                     config.agent_b_path,
                     config.agent_b_type,
                     observation_space,
                     action_space,
-                ),
+                )
+                if config.agent_b_path is not None
+                else None,
                 observation_space=observation_space,
                 action_space=action_space,
             )
@@ -122,6 +126,8 @@ class AgentFactory:
                 return BasicHokeyOpponentWrapper(weak=True)
             elif config.type == "basic_opponent_strong":
                 return BasicHokeyOpponentWrapper(weak=False)
+            else:
+                raise ValueError("Invalid agent configuration type: " + str(config))
         else:
             raise ValueError("Invalid agent configuration type")
         if config.checkpoint is not None:
@@ -130,13 +136,7 @@ class AgentFactory:
         return agent
 
     @staticmethod
-    def create_adapted_agent_config_from_checkpoint(path, agent_type) -> AgentConfig:
-        """
-        This fuctions loads an agent configuration by loading the checkpoint file and extracting the hidden layer sizes of the policy and critic networks.
-        """
-        checkpoint = torch.load(
-            path, weights_only=False, map_location=global_config.base_config.device
-        )
+    def create_adapted_agent_config_for_raw_checkpoint(checkpoint, agent_type):
         if agent_type.upper() == "SAC":
             q1 = checkpoint[0]
             q2 = checkpoint[1]
@@ -193,7 +193,24 @@ class AgentFactory:
                 *critic_hidden_layer_sizes[: -important_critic - 1]
             ]
             return config
+        elif agent_type.upper() == "MOE":
+            c = MoeAgentConfig()
+            c.hidden_size = [512, 512]
+            return c
+
         else:
             config = AgentConfig()
             config.type = agent_type
             return config
+
+    @staticmethod
+    def create_adapted_agent_config_from_checkpoint(path, agent_type) -> AgentConfig:
+        """
+        This fuctions loads an agent configuration by loading the checkpoint file and extracting the hidden layer sizes of the policy and critic networks.
+        """
+        checkpoint = torch.load(
+            path, weights_only=False, map_location=global_config.base_config.device
+        )
+        return AgentFactory.create_adapted_agent_config_for_raw_checkpoint(
+            checkpoint, agent_type
+        )

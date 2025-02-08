@@ -5,9 +5,10 @@ import torch
 from agents.base_agent import BaseAgent
 from agents.double_q_net import DoubleQLearningAgent
 from agents.sac import SACAgent
+from agents.td3 import TD3Agent
 from components.memory import Batch, Memory
 from gymnasium import spaces
-from utils.config import MoeAgentConfig, SACAgentConfig
+from utils.config import AgentConfig, MoeAgentConfig, SACAgentConfig, TD3AgentConfig
 
 
 class MOEAgent(BaseAgent):
@@ -30,9 +31,6 @@ class MOEAgent(BaseAgent):
             gamma=config.gamma,
             device=self._config.specialized_config.device,
         )
-
-    def save(self, path):
-        pass  # todo
 
     def act(self, state) -> any:
         action = self.router_agent.select_action(state)
@@ -67,11 +65,24 @@ class MOEAgent(BaseAgent):
         return loss
 
     def state(self) -> dict:
-        return (
-            self.router_agent.q_net.state_dict(),
-            self.agent_a.state(),
-            self.agent_b.state(),
-        )
+        return {
+            "router_agent": {
+                f"network_{i}": net_state
+                for i, net_state in enumerate(self.router_agent.state())
+            },
+            "agent_a": {
+                f"network_{i}": net_state
+                for i, net_state in enumerate(self.agent_a.state())
+            },
+            "agent_b": {
+                f"network_{i}": net_state
+                for i, net_state in enumerate(self.agent_b.state())
+            },
+            "agent_a_type": self.agent_a._config.type.upper(),
+            "agent_b_type": self.agent_b._config.type.upper(),
+            "agent_a_config": self.agent_a._config.to_dict(),
+            "agent_b_config": self.agent_b._config.to_dict(),
+        }
 
     def save(self, path: str):
         os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -82,6 +93,41 @@ class MOEAgent(BaseAgent):
             path,
             map_location=torch.device(self._config.specialized_config.device),
         )
-        self.router_agent.restore_state(state[0])
-        self.agent_a.restore_state(state[1])
-        self.agent_b.restore_state(state[2])
+
+        router_agent_states = tuple(
+            state["router_agent"][f"network_{i}"]
+            for i in range(len(state["router_agent"]))
+        )
+
+        self.router_agent.restore_state(router_agent_states)
+
+        agent_type_mapping = {  # supported types
+            "SAC": SACAgent,
+            "TD3": TD3Agent,
+        }
+        agent_type_config_mapping = {
+            "SAC": SACAgentConfig,
+            "TD3": TD3AgentConfig,
+        }
+
+        agent_a_states = tuple(
+            state["agent_a"][f"network_{i}"] for i in range(len(state["agent_a"]))
+        )
+        agent_a_type = state["agent_a_type"]
+        agent_a_config = agent_type_config_mapping[agent_a_type]()
+        agent_a_config.update_from_dict(state["agent_a_config"])
+        self.agent_a = agent_type_mapping[agent_a_type](
+            self._observation_space, self._action_space, agent_a_config
+        )
+        self.agent_a.restore_state(agent_a_states)
+
+        agent_b_states = tuple(
+            state["agent_b"][f"network_{i}"] for i in range(len(state["agent_b"]))
+        )
+        agent_b_type = state["agent_b_type"]
+        agent_b_config = agent_type_config_mapping[agent_b_type]()
+        agent_b_config.update_from_dict(state["agent_b_config"])
+        self.agent_b = agent_type_mapping[agent_b_type](
+            self._observation_space, self._action_space, agent_b_config
+        )
+        self.agent_b.restore_state(agent_b_states)
