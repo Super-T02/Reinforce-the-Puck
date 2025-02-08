@@ -194,7 +194,9 @@ class AgentFactory:
             ]
             return config
         elif agent_type.upper() == "MOE":
-            return MoeAgentConfig()
+            c = MoeAgentConfig()
+            c.hidden_size = [512, 512]
+            return c
 
         else:
             config = AgentConfig()
