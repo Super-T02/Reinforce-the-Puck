@@ -68,6 +68,17 @@ class AgentFactory:
         """
         This function creates an agent from a configuration object.
         """
+        if config.checkpoint is not None:
+            adapted_agent_config = (
+                AgentFactory.create_adapted_agent_config_from_checkpoint(
+                    _build_checkpoint_path(config.checkpoint), config.type
+                )
+            )
+            if "actor_hidden_sizes" in config.__dict__.keys():
+                config.actor_hidden_sizes = adapted_agent_config.actor_hidden_sizes
+            if "critic_hidden_sizes" in config.__dict__.keys():
+                config.critic_hidden_sizes = adapted_agent_config.critic_hidden_sizes
+
         agent = None
         if isinstance(config, HierarchicalAgentConfig):
             agent = SACHierarchicalAgent(
