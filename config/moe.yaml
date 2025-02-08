@@ -2,7 +2,7 @@
 
 base_config:
   dtype: float32
-  num_episodes: 3000
+  num_episodes: 2500
   do_render: true
 
 env1:
@@ -23,9 +23,9 @@ agent1:
   env_id: 0
   memory_size: 100000
 
-  agent_a_path: "../final_checkpoints/01-30-sac-foundation/checkpoint_best.pth"
+  agent_a_path: "../final_checkpoints/08-02-sac-ft/checkpoint_best.pth"
   agent_a_type: "sac"
-  agent_b_path: "../final_checkpoints/01-01-td3/td3.pth"
+  agent_b_path: "../final_checkpoints/08-02-td3-ft-catch_bonus/checkpoint_last.pth"
   agent_b_type: "td3"
 
   gamma: 0.99
@@ -43,12 +43,12 @@ opponent1:
 
 opponent2:
   type: td3
-  checkpoint: "../final_checkpoints/01-01-td3/td3.pth"
+  checkpoint: "../final_checkpoints/08-02-td3-ft/checkpoint_best.pth"
   actor_hidden_sizes: [516, 256]
   critic_hidden_sizes: [1024, 516, 256, 128]
 
 opponent3:
   type: sac
-  checkpoint: "../final_checkpoints/01-30-sac-foundation/checkpoint_best.pth"
+  checkpoint: "../final_checkpoints/08-02-sac-ft/checkpoint_best.pth"
   actor_hidden_sizes: [512, 256]
   critic_hidden_sizes: [512, 256, 64]

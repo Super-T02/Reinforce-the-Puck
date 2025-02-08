@@ -10,10 +10,6 @@ td3:
   checkpoint: "../final_checkpoints/01-01-td3/td3.pth"
   type: td3
 
-td3-0702:
-  checkpoint: "../final_checkpoints/07-02-td3/td3.pth"
-  type: td3
-
 moe:
   checkpoint: "../final_checkpoints/07-02_moe_foundation/checkpoint_best.pth"
   type: moe
@@ -25,3 +21,16 @@ td3_ft:
 sac_ft:
   checkpoint: "../final_checkpoints/08-02-sac-ft/checkpoint_best.pth"
   type: sac
+
+td3_0802_ft_normal_reward:
+  checkpoint: "../final_checkpoints/08-02-td3-ft-normal_reward/checkpoint_last.pth"
+  type: td3
+
+td3-ft-catch_bonus_dist_ball:
+  checkpoint: "../final_checkpoints/08-02-td3-ft-catch_bonus_dist_ball/checkpoint_last.pth"
+  type: td3
+
+
+td3-ft-catch_bonus:
+  checkpoint: "../final_checkpoints/08-02-td3-ft-catch_bonus/checkpoint_last.pth"
+  type: td3
