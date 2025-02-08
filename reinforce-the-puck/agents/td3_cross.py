@@ -84,7 +84,13 @@ class TD3CrossQAgent(TD3Agent):
         # Compute the Q loss
         q1_loss = self.Q.get_loss(q1, q_hat, False)
         q2_loss = self.Q2.get_loss(q2, q_hat, False)
-        return q1_loss + q2_loss
+        q_loss = q1_loss + q2_loss
+
+        # Update the priorities in the buffer
+        if self._config.buffer_type == "PER":
+            q_loss = self._feedback_buffer.weight_loss(q_loss, batch.indices)
+            self._feedback_buffer.update_priorities(batch.indices, q_hat.cpu().numpy())
+        return q_loss
 
     def _joint_forward(self, states, next_states, actions, next_actions):
         """Perform a joint forward pass through both critics."""

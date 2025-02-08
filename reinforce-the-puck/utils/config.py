@@ -151,8 +151,8 @@ class AgentConfig(ConfigGroup):
         self.memory_size = 10000
         self.num_runs = 1
         self.buffer_type = "ER"
-        self.buffer_alpha = 0.6
-        self.buffer_beta = 0.4
+        self.buffer_alpha = 0.7
+        self.buffer_beta = 0.5
         self.buffer_beta_increment = 0.001
         self.buffer_decay_steps = 100000
         self.mutation_config: MutationConfig = MutationConfig()

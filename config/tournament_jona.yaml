@@ -17,3 +17,11 @@ td3-0702:
 moe:
   checkpoint: "../final_checkpoints/07-02_moe_foundation/checkpoint_best.pth"
   type: moe
+
+td3_ft:
+  checkpoint: "../final_checkpoints/08-02-td3-ft/checkpoint_best.pth"
+  type: td3
+
+sac_ft:
+  checkpoint: "../final_checkpoints/08-02-sac-ft/checkpoint_best.pth"
+  type: sac
