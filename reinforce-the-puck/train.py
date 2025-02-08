@@ -39,6 +39,7 @@ class TrainingRun:
         self._train_all = train_all
         self._last_eval_results = []
         self._keep_last_n_evals = 3
+        self._last_opponent = 1
         if self.use_opponent:
             self._checkpoint_manager_opponent = CheckpointManager(
                 environment.name, 5, "best"
@@ -213,7 +214,16 @@ class TrainingRun:
         # If we train only the agent, select a random opponent
         num_agents = len(agents)
         agent = agents[0]
-        opponent = np.random.choice(agents[1:])
+        probs = [1 / (num_agents - 2)] * num_agents
+
+        # Prevent selecting the same opponent twice
+        probs[self._last_opponent] = 0
+        probs[0] = 0
+
+        # Select opponent
+        opponent_idx = np.random.choice(range(num_agents), p=probs)
+        self._last_opponent = opponent_idx
+        opponent = agents[opponent_idx]
 
         # If we train all agents, select a random agent and opponent
         if self._train_all:
