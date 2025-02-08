@@ -25,6 +25,13 @@ env3:
   train_all: False
   new_agents_after_eval: 2000 # After 1000 episodes
   do_render: True
+  weights:
+    winner_weight: 10.0 # Winner reward
+    closeness_puck_weight: 0.5 # Closer = better
+    touch_puck_weight: 0.1 # Touching puck = better
+    puck_direction_weight: 1.0 # Puck direction = better
+    no_touch_penalty: -1.0 # Penalty for not touching puck after 10% of episode
+    timed_penalty_active: True # More time ==> less rewardc
 
 agent1:
   type: td3
@@ -53,7 +60,7 @@ agent1:
   trainer_config:
     learning_rate_actor: 0.0003
     learning_rate_critic: 0.0003
-    log_name: ber_100k
+    log_name: ber_100k_new_reward
     batch_size: 256
   specialized_config:
     num_episodes: 15000
@@ -86,7 +93,7 @@ agent2:
   trainer_config:
     learning_rate_actor: 0.0003
     learning_rate_critic: 0.0003
-    log_name: ber_1mio
+    log_name: ber_1mio_new_reward
     batch_size: 256
   specialized_config:
     num_episodes: 15000
@@ -119,7 +126,7 @@ agent3:
   trainer_config:
     learning_rate_actor: 0.0003
     learning_rate_critic: 0.0003
-    log_name: bper_100k
+    log_name: bper_100k_new_reward
     batch_size: 256
   specialized_config:
     num_episodes: 15000

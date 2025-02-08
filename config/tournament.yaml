@@ -13,3 +13,21 @@ sac1:
 td3_cross:
   checkpoint: "models/Hockey-v0/td3_cross/td3_cross_hockey_BatchRenorm_new_2025-01-29_20-52-50_100/checkpoint_best.pth"
   type: td3_cross
+td3_ber_1k:
+  checkpoint: "models/Hockey-v0/td3/ber_100k_2025-02-07_17-31-53_100/checkpoint_best.pth"
+  type: td3
+td3_ber_1k_new_reward:
+  checkpoint: "models/Hockey-v0/td3/ber_100k_new_reward_2025-02-07_23-24-11_100/checkpoint_best.pth"
+  type: td3
+td3_ber_1mio:
+  checkpoint: "models/Hockey-v0/td3/ber_1mio_2025-02-07_17-31-54_100/checkpoint_best.pth"
+  type: td3
+td3_ber_1mio_new_reward:
+  checkpoint: "models/Hockey-v0/td3/ber_1mio_new_reward_2025-02-07_23-24-12_100/checkpoint_best.pth"
+  type: td3
+td3_bper_100k:
+  checkpoint: "models/Hockey-v0/td3/bper_100k_2025-02-07_17-31-55_100/checkpoint_best.pth"
+  type: td3
+td3_bper_100k_new_reward:
+  checkpoint: "models/Hockey-v0/td3/bper_100k_new_reward_2025-02-07_23-24-14_100/checkpoint_best.pth"
+  type: td3

@@ -380,7 +380,7 @@ class BalancedPrioritizedMemory(Memory):
         Returns:
             np.ndarray: Normalized rewards
         """
-        rewards = np.abs(rewards)  # Take absolute value (rewards can be negative)
+        # rewards = np.abs(rewards)  # Take absolute value (rewards can be negative)
         return (
             (rewards - np.min(self.transitions[:, 3]))
             / (np.max(self.transitions[:, 3]) - np.min(self.transitions[:, 3]) + 1e-5)

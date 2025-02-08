@@ -8,6 +8,7 @@ import numpy as np
 from agents.agent_factory import AgentFactory
 from agents.base_agent import BaseAgent
 from agents.basic_hokey_oponent import BasicHokeyOpponentWrapper
+from environments.advanced_reward_calculator import Weights
 from environments.base_wrapper import BaseEnvWrapper
 from environments.environment_factory import EnvironmentFactory
 from environments.hokey_wrapper import HokeyEnvWrapper
@@ -294,6 +295,7 @@ class TrainCLI:
                 do_render=agent_config.specialized_config.do_render,
                 mode=env_config.mode,
                 start_training_after_steps=env_config.start_training_after_steps,
+                weights=Weights.from_config(env_config.weights),
             )
 
             env.agent = AgentFactory.create_agent_from_config(
