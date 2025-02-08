@@ -1,0 +1,79 @@
+actor_hidden_sizes:
+- 516
+- 256
+buffer_alpha: 0.6
+buffer_beta: 0.4
+buffer_beta_increment: 0.001
+buffer_decay_steps: 100000
+buffer_type: BPER
+checkpoint: null
+critic_hidden_sizes:
+- 1024
+- 516
+- 256
+discount: 0.99
+env_id: 2
+epochs: 10
+eps: 1
+eval_episodes: 20
+eval_freq: 50
+memory_size: 100000
+mutation_config:
+  enabled: false
+  maxs:
+  - 0.1
+  - 256
+  - 100000
+  means:
+  - 0
+  - 0
+  - 0
+  mins:
+  - 1.0e-06
+  - 16
+  - 1000
+  parameters:
+  - learning_rate
+  - batch_size
+  - memory_size
+  prob:
+  - 0.3
+  - 0.3
+  - 0.3
+  vars:
+  - 0.1
+  - 0.1
+  - 0.1
+name: BasicOpponent
+noise_beta: 1.0
+noise_clip: 0.8
+noise_sigma: 0.2
+num_runs: 1
+opponent_names:
+- opponent1
+policy_delay: 3
+specialized_config:
+  _dtype: torch.float32
+  device: cuda
+  do_render: false
+  max_memory_size: 100000
+  num_episodes: 15000
+tao: 0.005
+trainer_config:
+  batch_size: 256
+  beta1: 0.9
+  beta2: 0.999
+  checkpoint_dir: /home/tomf/projects/WiSe24_25/Reinforce-the-Puck/models/checkpoints
+  epochs: 100
+  id: -1
+  learning_rate: 0.001
+  learning_rate_actor: 0.0003
+  learning_rate_critic: 0.0003
+  log_freq: 10
+  log_name: bper_100k_new_reward
+  max_checkpoints: 5
+  save_checkpoint_freq: 100
+type: td3
+update_target_every: -1
+use_target_net: true
+version: 1
