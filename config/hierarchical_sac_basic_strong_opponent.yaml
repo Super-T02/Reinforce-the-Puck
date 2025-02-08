@@ -19,7 +19,7 @@ agent1:
   env_id: 0
   tau: 0.005 # Target network update rate (Soft update)
   memory_size: 1000000
-  discount: 0.97 # Discount factor
+  discount: 0.98 # Discount factor
   alpha: 0.1 # Entropy regularization coefficient
   alpha_lr: 0.0003 # Learning rate for alpha
   log_std_min: -20 #lower bound for log_std
@@ -28,13 +28,13 @@ agent1:
   critic_hidden_sizes: [512, 256, 64]
   #buffer_type: BPER
   alpha_tuning: True
-  buffer_type: BPER
+  #buffer_type: BPER
   trainer_config:
     #learning_rate_actor: 0.0003
     learning_rate_actor: 0.0003
     #learning_rate_critic: 0.0003
     learning_rate_critic: 0.0003
-    log_name: agent_sac_hokey
+    log_name: hierarchical_sac_basic_strong_opponent
     batch_size: 512
 
 
@@ -43,5 +43,5 @@ opponent1:
   trainer_config:
     learning_rate_actor: 0.0003
     learning_rate_critic: 0.0003
-    log_name: agent_sac_hokey
+    log_name: hierarchical_sac_basic_strong_opponent
     batch_size: 512

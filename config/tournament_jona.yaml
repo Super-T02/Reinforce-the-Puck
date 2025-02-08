@@ -9,3 +9,11 @@ hsac_foundation:
 td3:
   checkpoint: "../final_checkpoints/01-01-td3/td3.pth"
   type: td3
+
+td3_ft:
+  checkpoint: "../final_checkpoints/08-02-td3-ft/checkpoint_best.pth"
+  type: td3
+
+sac_ft:
+  checkpoint: "../final_checkpoints/08-02-sac-ft/checkpoint_best.pth"
+  type: sac
