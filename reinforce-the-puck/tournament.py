@@ -14,6 +14,7 @@ import yaml
 from agents.agent_factory import AgentFactory
 from agents.base_agent import BaseAgent
 from agents.basic_hokey_oponent import BasicHokeyOpponentWrapper
+from environments.advanced_reward_calculator import Weights
 from environments.hokey_wrapper import HokeyEnvWrapper
 from openskill.models import PlackettLuce, PlackettLuceRating
 from utils import config_dir, logger, logs_dir
@@ -93,15 +94,20 @@ class Tournament:
         Returns:
             tuple[Player, Player, str]: Rerated players. The winner of the game.
         """
+        weights = Weights(
+            winner_weight=1.0,
+            closeness_puck_weight=0.0,
+            touch_puck_weight=0.0,
+            puck_direction_weight=0.0,
+            no_touch_penalty=0.0,
+        )
+
         env = HokeyEnvWrapper(
             max_steps=100000,
             do_render=self._do_render,
             agent=p1.agent,
             opponent_agent=p2.agent,
-            winner_weight=1,
-            closeness_puck_weight=0,
-            touch_puck_weight=0,
-            puck_direction_weight=0,
+            weights=weights,
         )
         env._logger.setLevel(logging.ERROR)
         p1_score, p2_score = env.evaluate(self._n_epochs)

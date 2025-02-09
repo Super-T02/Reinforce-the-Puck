@@ -145,6 +145,8 @@ class TD3Agent(DDPGAgent):
             losses["buffer/alpha"] = self._feedback_buffer._alpha
             losses["buffer/total"] = self._feedback_buffer._memory.total()
             losses["buffer/max"] = self._feedback_buffer._memory.max()
+        else:
+            losses["buffer/size"] = self._feedback_buffer.size
 
         return losses
 

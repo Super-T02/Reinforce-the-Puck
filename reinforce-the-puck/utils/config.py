@@ -321,6 +321,24 @@ class EnvironmentConfig(ConfigGroup):
         self.train_all = False  # Train all agents in the environment
         self.new_agents_after_eval = 1  # Change agents after n evaluations
         self.id = -1
+        self.weights = WeightConfig()
+
+    def to_dict(self):
+        dict_ = super().to_dict()
+        dict_["weights"] = self.weights.to_dict()
+        return dict_
+
+
+class WeightConfig(ConfigGroup):
+    def __init__(self):
+        self.winner_weight = 10.0
+        self.closeness_puck_weight = 0.5
+        self.touch_puck_weight = 0.1
+        self.puck_direction_weight = 1.0
+        self.no_touch_penalty = -10.0
+        self.timed_penalty_active = False
+        self.block_puck_weight = 1.0
+        self.stay_in_goal_weight = 0.5
 
 
 class TrainerConfig(ConfigGroup):
