@@ -32,8 +32,8 @@ env3:
     puck_direction_weight: 1.0 # Puck direction = better
     no_touch_penalty: -1.0 # Penalty for not touching puck after 10% of episode
     timed_penalty_active: True # More time ==> less reward
-    block_puck_weight: 0.1 # Blocking puck = better
-    stay_in_goal_weight: 0.2 # Staying in goal = better if opponent is shooting
+    block_puck_weight: 0.3 # Blocking puck = better
+    stay_in_goal_weight: 0 # Staying in goal = better if opponent is shooting
 
 agent1:
   type: td3

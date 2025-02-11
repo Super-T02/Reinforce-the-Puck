@@ -1,12 +1,17 @@
 import logging
 import os
+from unittest.mock import DEFAULT
 
 import hockey.hockey_env as h_env
 import imageio
 import numpy as np
 from agents.base_agent import BaseAgent
 from agents.moe_agent import MOEAgent
-from environments.advanced_reward_calculator import AdaptiveHockeyRewardCalculator
+from environments.advanced_reward_calculator import (
+    AdaptiveHockeyRewardCalculator,
+    TimedReward,
+    Weights,
+)
 from environments.base_wrapper import BaseEnvWrapper
 from gymnasium.spaces.box import Box
 from PIL import Image
@@ -23,10 +28,7 @@ class HokeyEnvWrapper(BaseEnvWrapper):
         mode: int = h_env.Mode.NORMAL,
         start_training_after_steps: int = 10000,
         train_both: bool = False,
-        winner_weight: float = 10.0,
-        closeness_puck_weight: float = 0.5,
-        touch_puck_weight: float = 0.0,
-        puck_direction_weight: float = 1.0,
+        weights: Weights = Weights(),
     ):
         self._do_render = do_render
         self.env = h_env.HockeyEnv(mode=mode)
@@ -45,17 +47,15 @@ class HokeyEnvWrapper(BaseEnvWrapper):
         self._last_opponent_observation = (None, 0, False, False, {})
         self._logger = logging.getLogger(__name__)
         self._max_steps = max_steps
-        self.winner_weight = winner_weight
-        self.closeness_puck_weight = closeness_puck_weight
-        self.touch_puck_weight = touch_puck_weight
-        self.puck_direction_weight = puck_direction_weight
+        self._weights = weights
         self.record = False
         self.record_path = os.path.join(workspace_dir, "gifs")
         self.frames = []
         self.name = "Hockey-v0"
         self.train_both = train_both
 
-        self.reward_calculator = AdaptiveHockeyRewardCalculator()
+        # self.reward_calculator = AdaptiveHockeyRewardCalculator()
+        self.reward_calculator = TimedReward(max_steps, weights)
         self._start_training_after_steps = start_training_after_steps
         self._steps = 0
         self.reset()
@@ -63,6 +63,7 @@ class HokeyEnvWrapper(BaseEnvWrapper):
     def reset(self):
         super().reset()
         state = self.env.obs_agent_two()
+        self.reward_calculator.reset()
         self._last_opponent_observation = (state, 0, False, False, {})
 
     def render(self):
@@ -130,24 +131,10 @@ class HokeyEnvWrapper(BaseEnvWrapper):
 
     def compute_reward_agent(self, obs, r, d, t, info, evaluate=False) -> float:
         return (
-            # self.reward_calculator.compute_reward(obs, info)
-            self._generic_reward(info)
+            self.reward_calculator.compute_reward(obs, info)
             if not evaluate
-            else info.get("winner", 0.0) * self.winner_weight
+            else info.get("winner", 0.0) * self._weights.winner_weight
         )
-
-    def _generic_reward(self, info) -> float:
-        winner = info.get("winner", 0.0)  # 0: tie, -1: opponent, 1: agent
-        closeness_puck = info.get("reward_closeness_to_puck", 0.0)
-        touch_puck = info.get("reward_touch_puck", 0.0)
-        puck_direction = info.get("reward_puck_direction", 0.0)
-        r = (
-            winner * self.winner_weight
-            + closeness_puck * self.closeness_puck_weight
-            + touch_puck * self.touch_puck_weight
-            + puck_direction * self.puck_direction_weight
-        )
-        return r
 
     def run_eval(self) -> float:
         """Run one episode of the environment.
