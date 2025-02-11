@@ -17,3 +17,11 @@ td3_ft:
 sac_ft:
   checkpoint: "../final_checkpoints/08-02-sac-ft/checkpoint_best.pth"
   type: sac
+
+sac_ft_long:
+  checkpoint: "../final_checkpoints/11-02-sac-ft/checkpoint_best.pth"
+  type: sac
+
+td3_ft_long:
+  checkpoint: "../final_checkpoints/11-02-td3-ft/checkpoint_best.pth"
+  type: td3
