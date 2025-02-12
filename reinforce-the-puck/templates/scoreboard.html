@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Scoreboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Live Scoreboard</h1>
+    <!-- Leaderboard Table -->
+    <h2>Leaderboard</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Rating</th>
+                <th>Sigma</th>
+                <th>Avg. Score</th>
+            </tr>
+        </thead>
+        <tbody id="leaderboard-body">
+            <!-- Live leaderboard data will be inserted here -->
+        </tbody>
+    </table>
+
+    <!-- Game Results Table -->
+    <h2>Game Results</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Game</th>
+                <th>Player 1</th>
+                <th>Player 2</th>
+                <th>Player 1 Score</th>
+                <th>Player 2 Score</th>
+                <th>Winner</th>
+            </tr>
+        </thead>
+        <tbody id="scoreboard-body">
+            <!-- Live data will be inserted here -->
+        </tbody>
+    </table>
+
+
+    <script>
+        async function fetchLiveStats() {
+            // Fetch game results
+            const response = await fetch("/live_stats");
+            const data = await response.json();
+            const tbody = document.getElementById("scoreboard-body");
+            tbody.innerHTML = ""; // Clear existing rows
+
+            data.forEach(row => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${row.game}</td>
+                    <td>${row.p1}</td>
+                    <td>${row.p2}</td>
+                    <td>${row.p1_score}</td>
+                    <td>${row.p2_score}</td>
+                    <td>${row.winner}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        async function fetchLeaderboard() {
+            // Fetch leaderboard data
+            const response = await fetch("/leaderboard");
+            const data = await response.json();
+            const tbody = document.getElementById("leaderboard-body");
+            tbody.innerHTML = ""; // Clear existing rows
+
+            data.forEach((row, index) => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${row.name}</td>
+                    <td>${row.type}</td>
+                    <td>${row.rating}</td>
+                    <td>${row.sigma}</td>
+                    <td>${row.avg_score}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Fetch live stats and leaderboard every 2 seconds
+        setInterval(() => {
+            fetchLiveStats();
+            fetchLeaderboard();
+        }, 2000);
+
+        // Initial fetch
+        fetchLiveStats();
+        fetchLeaderboard();
+    </script>
+</body>
+
+</html>

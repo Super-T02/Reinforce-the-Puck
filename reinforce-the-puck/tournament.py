@@ -5,6 +5,7 @@ import datetime
 import logging
 import os
 import random
+import threading
 import time
 
 import numpy as np
@@ -16,8 +17,13 @@ from agents.base_agent import BaseAgent
 from agents.basic_hokey_oponent import BasicHokeyOpponentWrapper
 from environments.advanced_reward_calculator import Weights
 from environments.hokey_wrapper import HokeyEnvWrapper
+from flask import Flask, jsonify, render_template
 from openskill.models import PlackettLuce, PlackettLuceRating
 from utils import config_dir, logger, logs_dir
+
+# Add this to the top of your file
+app = Flask(__name__)
+tournament_instance = None  # Global variable to hold the tournament instance
 
 
 class Player:
@@ -235,12 +241,16 @@ class Tournament:
             name (str): The name of the player.
 
         Returns:
-            float: The average score of the player.
+            float: The average score of the player, or 0 if no scores are available.
         """
-        return (
-            self._stats[self._stats["p1"] == name]["p1_score"].mean()
-            + self._stats[self._stats["p2"] == name]["p2_score"].mean()
-        )
+        p1_scores = self._stats[self._stats["p1"] == name]["p1_score"]
+        p2_scores = self._stats[self._stats["p2"] == name]["p2_score"]
+        total_scores = pd.concat([p1_scores, p2_scores])
+
+        if total_scores.empty:
+            return -10000.0  # Return 0 if no scores are available
+
+        return total_scores.mean()
 
     def save_stats(self, path: str) -> None:
         """Save the statistics of the tournament to a file.
@@ -252,8 +262,68 @@ class Tournament:
         self._stats.to_csv(path, index=False)
         self._logger.info(f"Saved the tournament statistics to {path}.")
 
+    def get_live_stats(self):
+        """Returns the current tournament statistics as a dictionary."""
+        return self._stats.to_dict(orient="records")
+
+    def get_leaderboard(self):
+        """Returns the current leaderboard as a sorted list of players."""
+        players = self._agents.values()
+        players = sorted(players, key=lambda x: x.rate_obj.mu, reverse=True)
+
+        leaderboard = []
+        for player in players:
+            leaderboard.append(
+                {
+                    "name": player.name,
+                    "type": player.type,
+                    "rating": round(player.rate_obj.mu, 2),
+                    "sigma": round(player.rate_obj.sigma, 2),
+                    "avg_score": round(self.get_player_avg_score(player.name), 2),
+                }
+            )
+        df = pd.DataFrame(leaderboard)
+        return df.to_dict(orient="records")
+
+
+# Flask routes for the live scoreboard
+@app.route("/")
+def index():
+    """Render the live scoreboard page."""
+    return render_template("scoreboard.html")
+
+
+@app.route("/live_stats")
+def live_stats():
+    """API endpoint to fetch live tournament statistics."""
+    if tournament_instance:
+        stats = tournament_instance.get_live_stats()
+        return jsonify(stats)
+    app.logger.error("No tournament instance available.")
+    return jsonify([])  # Return an empty list if no data is available
+
+
+@app.route("/leaderboard")
+def leaderboard():
+    """API endpoint to fetch the current leaderboard."""
+    if tournament_instance:
+        leaderboard = tournament_instance.get_leaderboard()
+        return jsonify(leaderboard)
+    app.logger.error("No tournament instance available.")
+    return jsonify([])  # Return an empty list if no data is available
+
+
+def run_flask():
+    """Run the Flask app in a separate thread."""
+    app.run(host="0.0.0.0", port=5000, debug=False)
+
 
 if __name__ == "__main__":
+    # Start the Flask app in a separate thread
+    flask_thread = threading.Thread(target=run_flask, daemon=True)
+    flask_thread.start()
+
+    # Initialize and run the tournament
     logger.init_logger(os.path.join(config_dir, "logging.yaml"))
 
     parser = argparse.ArgumentParser(description="Tournament runner.")
@@ -269,12 +339,12 @@ if __name__ == "__main__":
 
     start = time.perf_counter()
     args = parser.parse_args()
-    tournament = Tournament(args.n_epochs, args.render)
-    tournament.from_yaml(args.config)
-    tournament.add_benchmarks()
-    tournament.simulate(n_games=args.n_games)
-    tournament.show_result_table()
-    tournament.save_stats(
+    tournament_instance = Tournament(args.n_epochs, args.render)
+    tournament_instance.from_yaml(args.config)
+    tournament_instance.add_benchmarks()
+    tournament_instance.simulate(n_games=args.n_games)
+    tournament_instance.show_result_table()
+    tournament_instance.save_stats(
         os.path.join(
             logs_dir,
             "tournaments",
@@ -283,3 +353,11 @@ if __name__ == "__main__":
     )
     end = time.perf_counter()
     print(f"Finished in {end - start:.2f} seconds.")
+
+    print("Press Ctrl+C to stop the Flask app.")
+    # Wait for Ctrl+C to stop the Flask app
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        pass
