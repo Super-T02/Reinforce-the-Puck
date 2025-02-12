@@ -25,3 +25,7 @@ sac_ft_long:
 td3_ft_long:
   checkpoint: "../final_checkpoints/11-02-td3-ft/checkpoint_best.pth"
   type: td3
+
+moe:
+  checkpoint: "../final_checkpoints/07-02_moe_foundation/checkpoint_best.pth"
+  type: moe

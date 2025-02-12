@@ -123,9 +123,14 @@ class HokeyEnvWrapper(BaseEnvWrapper):
                 self.agent.save_experience(
                     state_agent, action1, *self._last_observation
                 )
-            self.opponent_agent.save_experience(
-                state_opponent, action2, *self._last_opponent_observation
-            )
+            if isinstance(self.opponent_agent, MOEAgent):
+                self.opponent_agent.save_experience(
+                    state_opponent, self.opponent_agent.last_action, *self._last_opponent_observation
+                )
+            else:
+                self.opponent_agent.save_experience(
+                    state_opponent, action2, *self._last_opponent_observation
+                )
 
         return self._last_observation
 

@@ -1,0 +1,106 @@
+# Please refer to the documentation for more information on the configuration file.
+
+base_config:
+  dtype: float32
+  num_episodes: 50000
+
+
+env3:
+  env_name: Hockey-v0
+  env_type: gym
+  id: 2
+  mode: 0 # 0: normal, 1: shooting, 2: defense
+  max_steps: 1000
+  start_training_after_steps: 10
+  train_both: False
+  train_all: True # Train all agents -> If true all agents will be trained
+  new_agents_after_eval: 10 # Change agents after 2 evaluations
+  do_render: True
+  weights:
+    winner_weight: 10.0 # Winner reward
+    closeness_puck_weight: 0 # Closer = better
+    touch_puck_weight: 0.0 # Touching puck = better
+    puck_direction_weight: 0.0 # Puck direction = better
+    no_touch_penalty: 0.0 # Penalty for not touching puck after 10% of episode
+    timed_penalty_active: False # More time ==> less reward
+    block_puck_weight: 0.0 # Blocking puck = better
+    stay_in_goal_weight: 0.0 # Staying in goal = better if opponent is shooting
+
+agent1:
+  type: td3
+  opponent_names: ["opponent1", "opponent2", "opponent3"]
+  env_id: 2
+  eps: 1
+  eval_freq: 5
+  eval_episodes: 5
+  checkpoint: "../final_checkpoints/08-02-td3-ft-catch_bonus/checkpoint_last.pth"
+  discount: 0.99
+  actor_hidden_sizes: [516, 256]
+  critic_hidden_sizes: [1024, 516, 256, 128]
+  policy_delay: 3
+  update_target_every: -1
+  noise_sigma: 0.1
+  noise_clip: 0.5
+  noise_beta: 1.0 # Pink noise
+  memory_size: 1000000
+ # buffer_type: BPER
+  num_runs: 1
+  mutation_config:
+    enabled: false
+  trainer_config:
+    learning_rate_actor: 0.0003
+    learning_rate_critic: 0.0003
+    log_name: td3_delete
+    batch_size: 256
+  specialized_config:
+    #num_episodes: 10000
+    do_render: False
+
+opponent1:
+  type: "basic_opponent_strong"
+  trainer_config:
+    learning_rate_actor: 0.0007
+    learning_rate_critic: 0.0003
+
+opponent2:
+  type: sac
+  opponent_name: "opponent1"
+  checkpoint: "../final_checkpoints/11-02-sac-ft/checkpoint_best.pth"
+  env_id: 0
+  tau: 0.005 # Target network update rate (Soft update)
+  memory_size: 1000000
+  #buffer_type: BPER
+  discount: 0.98 # Discount factor
+  alpha: 0.1 # Entropy regularization coefficient
+  alpha_lr: 0.0003 # Learning rate for alpha
+  log_std_min: -20 #lower bound for log_std
+  log_std_max: 2 #upper bound for log_std
+  actor_hidden_sizes: [512, 256]
+  critic_hidden_sizes: [512, 256, 64]
+  alpha_tuning: True
+  trainer_config:
+    #learning_rate_actor: 0.0003
+    learning_rate_actor: 0.0003
+    #learning_rate_critic: 0.0003
+    learning_rate_critic: 0.0003
+    log_name: sac_delete
+    batch_size: 512
+
+opponent3:
+  type: moe
+  env_id: 0
+  memory_size: 100000
+
+  agent_a_path: "../final_checkpoints/11-02-sac-ft/checkpoint_best.pth"
+  agent_a_type: "sac"
+  agent_b_path: "../final_checkpoints/08-02-td3-ft-catch_bonus/checkpoint_last.pth"
+  agent_b_type: "td3"
+
+  gamma: 0.99
+  hidden_size: [512, 512]
+
+
+  trainer_config:
+    learning_rate: 0.003
+    log_name: mue_hockey
+    batch_size: 512
