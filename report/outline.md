@@ -41,7 +41,7 @@
 
 ### 3.3 Algorithm Comparison
 - **Performance comparison against weak and strong baseline opponents**
-- **Success against weak opponent**
+- **Success against weak and strong opponent**
 - **Local leaderboard results**
 - **Tournament results and ranking system (Trueskill)**
 
