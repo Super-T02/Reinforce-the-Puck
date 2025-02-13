@@ -7,6 +7,7 @@
 
 ## 2. Methods
 ### 2.1 Algorithmic Foundations
+- **Soft Actor Critic (SAC)**
   - Implementation details
   - Adaptations for the hockey environment
 - **Twin Delayed Deep Deterministic Policy Gradient (TD3)**
