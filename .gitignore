@@ -131,3 +131,6 @@ report/*.pdf
 logs/*
 models/*
 gifs/*
+
+*.glo
+*.acn
