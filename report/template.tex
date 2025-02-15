@@ -10,21 +10,29 @@
 \usepackage{amsmath}       % blackboard math symbols
 \usepackage{amssymb}
 
+
+
 \usepackage{lipsum}
 
 \usepackage{geometry}
 \geometry{left=2.8cm,right=2.8cm,top=2.6cm,bottom=2.6cm}
 \usepackage{fancyhdr}
 \pagestyle{fancy}
-\usepackage{hyperref}% should be the last package you include
 
 \newcommand{\theteam}{}
 \newcommand{\team}[1]{\def\theteam{#1}}
 
 
+\usepackage{hyperref}% should be the last package you include
+
+\usepackage{acronym}
+
+
 \fancyhead[L]{\theteam}
 \fancyhead[R]{\thepage}
 \cfoot{}
+
+
 
 \setlength{\parindent}{0pt}
 
@@ -33,6 +41,7 @@
 \author{\theteam}
 
 \begin{document}
+\input{acronyms}
 \maketitle
 
 \section{Introduction}\label{sec:intro}
@@ -40,7 +49,7 @@
 
 \section{Method}\label{sec:Method}
 \cite{wang2016:DDQN}.
-\lipsum
+\input{sac.tex}
 
 \bibliographystyle{abbrv}
 \bibliography{main}

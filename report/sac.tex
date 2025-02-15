@@ -1,0 +1,42 @@
+
+\section{\acl{SAC}}
+Our \ac{SAC} implementation is based on the original paper by \cite{HaarnojaAbbeelLevine2018:SAC} and its follow-up paper \cite{haarnoja2019softactorcriticalgorithmsapplications}.
+\ac{SAC} is an off-policy actor-critic algorithm that learns a stochastic policy in an environment with continuous action and state spaces.
+The algorithm is based on the principle of maximum entropy reinforcement learning, which aims to maximize the expected reward while also maximizing the entropy of the policy. This encourages exploration and prevents the policy from getting stuck in local optima.
+The major components of the \ac{SAC} algorithm are the actor, the critic, and the entropy target:
+\begin{equation}
+    J(\pi) = \sum_{t=0}^{T} \mathbb{E}_{(s_t, a_t) \sim \rho_\pi} \left[ r(s_t, a_t) + \alpha \mathcal{H}(\pi(\cdot \mid s_t)) \right]
+\end{equation}
+
+\subsection{Actor}
+
+The actor is a stochastic policy network, which is based on a vanilla neural network with a gaussian distribution output layer.
+It estimates the mean and standard deviation \ref{eq:mu_sigma_estimation} and provides a sampling method which returns both a sample from the distribution and the log probability of the selected action.
+To make the sampling process differentiable, the reparameterization trick is used \ref{eq:reparameterization_trick}.
+The action bounds are enforced by applying the $\tanh$ function to the sampled unbounded action \ref{eq:unbounded_action}.
+To consider this bounding in the probability density function, the probability density function of the unbounded action is scaled by the absolute determinant of the Jacobian matrix of the $\tanh$ function \ref{eq:probability_density_function}.
+Finally the log probability of the adjusted density function is used to calculate.
+
+\begin{equation}
+    \mu(s), \sigma(s) = f_\theta(s)
+    \label{eq:mu_sigma_estimation}
+\end{equation}
+\begin{equation}
+    z \sim \mathcal{N}(0,1)
+    \label{eq:reparameterization_trick}
+\end{equation}
+\begin{equation}
+    u = \mu(s) + \sigma(s) \cdot z
+    \label{eq:unbounded_action}
+\end{equation}
+
+\begin{equation}
+    \pi(a \mid s) = \mu(u \mid s) \left| \det \left( \frac{d\mathbf{a}}{d\mathbf{u}} \right) \right|^{-1}
+    \label{eq:probability_density_function}
+\end{equation}
+
+The actor is trained using the maximum entropy objective, using the critic to estimate the value of the state-action pair.
+
+
+\subsection{Critic}
+The critic consists of two Q-networks, valuing state-action pairs. The critic is trained using the mean squared Bellman error. The critic is trained using the mean squared Bellman error.
