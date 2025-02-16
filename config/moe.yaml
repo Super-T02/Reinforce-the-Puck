@@ -16,30 +16,27 @@ env1:
   new_agents_after_eval: 3
   do_render: False
 
-
 agent1:
   type: moe
-  opponent_names: ['opponent1','opponent2','opponent3']
+  opponent_names: ["opponent1", "opponent2", "opponent3"]
   env_id: 0
   memory_size: 100000
 
-  agent_a_path: "../final_checkpoints/08-02-sac-ft/checkpoint_best.pth"
+  agent_a_path: "final_checkpoints/08-02-sac-ft/checkpoint_best.pth"
   agent_a_type: "sac"
-  agent_b_path: "../final_checkpoints/08-02-td3-ft-catch_bonus/checkpoint_last.pth"
+  agent_b_path: "final_checkpoints/08-02-td3-ft-catch_bonus/checkpoint_last.pth"
   agent_b_type: "td3"
 
   gamma: 0.99
   hidden_size: [512, 512]
-
 
   trainer_config:
     learning_rate: 0.003
     log_name: mue_hockey
     batch_size: 512
 
-
 opponent1:
-  type: 'basic_opponent_strong'
+  type: "basic_opponent_strong"
 
 opponent2:
   type: td3

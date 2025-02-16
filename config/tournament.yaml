@@ -1,21 +1,64 @@
-td3_bper_smaller_buffer_base:
-  checkpoint: "models/Hockey-v0/td3/td3_hockey_bper_smaller_buffer_2025-01-30_16-56-17_100/checkpoint_best.pth"
-  type: td3
-td3_base_long_training:
-  checkpoint: "models/Hockey-v0/td3/td3_not_cross_hockey_2025-01-28_09-26-13_100/checkpoint_best.pth"
-  type: td3
-sac_ft:
-  checkpoint: "final_checkpoints/08-02-sac-ft/checkpoint_best.pth"
-  type: sac
-sac_hierarchical:
-  checkpoint: "final_checkpoints/07-02-hierarchical-sac-foundation/checkpoint_best.pth"
-  type: sac_hierarchical
+# td3_bper_smaller_buffer_base:
+#   checkpoint: "models/Hockey-v0/td3/td3_hockey_bper_smaller_buffer_2025-01-30_16-56-17_100/checkpoint_best.pth"
+#   type: td3
+# td3_base_long_training:
+#   checkpoint: "models/Hockey-v0/td3/td3_not_cross_hockey_2025-01-28_09-26-13_100/checkpoint_best.pth"
+#   type: td3
+# sac_ft:
+#   checkpoint: "final_checkpoints/08-02-sac-ft/checkpoint_best.pth"
+#   type: sac
+# sac_hierarchical:
+#   checkpoint: "final_checkpoints/07-02-hierarchical-sac-foundation/checkpoint_best.pth"
+#   type: sac_hierarchical
 td3_bper_100k_new_reward:
   checkpoint: "models/Hockey-v0/td3/bper_100k_new_reward_2025-02-07_23-24-14_100/checkpoint_best.pth"
   type: td3
-td3_ft:
-  checkpoint: "final_checkpoints/08-02-td3-ft/checkpoint_best.pth"
-  type: td3
+# td3_ft:
+#   checkpoint: "final_checkpoints/08-02-td3-ft/checkpoint_best.pth"
+#   type: td3
 td3_block_puck:
   checkpoint: "models/Hockey-v0/td3/08-02-td3-foundation-100k-fine-tuned-block-puck2_2025-02-08_12-42-37_100/checkpoint_best.pth"
+  type: td3
+
+td3_foundation:
+  checkpoint: "final_checkpoints/08-02-td3-foundation/checkpoint_best.pth"
+  type: td3
+sac_foundation:
+  checkpoint: "final_checkpoints/01-30-sac-foundation/checkpoint_best.pth"
+  type: sac
+td3_new_reward:
+  checkpoint: "models/Hockey-v0/td3/td3_foundation_new_reward_2025-02-09_09-18-06_100/checkpoint_best.pth"
+  type: td3
+td3_ft_static_base_catching_bonus:
+  checkpoint: "models/Hockey-v0/td3/td3-ft-stay-in-goal-base-catching-bonus_2025-02-11_13-46-03_100/checkpoint_best.pth"
+  type: td3
+td3_ft_static_base_static:
+  checkpoint: "models/Hockey-v0/td3/td3-ft-stay-in-goal-static-base-ft_2025-02-11_14-17-43_100/checkpoint_best.pth"
+  type: td3
+td3_ft_base_catching_bonus:
+  checkpoint: "models/Hockey-v0/td3/td3-ft-stay-in-goal-base-catching-bonus_2025-02-11_13-46-03_100/checkpoint_best.pth"
+  type: td3
+td3_ft_con_reward:
+  checkpoint: "models/Hockey-v0/td3/td3-ft-stay-in-goal-cont-rew-base-catch_2025-02-11_12-20-37_100/checkpoint_best.pth"
+  type: td3
+sac_ft2_dist_goal:
+  checkpoint: "models/Hockey-v0/sac/sac-ft-dist-goal_2025-02-11_13-46-03_100/checkpoint_best.pth"
+  type: sac
+sac_ft2_win_loose:
+  checkpoint: "models/Hockey-v0/sac/sac-ft-win-loose_2025-02-11_10-37-55_100/checkpoint_best.pth"
+  type: sac
+moe:
+  checkpoint: "final_checkpoints/07-02_moe_foundation/checkpoint_best.pth"
+  type: moe
+moe_ft:
+  checkpoint: "models/Hockey-v0/moe/moe-ft-win-loose-dist_2025-02-12_10-36-31_100/checkpoint_best.pth"
+  type: moe
+sac_ft2_win_loose2:
+  checkpoint: "models/Hockey-v0/sac/sac-ft-win-loose-dist_2025-02-12_10-36-31_100/checkpoint_best.pth"
+  type: sac
+td3_win_loose_dist_base_catch_static:
+  checkpoint: models/Hockey-v0/td3/td3-ft-win-loose-dist-base-catch-static_2025-02-12_10-38-58_100/checkpoint_last.pth
+  type: td3
+td3_win_loose_dist_base_catch:
+  checkpoint: models/Hockey-v0/td3/td3-ft-win-loose-dist-base-catch_2025-02-12_10-36-30_100/checkpoint_last.pth
   type: td3

@@ -333,8 +333,8 @@ class TimedReward:
 
         # Reward for staying in goal
         reward_stay_in_goal = 0
-        if puck_pos[0] > self.CENTER_X and p1_pos[0] < 1.0:
-            reward_stay_in_goal += self._weights.stay_in_goal_weight
+        dist_to_goal = self._dist_positions(p1_pos, self.my_goal_center)
+        reward_stay_in_goal -= dist_to_goal * self._weights.stay_in_goal_weight
         return reward_stay_in_goal
 
     def _dist_positions(self, pos1, pos2):
