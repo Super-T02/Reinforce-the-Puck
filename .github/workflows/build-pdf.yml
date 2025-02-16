@@ -26,5 +26,6 @@ jobs:
               cp report/template.pdf report.pdf
               git config --local user.email "action@github.com"
               git config --local user.name "GitHub Action"
+              git add .
               git commit -am "Update README with latest PDF link"
               git push https://${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }} HEAD:${{ github.ref }}
