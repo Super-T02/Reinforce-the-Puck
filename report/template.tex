@@ -10,21 +10,36 @@
 \usepackage{amsmath}       % blackboard math symbols
 \usepackage{amssymb}
 
+
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows}
+\tikzstyle{startstop} = [rectangle, rounded corners, minimum width=2.5cm, minimum height=0.8cm, text centered, draw=black, fill=red!30]
+\tikzstyle{process} = [rectangle, minimum width=2.5cm, minimum height=0.8cm, text centered, draw=black, fill=blue!20]
+\tikzstyle{decision} = [diamond, minimum width=2.5cm, minimum height=0.8cm, text centered, draw=black, fill=green!30]
+\tikzstyle{arrow} = [thick,->,>=stealth]
+
+
 \usepackage{lipsum}
 
 \usepackage{geometry}
 \geometry{left=2.8cm,right=2.8cm,top=2.6cm,bottom=2.6cm}
 \usepackage{fancyhdr}
 \pagestyle{fancy}
-\usepackage{hyperref}% should be the last package you include
 
 \newcommand{\theteam}{}
 \newcommand{\team}[1]{\def\theteam{#1}}
 
 
+\usepackage{hyperref}% should be the last package you include
+
+\usepackage{acronym}
+
+
 \fancyhead[L]{\theteam}
 \fancyhead[R]{\thepage}
 \cfoot{}
+
+
 
 \setlength{\parindent}{0pt}
 
@@ -33,6 +48,7 @@
 \author{\theteam}
 
 \begin{document}
+\input{acronyms}
 \maketitle
 
 \section{Introduction}\label{sec:intro}
@@ -40,7 +56,9 @@
 
 \section{Method}\label{sec:Method}
 \cite{wang2016:DDQN}.
-\lipsum
+\input{sac.tex}
+
+\input{hybrid_model.tex}
 
 \bibliographystyle{abbrv}
 \bibliography{main}
