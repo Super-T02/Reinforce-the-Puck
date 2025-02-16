@@ -1,0 +1,39 @@
+\section{Hybrid-Model}
+While reviewing the gameplay of the trained \ac{SAC} and \ac{TD3} agents,
+we noticed that both agents have their strengths and weaknesses in different situations.
+To combine the strengths of both agents, we created a hybrid model.
+This approach is inspired by the \ac{MoE} architecture, where multiple experts are combined using a gating network to weight the experts' predictions.
+But since we've got an continious action space, weighting both 'experts' predictions would not be feasible option.
+Thus a \ac{DDQN} \cite{vanhasselt2015deepreinforcementlearningdouble} was implemented as selection gate for the actions.
+This gate values the predicted actions of both agents and select the best action for each state:
+
+\begin{equation}
+    a_{\text{Hybrid}} = \arg\max_{a \in \{\pi_{\text{SAC}}(s), \pi_{\text{TD3}}(s)\}} Q_{\text{DDQN}}(s, a)
+\end{equation}
+
+The loss function for training the \ac{DDQN} is based on the \ac{TD}-Error,
+which is the difference between the predicted and the target Q-value.
+As a major difference to the \ac{MoE} approach the 'expert' models are fixed (trained independently) and not trained simulataneously to the gating network.
+
+\begin{figure}[h]
+    \centering
+    \begin{tikzpicture}[node distance=1.5cm]
+
+        % Nodes
+        \node (state) [startstop] {State $s$};
+        \node (sac) [process, below of=state, xshift=-2cm] {SAC: $\pi_{\text{SAC}}(s)$};
+        \node (td3) [process, below of=state, xshift=2cm] {TD3: $\pi_{\text{TD3}}(s)$};
+        \node (ddqn) [decision, below of=state, yshift=-2.5cm] {DDQN: $\max Q(s,a)$};
+        \node (action) [startstop, below of=ddqn, yshift=-1.8cm] {Action $a_{\text{Hybrid}}$};
+
+        % Arrows
+        \draw [arrow] (state) -- (sac);
+        \draw [arrow] (state) -- (td3);
+        \draw [arrow] (sac) |- (ddqn);
+        \draw [arrow] (td3) |- (ddqn);
+        \draw [arrow] (ddqn) -- (action);
+
+    \end{tikzpicture}
+    \caption{Hybrid-Model with DDQN Selection Gate}
+    \label{fig:hybrid_model}
+\end{figure}

@@ -11,6 +11,13 @@
 \usepackage{amssymb}
 
 
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows}
+\tikzstyle{startstop} = [rectangle, rounded corners, minimum width=2.5cm, minimum height=0.8cm, text centered, draw=black, fill=red!30]
+\tikzstyle{process} = [rectangle, minimum width=2.5cm, minimum height=0.8cm, text centered, draw=black, fill=blue!20]
+\tikzstyle{decision} = [diamond, minimum width=2.5cm, minimum height=0.8cm, text centered, draw=black, fill=green!30]
+\tikzstyle{arrow} = [thick,->,>=stealth]
+
 
 \usepackage{lipsum}
 
@@ -50,6 +57,8 @@
 \section{Method}\label{sec:Method}
 \cite{wang2016:DDQN}.
 \input{sac.tex}
+
+\input{hybrid_model.tex}
 
 \bibliographystyle{abbrv}
 \bibliography{main}
