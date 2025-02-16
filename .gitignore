@@ -134,3 +134,4 @@ gifs/*
 
 *.glo
 *.acn
+!report/report.pdf
