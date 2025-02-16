@@ -1,7 +1,11 @@
 import os
+import sys
 import tempfile
 
 import numpy as np
+
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "reinforce-the-puck"))
+
 from agents.agent_factory import AgentFactory
 from agents.base_agent import BaseAgent
 from agents.moe_agent import MOEAgent
