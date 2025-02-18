@@ -1,2 +1,38 @@
-I test the action
-1
+\subsection{\acl{TD3}}
+Our \ac{TD3} algorithm is a from scratch implementation of the original paper \cite{fujimoto2018:TD3}. \ac{TD3} is an off-policy actor-critic algorithm for continous action and state spaces. This combination is very vulnerable to overestimation bias and error accumulation in the \ac{TD}-learning \cite{fujimoto2018:TD3}. The overestimation bias is related to discrete Q-learning, where the value estimate is updated with the following greedy target:
+
+\begin{equation}
+    y = r + \gamma \max_{a'} Q(s', a') \leq \mathbb{E}_\epsilon \left[max_{a'} (Q(s', a') + \epsilon)\right]
+\end{equation}
+
+where $r$ is the reward, $\gamma$ the discount factor, $s'$ the next state and $a'$ the next action. By estimating with error $\epsilon$ the result is generally greater than the true maximum \cite{thrun2014issuesQlearning}. This problem can also be proofed for actor-critic environments, where the policy is updated with the deterministic policy gradient \cite{fujimoto2018:TD3} and leads to suboptimal updates and diverging behavior in the learning process.
+
+Therefore, \ac{TD3} introduces the clipped double Q-Learning, which is based on \ac{DDQN}. \ac{DDQN} optimizes two actors with two critics, which use the same replay buffer and the opposite critic in the learning process \cite{wang2016:DDQN}, inducing an value overestimation of some states. In difference \ac{TD3} uses a single actor $\pi_\phi$ which is optimized with respect to the minimum of two critics $Q_{\theta_1}, Q_{\theta_2}$:
+
+\begin{equation}
+    y = r + \gamma \min_{i=1,2} Q_{\theta_i'}(s', \pi_\phi(s'))
+\end{equation}
+
+As result, the computational costs are reduced by using a single actor and an underestimation bias is induced which is preferable to overestimation since it does not propagate through the policy updates \cite{fujimoto2018:TD3}.
+
+Another problem are the high variance estimates causing a noisy policy gradient. Thus, the Bellman equation is never exactly satisfied, which results in a small residual \ac{TD}-error $\delta_t$. This error propagates through the update step, such that the expected return depends on the expected discounted difference between reward and \ac{TD}-error \cite{fujimoto2018:TD3}:
+
+\begin{equation}
+    Q_\theta(s_t,a_t) = \mathbb{E}_{s_i \sim p_{\pi}, a_i \sim \pi} \left[\sum_{i=t}^{T}\gamma^{i-t}(r_i - \delta_i)\right]
+\end{equation}
+
+% On the one hand-side, the value estimate will diverge  in an actor-critic environment through overestimation, if the policy is poor. And on the other hand-side, the policy becomes poor if the value estimate is inaccurate.
+
+\ac{TD3} addresses this problem by using slowly changing target networks for actor and critics and introducing policy smoothing regularization. Firstly, target networks are used to reduce the error over multiple updates by providing a stable learning objective and reducing the variance in the policy updates \cite{fujimoto2018:TD3}. In \ac{TD3} the target networks parameters $\theta$ are updated with a small rate $\tau$:
+
+\begin{equation}
+    \theta' \leftarrow \tau \theta + (1 - \tau) \theta'
+\end{equation}
+
+Secondly, target policy smoothing regularization is introduced to reduce the vulnerability to narrow peaks in the values estimate. The main idea is that similar actions in the continous space should have similar values, which is related to the learning update from \ac{SARSA} algorithm \cite{sutton1999:SARSA}. To enforce the relationship between similar actions, a small area around the target action is fitted by adding a small amount of Gaussian clipped noise. This results in the following update step:
+
+\begin{equation}
+    y = r + \gamma Q_{\theta'}(s', \pi_{\phi'}(s') + \epsilon) \quad | \epsilon \sim clip(\mathcal{N}(0, \sigma), -c, c)
+\end{equation}
+
+Moreover, \ac{TD3} extends the basic \ac{DDPG} algorithm \cite{lillicrap2015DDPG} by resolving the overestimation bias, adding soft target network updates and smoothing the target policy to lower the further the variance in the value estimate. As result, it is a state of the art actor-critic algorithm, which shows an improvement in learning speed and performance compared to \ac{DDPG} in some tasks in continuous domains .
