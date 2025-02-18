@@ -8,23 +8,23 @@ env1:
   env_name: Pendulum-v1
   id: 0
   max_steps: 1000
-  start_training_after_steps: 20000 # 20k for each agent
+  start_training_after_steps: 20000 # 20k for each agentL
 
 env2:
   env_name: LunarLander-v3
   id: 1
   max_steps: 1000
-  start_training_after_steps: 20000 # 20k for each agent
+  start_training_after_steps: 20000 # 20k for each agentL
 
 env3:
   env_name: Hockey-v0
   env_type: gym
   id: 2
   max_steps: 1000
-  start_training_after_steps: 20000 # 20k for each agent
+  start_training_after_steps: 20000 # 20k for each agentL
 
 # LunaLander
-agent1:
+agentL1:
   type: td3
   checkpoint: null
   env_id: 1
@@ -57,7 +57,7 @@ agent1:
     do_render: False
 
 # LunaLander
-agent2:
+agentL2:
   type: td3
   checkpoint: null
   env_id: 1
@@ -90,7 +90,7 @@ agent2:
     do_render: False
 
 # LunaLander
-agent3:
+agentL3:
   type: td3
   checkpoint: null
   env_id: 1
@@ -123,7 +123,7 @@ agent3:
     do_render: False
 
 # LunaLander
-agent4:
+agentL4:
   type: td3
   checkpoint: null
   env_id: 1
@@ -156,7 +156,7 @@ agent4:
     do_render: False
 
 # LunaLander
-agent5:
+agentL5:
   env_id: 1
   type: sac
   tau: 0.005 # Target network update rate (Soft update)
