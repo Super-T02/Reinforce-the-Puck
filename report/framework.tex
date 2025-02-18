@@ -1,5 +1,5 @@
 \subsection{Framework}
-To provide an environment for training different agents and environments, we implemented a framework based on pytorch that abstracts both components, making them interchangeable and configurable.
+We implemented a pytorch-based framework that abstracts agents and environments, ensuring they are interchangeable and easily configurable for training.
 In a configuration file the environment, the agent-type, it's training- and hyperparameters and the opponents can be specified.
 
 The framework also enables self-play of the agents, by specifying this option. In self-play, the trained agent is periodically replaced by one of it's opponents at a specified frequency. The rule-based agents of the hockey environment can also be used as opponents, but are not considered as training candidates.
