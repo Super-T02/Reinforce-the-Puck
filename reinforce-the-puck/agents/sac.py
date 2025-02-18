@@ -151,7 +151,8 @@ class SACAgent(BaseAgent):
             action: The selected action.
         """
         action, _ = self.policy.sample(state)
-        action = action.detach().cpu().numpy()
+        if type(action) == torch.Tensor:
+            action = action.detach().cpu().numpy()
         action = np.clip(action, self._action_space.low, self._action_space.high)
         return action
 

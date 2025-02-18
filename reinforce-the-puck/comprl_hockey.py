@@ -98,7 +98,7 @@ def initialize_agent(agent_args: list[str]) -> Agent:
     parser.add_argument(
         "--agent-type",
         type=str,
-        choices=["weak", "strong", "random", "td3", "sac"],
+        choices=["weak", "strong", "random", "td3", "sac", "moe"],
         default="weak",
         help="Which agent to use.",
     )
