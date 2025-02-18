@@ -1,0 +1,10 @@
+\subsection{Framework}
+To provide an environment for training different agents and environments, we implemented a framework based on pytorch that abstracts both components, making them interchangeable and configurable.
+In a configuration file the environment, the agent-type, it's training- and hyperparameters and the opponents can be specified.
+
+The framework also enables self-play of the agents, by specifying this option. In self-play, the trained agent is periodically replaced by one of it's opponents at a specified frequency. The rule-based agents of the hockey environment can also be used as opponents, but are not considered as training candidates.
+
+A major challange in reinforcement learning is the formulation of a appropriate reward function for training. Thus the reward for scoring a goal in the hockey environment is sparse, other aspects of the game have to be considered to enable fast convergence and good exploration.
+Therefore we implemented a custom reward function, rewarding the aspects: scoring or getting goals, the closeness to the puck, the puck direction, touching the puck, blocking the puck and staying in the goal. We computed the total reward by summing up the rewards of the different aspects, each weighted by a factor that can be configurated. For the evaluation step just the reward for scoring a goal was used.
+
+The leaderboard ranks agents dynamically based on their performance using the Plackett-Luce rating system \cite{af5079a1-8ca5-3727-a405-0a82390327b7}. Each agent has a skill rating $\mu$ and uncertainty $\sigma$, which are updated after every match. Games are simulated, and winners gain rating points while losers may lose them. Agents are paired based on a probability distribution over their skill levels, ensuring fair matchups. The leaderboard is sorted by $\mu$, displaying agent names, types, ratings, and average scores.
