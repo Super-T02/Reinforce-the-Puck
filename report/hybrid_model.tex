@@ -3,7 +3,7 @@ While reviewing the gameplay of the trained \ac{SAC} and \ac{TD3} agents,
 we noticed that both agents have their strengths and weaknesses in different situations.
 To combine the strengths of both agents, we created a hybrid model.
 This approach is inspired by the \ac{MoE} architecture, where multiple experts are combined using a gating network to weight the experts' predictions.
-But since we've got an continious action space, weighting both 'experts' predictions would not be feasible option.
+But since we've got an continious spatial action space, weighting both 'experts' predictions would not be feasible option.
 Thus a \ac{DDQN} \cite{vanhasselt2015deepreinforcementlearningdouble} was implemented as selection gate for the actions.
 This gate values the predicted actions of both agents and select the best action for each state:
 

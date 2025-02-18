@@ -21,27 +21,20 @@ the probability density function of the unbounded action is scaled by the absolu
     \pi(a \mid s) = \mu(u \mid s) \left| \det \left( \frac{d\mathbf{a}}{d\mathbf{u}} \right) \right|^{-1}.
 \end{equation}
 
-Finally, the log probability of the adjusted density function is used to calculate.
-
-The actor is trained using the maximum entropy objective, using the critic to estimate the value of the state-action pair.
-
-The actor is trained by maximizing the expected reward and the entropy of the policy, given a batch of the replay buffer \( \mathcal{D} \):
+So for each state, sampled from the replay buffer \( \mathcal{D} \) an action is sampled from the actor and the log probability of this action is calculated using the adjusted probability density function.
+The actor is trained using the maximum entropy objective, where the critic estimates the value for each state-action pair:
 \begin{equation}
     J(\pi) = \mathbb{E}_{s_t \sim \mathcal{D}, a_t \sim \pi} \left[ \alpha \log \pi(a_t \mid s_t) - Q(s_t, a_t) \right]
 \end{equation}
 
 The critic consists of two Q-networks, valuing state-action pairs, to prevent overestimation bias \cite{fujimoto2018addressingfunctionapproximationerror}.
-During training, both networks predict a value for the given state-action pair $(s_t\sim \mathcal{D}, a_t \sim \pi)$,
-and the minimum of the two values is used as the target value for updating the critic:
+During training both networks independently predict a value for the given state-action pair $(s_t\sim \mathcal{D}, a_t \sim \pi)$ and the minimum is selected.
 
-\begin{equation} Q_{\text{target}}(s', a') = \min \left( Q_1^{\text{target}}(s', a'), Q_2^{\text{target}}(s', a') \right). \end{equation}
-
-
-The target Q-values are used to compute the updated value by incorporating the reward \( r \) and the discounted future reward. The entropy term, weighted by the temperature parameter \( \alpha \), is included to balance exploration and exploitation. This formulation aligns with the objective function \( J(\pi) \), which maximizes both the expected reward and the entropy of the policy:
-
+The target Q-values incorporate the immediate reward \( r\) and the discounted future reward. Additionally, an entropy term, weighted by the temperature parameter \( \alpha \), is used to balance exploration and exploitation. This formulation aligns with the objective function \( J(\pi) \), which maximizes both the expected reward and the entropy of the policy:
 \begin{equation}
-    y = r + \gamma (1 - d) \left( Q_{\text{target}}(s', a') + \alpha \mathcal{H}(\pi(\cdot \mid s')) \right),
+    y = r + \gamma (1 - d) \left( \min \left( Q_1^{\text{target}}(s', a'), Q_2^{\text{target}}(s', a') \right) + \alpha \mathcal{H}(\pi(\cdot \mid s')) \right).
 \end{equation}
+
 
 The critic is trained by minimizing the mean squared Bellman error, which represents the difference between the estimated Q-values and the target values:
 
@@ -54,7 +47,7 @@ as it was shown to improve the stability of the training process \cite{HaarnojaA
 In the original paper ``an additional function approximator for the value function [was introduced] but later found [as] to be unnecessary'' \cite{haarnoja2019softactorcriticalgorithmsapplications}
 \\
 \\
-Additionally the automatically temperature parameter tuning using gradient-based optimization, introduced in the follow-up paper \cite{haarnoja2019softactorcriticalgorithmsapplications}, was implemented:
+Moreover the automatically temperature parameter tuning using gradient-based optimization, introduced in the follow-up paper \cite{haarnoja2019softactorcriticalgorithmsapplications}, was implemented:
 
 \begin{equation} J(\alpha) = \mathbb{E}{a_t \sim \pi} \left[ -\alpha \left( \log \pi(a_t \mid s_t) + \mathcal{H}{\text{target}} \right) \right], \end{equation}
 
