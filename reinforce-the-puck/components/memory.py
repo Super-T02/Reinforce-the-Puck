@@ -92,8 +92,17 @@ class Memory(MemoryInterface):
         if indices is not None:
             self.inds = indices
         else:
-            self.inds = np.random.choice(range(self.size), size=batch, replace=False)
+            probs = np.ones(self.size) / (self.size)
+            # self.inds = np.random.choice(range(self.size), size=batch, replace=False)
+            self.inds = self.sample_indices_efficient(batch, probs)
         return self.transitions[self.inds, :]
+
+    def sample_indices_efficient(self, batch_size, probs):
+        cdf = np.cumsum(probs)  # Build cumulative distribution
+        cdf[-1] = 1.0  # Sicherstellen, dass der letzte Wert exakt 1 ist
+        random_vals = np.random.rand(batch_size)
+        indices = np.searchsorted(cdf, random_vals)  # binary search -> log(n)
+        return indices
 
     def get_all_transitions(self):
         """Get all transitions from the memory.
@@ -121,16 +130,9 @@ class BalancedMemory(Memory):
 
     def add_transition(self, transitions_new):
         """Add a new transition to the balanced memory."""
-        super().add_transition(transitions_new)
         self.memory_strength -= self._decay_steps
         self.memory_strength[self.current_idx] = self._max_priority
-
-    def sample_indices_efficient(self, batch_size, probs):
-        cdf = np.cumsum(probs)  # Build cumulative distribution
-        cdf[-1] = 1.0  # Sicherstellen, dass der letzte Wert exakt 1 ist
-        random_vals = np.random.rand(batch_size)
-        indices = np.searchsorted(cdf, random_vals)  # binary search -> log(n)
-        return indices
+        super().add_transition(transitions_new)
 
     def sample(self, batch_size: int = 1) -> np.ndarray:
         """Sample a batch of transitions from the balanced memory.
@@ -142,7 +144,7 @@ class BalancedMemory(Memory):
             np.ndarray: Batch of transitions.
         """
         strength = self.memory_strength[: self.size]
-        probs = strength / (strength.sum() + 1e-5)
+        probs = strength / (strength.sum())
         # indices = np.random.choice(self.size, batch_size, p=probs)
         indices = self.sample_indices_efficient(batch_size, probs)
         return super().sample(batch_size, indices=indices)
@@ -313,16 +315,9 @@ class BalancedPrioritizedMemory(Memory):
         normalized_reward = self.normalize_reward(reward)
 
         # Set initial priority based on normalized reward
-        self.priorities[idx] = (normalized_reward + 1e-5) ** self.alpha
+        self.priorities[idx] = (normalized_reward + 1e-8) ** self.alpha
         self._max_priority = max(self._max_priority, self.priorities[idx])
         return self
-
-    def sample_indices_efficient(self, batch_size, probs):
-        cdf = np.cumsum(probs)  # Build cumulative distribution
-        cdf[-1] = 1.0  # Sicherstellen, dass der letzte Wert exakt 1 ist
-        random_vals = np.random.rand(batch_size)
-        indices = np.searchsorted(cdf, random_vals)  # binary search -> log(n)
-        return indices
 
     def sample(self, batch_size: int) -> tuple:
         """Sample from the balanced prioritized experience replay buffer.
@@ -344,9 +339,8 @@ class BalancedPrioritizedMemory(Memory):
         effective_priorities = (
             self.priorities[: self.size] * self.memory_strength[: self.size]
         )
-        probs = effective_priorities / (effective_priorities.sum() + 1e-5)
+        probs = effective_priorities / (effective_priorities.sum() + 1e-8)
 
-        # indices = np.random.choice(self.size, batch_size, p=probs)
         indices = self.sample_indices_efficient(batch_size, probs)
 
         # Compute importance sampling weights
