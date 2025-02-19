@@ -20,10 +20,10 @@ env3:
     winner_weight: 10.0 # Winner reward
     closeness_puck_weight: 0 # Closer = better
     touch_puck_weight: 0.0 # Touching puck = better
-    puck_direction_weight: 0.0 # Puck direction = better
+    puck_direction_weight: 0.1 # Puck direction = better
     no_touch_penalty: 0.0 # Penalty for not touching puck after 10% of episode
-    timed_penalty_active: False # More time ==> less reward
-    block_puck_weight: 0.0 # Blocking puck = better
+    timed_penalty_active: True # More time ==> less reward
+    block_puck_weight: 0.2 # Blocking puck = better
     stay_in_goal_weight: 0.0 # Staying in goal = better if opponent is shooting
 
 agent1:
@@ -65,7 +65,7 @@ opponent1:
 opponent2:
   type: sac
   opponent_name: "sac"
-  checkpoint: "../final_checkpoints/11-02-sac-ft/checkpoint_best.pth"
+  checkpoint: "../final_checkpoints/19-02-sac-ft-50k/checkpoint_best.pth"
   env_id: 2
   eval_episodes: 5
   tau: 0.005 # Target network update rate (Soft update)
