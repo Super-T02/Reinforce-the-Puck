@@ -1,0 +1,140 @@
+\appendix
+\bibliographystyle{abbrv}
+\bibliography{main}
+\newpage
+\input{acronyms}
+
+\newpage
+\section{Additional Plots and Hyperparameter}
+
+\subsection{Hyperparameter for evaluation}
+
+\input{tables/hyperparameters_tables.tex}
+
+\newpage
+\subsection{Evaluation Plots for Pendulum}
+
+\begin{figure}[!h]
+    \centering
+
+    % First row
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/small_eval_Pendulum_Reward.png}
+        \caption{Reward over the environment steps}
+        \label{fig:reward_pendulum}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/small_eval_Pendulum_ActorLoss.png}
+        \caption{Actor Loss over the environment steps}
+        \label{fig:actor_pendulum}
+    \end{minipage}
+
+    \vspace{0.5cm} % Space between rows
+
+    % Second row
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/small_eval_Pendulum_Loss.png}
+        \caption{Critic Loss over the environment steps}
+        \label{fig:critic_pendulum}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/small_eval_Pendulum_AlphaLoss.png}
+        \caption{Alpha Loss over the environment steps}
+        \label{fig:alpha_pendulum}
+    \end{minipage}
+
+    % \caption{Evaluation Plots for Pendulum}
+    % \label{fig:pendulum_plots}
+\end{figure}
+
+\newpage
+
+\subsection{Evaluation Plots for Lunar Lander}
+
+\begin{figure}[!h]
+    \centering
+
+    % First row
+    \begin{minipage}{0.49\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/small_eval_Lunar Lander_Reward.png}
+        \caption{Reward over the environment steps}
+        \label{fig:reward_lunar}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.49\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/small_eval_Lunar Lander_ActorLoss.png}
+        \caption{Actor Loss over the environment steps}
+        \label{fig:actor_lunar}
+    \end{minipage}
+
+    \vspace{0.5cm} % Space between rows
+
+    % Second row
+    \begin{minipage}{0.49\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/small_eval_Lunar Lander_Loss.png}
+        \caption{Critic Loss over the environment steps}
+        \label{fig:critic_lunar}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.49\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/small_eval_Lunar Lander_AlphaLoss.png}
+        \caption{Alpha Loss over the environment steps}
+        \label{fig:alpha_lunar}
+    \end{minipage}
+
+    % \caption{Evaluation Plots for Lunar Lander}
+    % \label{fig:lunar_lander_plots}
+\end{figure}
+
+\newpage
+
+\subsection{Evaluation Plots for HalfCheetah}
+
+\begin{figure}[!h]
+    \centering
+
+    % First row
+    \begin{minipage}{0.49\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/small_eval_HalfCheetah_Reward.png}
+        \caption{Reward over the environment steps}
+        \label{fig:reward_half}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.49\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/small_eval_HalfCheetah_ActorLoss.png}
+        \caption{Actor Loss over the environment steps}
+        \label{fig:actor_half}
+    \end{minipage}
+
+    \vspace{0.5cm} % Space between rows
+
+    % Second row
+    \begin{minipage}{0.49\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/small_eval_HalfCheetah_Loss.png}
+        \caption{Critic Loss over the environment steps}
+        \label{fig:critic_half}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.49\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/small_eval_HalfCheetah_AlphaLoss.png}
+        \caption{Alpha Loss over the environment steps}
+        \label{fig:alpha_half}
+    \end{minipage}
+
+    % \caption{Evaluation Plots for HalfCheetah}
+    % \label{fig:half_plots}
+\end{figure}
