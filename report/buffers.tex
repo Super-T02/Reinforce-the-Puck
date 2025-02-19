@@ -1,4 +1,4 @@
-\subsection{Enhancements through \acl{BPER}}
+\subsection{Enhancements through \acl{BPER}} \label{sec:buffers}
 
 The basic approach for modelling experience buffers are \ac{ER} buffers \cite{lin1992ER}, which hold the past $n$ (most of the time $n>100000$) transitions and at training time $m$ transitions are sampled as batch to train actor and critic networks. Although, the  sampling is done at each iteration uniformly, early observations in the empty buffer  are sampled more often than late experiences, which describe the current learning state \cite{schaul2015prioritized}. To overcome this issue, we propose first \ac{BER},  \ac{PER} \cite{schaul2015prioritized} and \ac{BPER}.
 
