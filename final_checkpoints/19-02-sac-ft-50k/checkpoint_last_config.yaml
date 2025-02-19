@@ -1,22 +1,27 @@
-agent_a_path: ../final_checkpoints/11-02-sac-ft/checkpoint_best.pth
-agent_a_type: sac
-agent_b_path: ../final_checkpoints/08-02-td3-ft-catch_bonus/checkpoint_last.pth
-agent_b_type: td3
+actor_hidden_sizes:
+- 512
+- 256
+alpha: 0.1
+alpha_lr: 0.0003
+alpha_tuning: true
 buffer_alpha: 0.7
 buffer_beta: 0.5
 buffer_beta_increment: 0.001
 buffer_decay_steps: 100000
-buffer_type: BER
-checkpoint: null
+buffer_type: ER
+checkpoint: ../final_checkpoints/11-02-sac-ft/checkpoint_best.pth
+critic_hidden_sizes:
+- 512
+- 256
+- 64
+discount: 0.98
 env_id: 0
 epochs: 10
 eval_episodes: 20
 eval_freq: 50
-gamma: 0.99
-hidden_size:
-- 512
-- 512
-memory_size: 100000
+log_std_max: 2
+log_std_min: -20
+memory_size: 1000000
 mutation_config:
   enabled: false
   maxs:
@@ -46,27 +51,28 @@ mutation_config:
 name: BasicOpponent
 num_runs: 1
 opponent_names:
-- opponent1
-- opponent2
-- opponent3
-- opponent4
+- undefined
 specialized_config:
-  _dtype: torch.float32
+  _dtype: None
   device: cuda
-  do_render: true
-  max_memory_size: 100000
-  num_episodes: 2500
+  do_render: null
+  max_memory_size: null
+  num_episodes: null
+tau: 0.005
 trainer_config:
   batch_size: 512
   beta1: 0.9
   beta2: 0.999
-  checkpoint_dir: D:\Users\Jona\Dokumente\GitHub\Reinforce-the-Puck\models\checkpoints
+  checkpoint_dir: C:\Users\Arb01351\Documents\GitHub\Reinforce-the-Puck\models\checkpoints
   epochs: 100
   id: -1
-  learning_rate: 0.003
+  learning_rate: 0.001
+  learning_rate_actor: 0.0003
+  learning_rate_critic: 0.0003
   log_freq: 10
-  log_name: mue_hockey
+  log_name: sac_delete
   max_checkpoints: 5
   save_checkpoint_freq: 100
-type: moe
+type: sac
+update_target_every: 100
 version: 1
