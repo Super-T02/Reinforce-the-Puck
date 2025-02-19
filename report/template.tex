@@ -10,6 +10,8 @@
 \usepackage{amsmath}       % blackboard math symbols
 \usepackage{amssymb}
 \usepackage{placeins}
+\usepackage{booktabs}
+\usepackage{float}
 \usepackage{hyperref}
 
 \usepackage{tikz}
@@ -72,6 +74,12 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor i
 
 
 \input{hybrid_model.tex}
+\section{Evaluation}
+With all our methodlogies in place, we now investigate their performance in different domains. We start with analysing the sampling behavior of the four implemented buffer types (Section \ref{subsec:buffer_eval}), then we compare the performance on 3 simple environments (Section \ref{subsec:simple_eval}), to show the impact of our modifications at well-known reinforcement learning benchmarks. Finally, we are focusing on the hockey environment, were the trainging the foundation models is anlysed and compared to the results of the simple environments (Section \ref{subsec:hockey_eval}).
+
+\input{buffer_eval.tex}
+\input{simple_eval.tex}
+\input{hockey_eval.tex}
 
 \input{appendix.tex}
 

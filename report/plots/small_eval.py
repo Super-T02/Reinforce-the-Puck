@@ -1,4 +1,5 @@
 import os
+from turtle import position
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -161,6 +162,86 @@ def plot_metrics(data, b2n, m2w, metrics, environments):
             plt.savefig(f"../images/small_eval_{env}_{metric}.png")
 
 
+def create_avg_reward_table_latex(data):
+    """
+    Create a table with the average reward for each environment and algorithm,
+    using only the last 100 steps, round values to 2 decimal places, format the
+    best scores in bold, sort by custom order, and export it to LaTeX.
+
+    Args:
+        data (pd.DataFrame): The combined DataFrame containing all environments and metrics.
+
+    Returns:
+        str: A LaTeX-formatted table as a string.
+    """
+    order = {
+        "sac-er": 0,
+        "td3-er": 1,
+        "td3-per": 2,
+        "td3-ber": 3,
+        "td3-bper": 4,
+    }
+
+    # Filter for the "Reward" metric
+    reward_data = data[data["Metric"] == "Reward"]
+
+    # Filter to include only the last 100 steps for each Environment and Algorithm-Buffer
+    last_100_steps = (
+        reward_data.groupby(["Environment", "Algorithm-Buffer"])
+        .apply(lambda group: group.nlargest(100, "Step"))
+        .reset_index(drop=True)
+    )
+
+    # Group by Environment and Algorithm-Buffer, then calculate the mean reward
+    avg_rewards = (
+        last_100_steps.groupby(["Environment", "Algorithm-Buffer"])["Value"]
+        .mean()
+        .reset_index()
+    )
+
+    # Round the values to 2 decimal places
+    avg_rewards["Value"] = avg_rewards["Value"].round(2)
+
+    # Pivot the table for better readability
+    reward_table = avg_rewards.pivot(
+        index="Environment", columns="Algorithm-Buffer", values="Value"
+    )
+
+    reward_table = reward_table[
+        [col for col in sorted(reward_table.columns, key=lambda x: order[x])]
+    ]
+
+    # Rename columns for better readability
+    reward_table.columns = [
+        f"{alg.split('-')[0].upper()} ({buffer2name[alg.split('-')[1]]})"
+        for alg in reward_table.columns
+    ]
+
+    # Reset index for a clean table
+    reward_table.reset_index(inplace=True)
+
+    # Format the best scores per environment in bold
+    for index, row in reward_table.iterrows():
+        max_value = row[1:].max()  # Exclude the 'Environment' column
+        for col in reward_table.columns[1:]:
+            if row[col] == max_value:
+                reward_table.at[index, col] = f"\\textbf{{{row[col]:.2f}}}"
+            else:
+                reward_table.at[index, col] = f"{row[col]:.2f}"
+
+    # Convert the table to LaTeX format
+    latex_table = reward_table.to_latex(
+        index=False,  # Do not include the index in the LaTeX table
+        caption="Average Reward for Simple Environments and Algorithm (Last 100 Steps)}\\centering {",
+        label="tab:avg_reward",
+        column_format="l" + "r" * (len(reward_table.columns) - 1),  # Align columns
+        escape=False,  # Allow LaTeX symbols like \textbf{}
+        position="H",
+    )
+
+    return latex_table
+
+
 plot_metrics(
     copy,
     buffer2name,
@@ -168,3 +249,7 @@ plot_metrics(
     ["Reward", "Loss", "ActorLoss", "AlphaLoss"],
     ["Pendulum", "HalfCheetah", "Lunar Lander"],
 )
+
+reward_table = create_avg_reward_table_latex(copy)
+with open("../tables/avg_reward_table_simple_eval.tex", "w") as f:
+    f.write(reward_table)

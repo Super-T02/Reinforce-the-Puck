@@ -1,9 +1,19 @@
 import os
 
+import pandas as pd
 import yaml
 
 
-def parse_yaml_to_latex_tables(yaml_file):
+def parse_yaml_to_latex_tables_with_pandas(yaml_file):
+    """
+    Parse a YAML file and generate LaTeX tables using Pandas' to_latex method.
+
+    Args:
+        yaml_file (str): Path to the YAML file.
+
+    Returns:
+        str: A string containing LaTeX tables for all environments.
+    """
     # Load the YAML file
     with open(yaml_file, "r") as file:
         data = yaml.safe_load(file)
@@ -26,18 +36,8 @@ def parse_yaml_to_latex_tables(yaml_file):
         if not agents:
             continue
 
-        # Start building the LaTeX table for the current environment
-        latex_table = f"""
-\\begin{{table}}[htbp]
-    \\centering
-    \\caption{{Hyperparameter Summary for {env_name}}}
-    \\label{{tab:hyperparameters_{env_name.lower()}}}
-    \\begin{{tabular}}{{|l|l|l|l|l|l|}}
-        \\hline
-        \\textbf{{Agent}} & \\textbf{{Noise}} & \\textbf{{Actor Sizes}} & \\textbf{{Critic Sizes}} & \\textbf{{Buffer Type}} & \\textbf{{Discount}} \\\\ \\hline
-        """
-
-        # Add rows for each agent in the environment
+        # Create a DataFrame for the current environment
+        rows = []
         for agent_name, agent_data in agents:
             algorithm = agent_data.get("type", "N/A").upper()
             noise = (
@@ -50,16 +50,33 @@ def parse_yaml_to_latex_tables(yaml_file):
             buffer_type = agent_data.get("buffer_type", "ER")
             discount = agent_data.get("discount", "N/A")
 
-            # Add a row to the LaTeX table
-            latex_table += f"""
-        {algorithm} & {noise} & {actor_sizes} & {critic_sizes} & {buffer_type} & {discount} \\\\ \\hline
-            """
+            # Append a row to the DataFrame
+            rows.append(
+                {
+                    "Agent": algorithm,
+                    "Noise": noise,
+                    "Actor Sizes": actor_sizes,
+                    "Critic Sizes": critic_sizes,
+                    "Buffer Type": buffer_type,
+                    "Discount": discount,
+                }
+            )
 
-        # Close the LaTeX table for the current environment
-        latex_table += """
-    \\end{tabular}
-\\end{table}
-        """
+        # Convert rows to a Pandas DataFrame
+        df = pd.DataFrame(rows)
+
+        # Generate LaTeX table using Pandas' to_latex method
+        latex_table = df.to_latex(
+            index=False,  # Do not include the index column
+            caption="Hyperparameter Summary for " + env_name + " }\\centering {",
+            label=f"tab:hyperparameters_{env_name.lower()}",
+            column_format="llllll",  # Align columns with vertical lines
+            float_format="%.2f",  # Round values to 2 decimal places
+            escape=False,  # Allow LaTeX symbols like $ in the table
+            position="H",  # Place the table "Here"
+        )
+
+        # Append the LaTeX table to the result
         latex_tables += latex_table + "\n\n"
 
     return latex_tables
@@ -67,7 +84,7 @@ def parse_yaml_to_latex_tables(yaml_file):
 
 # Use the function to generate the LaTeX tables
 yaml_file = "../../config/temp.yaml"  # Replace with the path to your YAML file
-latex_tables = parse_yaml_to_latex_tables(yaml_file)
+latex_tables = parse_yaml_to_latex_tables_with_pandas(yaml_file)
 goal = "../tables/hyperparameters_tables.tex"
 
 os.makedirs(os.path.dirname(goal), exist_ok=True)
