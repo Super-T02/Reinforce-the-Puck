@@ -1,0 +1,67 @@
+
+\begin{table}[htbp]
+    \centering
+    \caption{Hyperparameter Summary for Pendulum}
+    \label{tab:hyperparameters_pendulum}
+    \begin{tabular}{|l|l|l|l|l|l|}
+        \hline
+        \textbf{Agent} & \textbf{Noise} & \textbf{Actor Sizes} & \textbf{Critic Sizes} & \textbf{Buffer Type} & \textbf{Discount} \\ \hline
+
+        TD3 & $\sigma$=0.2, clip=0.8, $\beta$=1.0 & [128, 128] & [128, 128, 64] & ER & 0.95 \\ \hline
+
+        TD3 & $\sigma$=0.2, clip=0.8, $\beta$=1.0 & [128, 128] & [128, 128, 64] & BER & 0.95 \\ \hline
+
+        TD3 & $\sigma$=0.2, clip=0.8, $\beta$=1.0 & [128, 128] & [128, 128, 64] & PER & 0.95 \\ \hline
+
+        TD3 & $\sigma$=0.2, clip=0.8, $\beta$=1.0 & [128, 128] & [128, 128, 64] & BPER & 0.95 \\ \hline
+
+        SAC & N/A & [512, 256] & [512, 256, 64] & ER & 0.98 \\ \hline
+
+    \end{tabular}
+\end{table}
+
+
+
+\begin{table}[htbp]
+    \centering
+    \caption{Hyperparameter Summary for LunarLander}
+    \label{tab:hyperparameters_lunarlander}
+    \begin{tabular}{|l|l|l|l|l|l|}
+        \hline
+        \textbf{Agent} & \textbf{Noise} & \textbf{Actor Sizes} & \textbf{Critic Sizes} & \textbf{Buffer Type} & \textbf{Discount} \\ \hline
+
+        TD3 & $\sigma$=0.2, clip=0.8, $\beta$=1.0 & [256, 256] & [256, 256, 128] & ER & 0.98 \\ \hline
+
+        TD3 & $\sigma$=0.2, clip=0.8, $\beta$=1.0 & [256, 256] & [256, 256, 128] & BER & 0.98 \\ \hline
+
+        TD3 & $\sigma$=0.2, clip=0.8, $\beta$=1.0 & [256, 256] & [256, 256, 128] & PER & 0.98 \\ \hline
+
+        TD3 & $\sigma$=0.2, clip=0.8, $\beta$=1.0 & [256, 256] & [256, 256, 128] & BPER & 0.98 \\ \hline
+
+        SAC & N/A & [512, 256] & [512, 256, 64] & ER & 0.98 \\ \hline
+
+    \end{tabular}
+\end{table}
+
+
+
+\begin{table}[htbp]
+    \centering
+    \caption{Hyperparameter Summary for HalfCheetah}
+    \label{tab:hyperparameters_halfcheetah}
+    \begin{tabular}{|l|l|l|l|l|l|}
+        \hline
+        \textbf{Agent} & \textbf{Noise} & \textbf{Actor Sizes} & \textbf{Critic Sizes} & \textbf{Buffer Type} & \textbf{Discount} \\ \hline
+
+        TD3 & $\sigma$=0.2, clip=0.8, $\beta$=1.0 & [256, 256] & [256, 256, 128] & ER & 0.95 \\ \hline
+
+        TD3 & $\sigma$=0.2, clip=0.8, $\beta$=1.0 & [256, 256] & [256, 256, 128] & BER & 0.95 \\ \hline
+
+        TD3 & $\sigma$=0.2, clip=0.8, $\beta$=1.0 & [256, 256] & [256, 256, 128] & PER & 0.95 \\ \hline
+
+        TD3 & $\sigma$=0.2, clip=0.8, $\beta$=1.0 & [256, 256] & [256, 256, 128] & BPER & 0.95 \\ \hline
+
+        SAC & N/A & [512, 256] & [512, 256, 64] & ER & 0.98 \\ \hline
+
+    \end{tabular}
+\end{table}

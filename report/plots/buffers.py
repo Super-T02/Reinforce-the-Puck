@@ -21,17 +21,17 @@ from components.memory import (
 from tqdm import tqdm
 from tueplots import bundles
 
-plt.rcParams.update({"figure.dpi": 175})
+plt.rcParams.update({"figure.dpi": 250})
 plt.rcParams.update(bundles.neurips2024(family="sans-serif"))
 plt.rcParams.update(
     {
-        "font.size": 10,
-        "xtick.labelsize": 10,
-        "ytick.labelsize": 10,
-        "axes.labelsize": 12,
-        "axes.titlesize": 12,
-        "legend.fontsize": 10,
-        "legend.title_fontsize": 12,
+        "font.size": 9,
+        "xtick.labelsize": 9,
+        "ytick.labelsize": 9,
+        "axes.labelsize": 11,
+        "axes.titlesize": 11,
+        "legend.fontsize": 9,
+        "legend.title_fontsize": 11,
     }
 )
 

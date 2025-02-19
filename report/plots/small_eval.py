@@ -1,0 +1,170 @@
+import os
+
+import matplotlib.pyplot as plt
+import pandas as pd
+from tueplots import bundles
+
+plt.rcParams.update({"figure.dpi": 250})
+plt.rcParams.update(bundles.neurips2024(family="sans-serif"))
+plt.rcParams.update(
+    {
+        "font.size": 15,
+        "xtick.labelsize": 15,
+        "ytick.labelsize": 15,
+        "axes.labelsize": 18,
+        "axes.titlesize": 18,
+        "legend.fontsize": 9,
+        "legend.title_fontsize": 11,
+    }
+)
+
+
+def load_tensorboard_data(base_dir, env_name):
+    """
+    Load TensorBoard CSV data into a single DataFrame.
+
+    Args:
+        base_dir (str): The base directory containing metric folders and CSV files.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing all the data with additional columns for metric, runname, and algorithm.
+    """
+    data_frames = []
+
+    # Walk through the directory structure
+    for metric in os.listdir(base_dir):
+        metric_path = os.path.join(base_dir, metric)
+        if os.path.isdir(metric_path):
+            for file in os.listdir(metric_path):
+                if file.endswith(".csv"):
+                    file_path = os.path.join(metric_path, file)
+                    df = pd.read_csv(file_path)
+
+                    # Split in runname and timestamp
+                    runname_timestamp = os.path.splitext(file)[0]
+                    runname = runname_timestamp.split("_")[0]
+                    split = runname.split("-")
+
+                    alg = split[0]
+                    buffer = "er"
+                    if len(split) > 1:
+                        buffer = split[1]
+
+                    df["Metric"] = metric
+                    df["RunName"] = runname_timestamp
+                    df["Algorithm"] = alg
+                    df["Buffer"] = buffer
+                    df["Algorithm-Buffer"] = f"{alg}-{buffer}"
+
+                    data_frames.append(df)
+
+    combined_df = pd.concat(data_frames, ignore_index=True)
+    combined_df["Environment"] = env_name
+    return combined_df
+
+
+# Create a combined DataFrame
+pendulum = load_tensorboard_data("PendulumEval", "Pendulum")
+half_cheetah = load_tensorboard_data("HalfCheetahEval", "HalfCheetah")
+lunar_lander = load_tensorboard_data("LunaEval", "Lunar Lander")
+combined_data = pd.concat(
+    [pendulum, half_cheetah, lunar_lander], ignore_index=True
+).reset_index(drop=True)
+copy = combined_data.copy()
+
+
+# Generate plots
+buffer2name = {
+    "er": "ER",
+    "per": "PER",
+    "ber": "BER",
+    "bper": "BPER",
+}
+
+# Metrics
+metric2window = {
+    "Reward": 100,
+    "EvalReward": 1,
+    "Loss": 100,
+    "ActorLoss": 100,
+    "AlphaLoss": 100,
+}
+
+metric2name = {
+    "Reward": "Reward",
+    "EvalReward": "Eval Reward",
+    "Loss": "Critic Loss",
+    "ActorLoss": "Actor Loss",
+    "AlphaLoss": "Alpha Loss",
+}
+
+# Sorting order
+sort_order = {
+    "er": 0,
+    "per": 1,
+    "ber": 2,
+    "bper": 3,
+}
+
+
+# Plotting
+def plot_metrics(data, b2n, m2w, metrics, environments):
+    for e, env in enumerate(environments):
+        env_data = data[data["Environment"] == env]
+        for i, metric in enumerate(metrics):
+            fig, ax = plt.subplots(1, 1)
+            metric_data = env_data[env_data["Metric"] == metric]
+            axs = ax
+            metric_data = metric_data.sort_values(
+                by=["Algorithm", "Buffer"], key=lambda x: x.map(sort_order)
+            )
+            for alg_buffer in metric_data["Algorithm-Buffer"].unique():
+                alg_data = metric_data[
+                    metric_data["Algorithm-Buffer"] == alg_buffer
+                ].sort_values(by="Step")
+
+                buffer = alg_buffer.split("-")[1]
+                alg = alg_buffer.split("-")[0]
+                name = f"{alg.upper()} ({b2n[buffer]})"
+                window = m2w[metric]
+
+                # Exponential smoothing
+                moving_avg = alg_data["Value"].ewm(span=window).mean()
+                bounds = (
+                    moving_avg - alg_data["Value"].ewm(span=window).std(),
+                    moving_avg + alg_data["Value"].ewm(span=window).std(),
+                )
+
+                if window <= 1:
+                    # Smoothing not possible
+                    moving_avg = alg_data["Value"]
+
+                axs.plot(
+                    alg_data["Step"],
+                    moving_avg,
+                    label=name,
+                    alpha=0.8,
+                )
+
+                if window > 1:
+                    axs.fill_between(
+                        alg_data["Step"],
+                        bounds[0],
+                        bounds[1],
+                        alpha=0.2,
+                    )
+            axs.set_xlabel("Step")
+            axs.set_ylabel(metric2name[metric])
+            axs.set_title(f"{metric2name[metric]} over Steps for {env}")
+            axs.grid()
+            axs.legend()
+            plt.savefig(f"../images/small_eval_{env}_{metric}.png")
+
+
+plot_metrics(
+    copy,
+    buffer2name,
+    metric2window,
+    ["Reward", "Loss", "ActorLoss", "AlphaLoss"],
+    ["Pendulum", "HalfCheetah", "Lunar Lander"],
+)
