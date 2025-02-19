@@ -18,13 +18,13 @@ env1:
 
 agent1:
   type: moe
-  opponent_names: ["opponent1", "opponent2", "opponent3"]
+  opponent_names: ["opponent1", "opponent2", "opponent3", "opponent4"]
   env_id: 0
   memory_size: 100000
-
-  agent_a_path: "final_checkpoints/08-02-sac-ft/checkpoint_best.pth"
+  buffer_type: BER
+  agent_a_path: "../final_checkpoints/11-02-sac-ft/checkpoint_best.pth"
   agent_a_type: "sac"
-  agent_b_path: "final_checkpoints/08-02-td3-ft-catch_bonus/checkpoint_last.pth"
+  agent_b_path: "../final_checkpoints/08-02-td3-ft-catch_bonus/checkpoint_last.pth"
   agent_b_type: "td3"
 
   gamma: 0.99
@@ -47,5 +47,17 @@ opponent2:
 opponent3:
   type: sac
   checkpoint: "../final_checkpoints/08-02-sac-ft/checkpoint_best.pth"
+  actor_hidden_sizes: [512, 256]
+  critic_hidden_sizes: [512, 256, 64]
+
+opponent4:
+  type: td3
+  checkpoint: "../final_checkpoints/08-02-td3-ft-catch_bonus/checkpoint_last.pth"
+  actor_hidden_sizes: [516, 256]
+  critic_hidden_sizes: [1024, 516, 256, 128]
+
+opponent5:
+  type: sac
+  checkpoint: "../final_checkpoints/11-02-sac-ft/checkpoint_best.pth"
   actor_hidden_sizes: [512, 256]
   critic_hidden_sizes: [512, 256, 64]

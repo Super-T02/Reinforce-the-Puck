@@ -402,7 +402,7 @@ class StochasticPolicyNetwork(Feedforward):
                 - action (torch.Tensor): The sampled action after applying the tanh function.
                 - log_prob (torch.Tensor): The log probability of the sampled action.
         """
-        if isinstance(x, np.ndarray):
+        if isinstance(x, np.ndarray) or isinstance(x, list):
             x = torch.tensor(x, dtype=self._dtype)
 
         x = x.to(self._device)

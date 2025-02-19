@@ -9,6 +9,7 @@
 \usepackage{amsfonts}       % blackboard math symbols
 \usepackage{amsmath}       % blackboard math symbols
 \usepackage{amssymb}
+\usepackage{placeins}
 
 
 \usepackage{tikz}
@@ -50,10 +51,14 @@
 \begin{document}
 \maketitle
 
+
 \section{Introduction}\label{sec:intro}
 \lipsum
 
 \section{Method}\label{sec:Method}
+
+\input{framework.tex}
+
 \input{td3.tex}
 \input{sac.tex}
 

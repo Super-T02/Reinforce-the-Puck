@@ -19,39 +19,38 @@
   - Architecture of the hybrid model
   - Implementation details
 
-### 2.2 Training Framework
+### 2.2 Training Framework (Jona)
 - **Custom RL Training Framework**
   - Overview of features
   - Architecture of the framework
   - Implementation of self-play
-  - Leaderboard
+  - Leaderboard (Ranking)
 
 ### 2.3 Enhancements through Prioritized Experience Replay
 - **Description of the Prioritized Buffer method**
 - **Expected benefits and impact on convergence**
 
+### 2.4 Reward Function (Tom)
+
 ## 3. Experimental Evaluation
 ### 3.1 Training on Simple Environments
 - **Results on Pendulum-v0, LunarLander-v2, or HalfCheetah**
-- **Comparison of algorithms in terms of training speed and performance**
+- **AVG Reward**
 
 ### 3.2 Training in the Hockey Environment
 - **Training against the basic strong opponent**
+  - Sac/TD3/BER/BPER - Foundation Model (eval vs training)
 - **Fine-tuning using self-play with rotating checkpoints, as well as both weak and strong opponents**
+  - Leaderboard Scores
 
-### 3.3 Algorithm Comparison
-- **Performance comparison against weak and strong baseline opponents**
-- **Success against weak and strong opponent**
-- **Local leaderboard results**
-- **Tournament results and ranking system (Trueskill)**
 
-## 4. Discussion
+## 4. Discussion (Jona & Tom)
 - **Analysis of training results**
 - **Comparison of SAC, TD3, and the hybrid solution**
 - **Impact of the framework and Prioritized Replay Buffer**
 - **Limitations and potential improvements**
 
-## 5. Conclusion
+## 5. Conclusion (Jona & Tom)
 - **Summary of key findings**
 - **Future development possibilities**
 
