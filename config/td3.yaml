@@ -27,17 +27,17 @@ env3:
   do_render: False
   weights:
     winner_weight: 10.0 # Winner reward
-    closeness_puck_weight: 0 # Closer = better
+    closeness_puck_weight: 0.1 # Closer = better
     touch_puck_weight: 0 # Touching puck = better
     puck_direction_weight: 0 # Puck direction = better
     no_touch_penalty: 0 # Penalty for not touching puck after 10% of episode
     timed_penalty_active: False # More time ==> less reward
     block_puck_weight: 0 # Blocking puck = better
-    stay_in_goal_weight: 0 # Staying in goal = better if opponent is shooting
+    stay_in_goal_weight: 0.2 # Staying in goal = better if opponent is shooting
 
 agent1:
   type: td3
-  checkpoint: "../models/Hockey-v0/td3/td3-foundation-smaller-smaller-lr_2025-02-13_09-25-38_100/checkpoint_last.pth"
+  checkpoint: "../final_checkpoints/08-02-td3-ft/checkpoint_last.pth"
   opponent_names: ["opponent3", "opponent4", "opponent1", "opponent2"]
   env_id: 2
   eps: 1
@@ -62,7 +62,7 @@ agent1:
   trainer_config:
     learning_rate_actor: 0.00003
     learning_rate_critic: 0.00003
-    log_name: td3-ft-win-loose-smaller-smaller-lr
+    log_name: td3-ft-dist-goal-ball
     batch_size: 256
   specialized_config:
     num_episodes: 60000
