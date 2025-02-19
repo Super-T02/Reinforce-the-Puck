@@ -10,7 +10,7 @@
 \usepackage{amsmath}       % blackboard math symbols
 \usepackage{amssymb}
 \usepackage{placeins}
-
+\usepackage{hyperref}
 
 \usepackage{tikz}
 \usetikzlibrary{shapes.geometric, arrows}
@@ -18,6 +18,10 @@
 \tikzstyle{process} = [rectangle, minimum width=2.5cm, minimum height=0.8cm, text centered, draw=black, fill=blue!20]
 \tikzstyle{decision} = [diamond, minimum width=2.5cm, minimum height=0.8cm, text centered, draw=black, fill=green!30]
 \tikzstyle{arrow} = [thick,->,>=stealth]
+\makeatletter
+\newcommand\footnoteref[1]{\protected@xdef\@thefnmark{\ref{#1}}\@footnotemark}
+\makeatother
+
 
 
 \usepackage{lipsum}
@@ -31,8 +35,8 @@
 \newcommand{\team}[1]{\def\theteam{#1}}
 
 
-\usepackage{hyperref}% should be the last package you include
 
+\usepackage{hyperref}
 \usepackage[printonlyused]{acronym}
 
 
