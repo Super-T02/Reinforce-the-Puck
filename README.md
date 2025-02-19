@@ -2,4 +2,4 @@
 
 This repository implemnts two agents for the [Hockey-Environment](https://github.com/martius-lab/hockey-env) of the Reinforcmment Lecture at the University of Tübingen in the Winter Term 24/25.
 
-![[report.pdf]]
+[![report.pdf](https://github.com/Super-T02/Reinforce-the-Puck/blob/main/report.pdf)]
