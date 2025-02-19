@@ -1,0 +1,497 @@
+# Please refer to the documentation for more information on the configuration file.
+
+base_config:
+  dtype: float32
+  num_episodes: 1000
+
+env1:
+  env_name: Pendulum-v1
+  id: 0
+  max_steps: 1000
+  start_training_after_steps: 20000 # 20k for each agent
+
+env2:
+  env_name: LunarLander-v3
+  id: 1
+  max_steps: 1000
+  start_training_after_steps: 20000 # 20k for each agent
+
+env3:
+  env_name: Hockey-v0
+  env_type: gym
+  id: 2
+  max_steps: 1000
+  start_training_after_steps: 20000 # 20k for each agent
+
+env4:
+  env_name: HalfCheetah-v4
+  id: 3
+  max_steps: 1000
+  start_training_after_steps: 20000 # 20k for each agent
+
+# Pendulum
+agent1:
+  type: td3
+  checkpoint: null
+  env_id: 0
+  eps: 1
+  eval_freq: 50
+  eval_episodes: 20
+  discount: 0.95
+  actor_hidden_sizes: [128, 128]
+  critic_hidden_sizes: [128, 128, 64]
+  policy_delay: 3
+  update_target_every: -1
+  noise_sigma: 0.2
+  noise_clip: 0.8
+  noise_beta: 1.0 # Pink noise
+  memory_size: 100000
+  buffer_type: ER # Buffer type: PER, BER, ER, BPER
+  buffer_decay_steps: 100000
+  buffer_alpha: 0.6
+  buffer_beta: 0.4
+  num_runs: 1
+  mutation_config:
+    enabled: false
+  trainer_config:
+    learning_rate_actor: 0.001
+    learning_rate_critic: 0.001
+    log_name: pendulum_eval/td3-er
+    batch_size: 256
+  specialized_config:
+    num_episodes: 1000
+    do_render: False
+
+# Pendulum
+agent2:
+  type: td3
+  checkpoint: null
+  env_id: 0
+  eps: 1
+  eval_freq: 50
+  eval_episodes: 20
+  discount: 0.95
+  actor_hidden_sizes: [128, 128]
+  critic_hidden_sizes: [128, 128, 64]
+  policy_delay: 3
+  update_target_every: -1
+  noise_sigma: 0.2
+  noise_clip: 0.8
+  noise_beta: 1.0 # Pink noise
+  memory_size: 100000
+  buffer_type: BER # Buffer type: PER, BER, ER, BPER
+  buffer_decay_steps: 100000
+  buffer_alpha: 0.6
+  buffer_beta: 0.4
+  num_runs: 1
+  mutation_config:
+    enabled: false
+  trainer_config:
+    learning_rate_actor: 0.001
+    learning_rate_critic: 0.001
+    log_name: pendulum_eval/td3-ber
+    batch_size: 256
+  specialized_config:
+    num_episodes: 1000
+    do_render: False
+
+# Pendulum
+agent3:
+  type: td3
+  checkpoint: null
+  env_id: 0
+  eps: 1
+  eval_freq: 50
+  eval_episodes: 20
+  discount: 0.95
+  actor_hidden_sizes: [128, 128]
+  critic_hidden_sizes: [128, 128, 64]
+  policy_delay: 3
+  update_target_every: -1
+  noise_sigma: 0.2
+  noise_clip: 0.8
+  noise_beta: 1.0 # Pink noise
+  memory_size: 100000
+  buffer_type: PER # Buffer type: PER, BER, ER, BPER
+  buffer_decay_steps: 100000
+  buffer_alpha: 0.6
+  buffer_beta: 0.4
+  num_runs: 1
+  mutation_config:
+    enabled: false
+  trainer_config:
+    learning_rate_actor: 0.001
+    learning_rate_critic: 0.001
+    log_name: pendulum_eval/td3-per
+    batch_size: 256
+  specialized_config:
+    num_episodes: 1000
+    do_render: False
+
+# Pendulum
+agent4:
+  type: td3
+  checkpoint: null
+  env_id: 0
+  eps: 1
+  eval_freq: 50
+  eval_episodes: 20
+  discount: 0.95
+  actor_hidden_sizes: [128, 128]
+  critic_hidden_sizes: [128, 128, 64]
+  policy_delay: 3
+  update_target_every: -1
+  noise_sigma: 0.2
+  noise_clip: 0.8
+  noise_beta: 1.0 # Pink noise
+  memory_size: 100000
+  buffer_type: BPER # Buffer type: PER, BER, ER, BPER
+  buffer_decay_steps: 100000
+  buffer_alpha: 0.6
+  buffer_beta: 0.4
+  num_runs: 1
+  mutation_config:
+    enabled: false
+  trainer_config:
+    learning_rate_actor: 0.001
+    learning_rate_critic: 0.001
+    log_name: pendulum_eval/td3-bper
+    batch_size: 256
+  specialized_config:
+    num_episodes: 1000
+    do_render: False
+
+# Pendulum
+agent5:
+  env_id: 0
+  type: sac
+  tau: 0.005 # Target network update rate (Soft update)
+  memory_size: 1000000
+  discount: 0.98 # Discount factor
+  alpha: 0.1 # Entropy regularization coefficient
+  alpha_lr: 0.0003 # Learning rate for alpha
+  log_std_min: -20 #lower bound for log_std
+  log_std_max: 2 #upper bound for log_std
+  actor_hidden_sizes: [512, 256]
+  critic_hidden_sizes: [512, 256, 64]
+  alpha_tuning: True
+  trainer_config:
+    learning_rate_actor: 0.0003
+    learning_rate_critic: 0.0003
+    log_name: pendulum_eval/sac
+    batch_size: 512
+  specialized_config:
+    num_episodes: 1000
+    do_render: False
+    start_training_after_steps: 200000 # 200k
+
+# LunaLander
+agentL1:
+  type: td3
+  checkpoint: null
+  env_id: 1
+  eps: 1
+  eval_freq: 50
+  eval_episodes: 20
+  discount: 0.98
+  actor_hidden_sizes: [256, 256]
+  critic_hidden_sizes: [256, 256, 128]
+  policy_delay: 3
+  update_target_every: -1
+  noise_sigma: 0.2
+  noise_clip: 0.8
+  noise_beta: 1.0 # Pink noise
+  memory_size: 100000
+  buffer_type: ER # Buffer type: PER, BER, ER, BPER
+  buffer_decay_steps: 100000
+  buffer_alpha: 0.6
+  buffer_beta: 0.4
+  num_runs: 1
+  mutation_config:
+    enabled: false
+  trainer_config:
+    learning_rate_actor: 0.001
+    learning_rate_critic: 0.001
+    log_name: luna_eval/td3-er
+    batch_size: 256
+  specialized_config:
+    num_episodes: 1000
+    do_render: False
+
+# LunaLander
+agentL2:
+  type: td3
+  checkpoint: null
+  env_id: 1
+  eps: 1
+  eval_freq: 50
+  eval_episodes: 20
+  discount: 0.98
+  actor_hidden_sizes: [256, 256]
+  critic_hidden_sizes: [256, 256, 128]
+  policy_delay: 3
+  update_target_every: -1
+  noise_sigma: 0.2
+  noise_clip: 0.8
+  noise_beta: 1.0 # Pink noise
+  memory_size: 100000
+  buffer_type: BER # Buffer type: PER, BER, ER, BPER
+  buffer_decay_steps: 100000
+  buffer_alpha: 0.6
+  buffer_beta: 0.4
+  num_runs: 1
+  mutation_config:
+    enabled: false
+  trainer_config:
+    learning_rate_actor: 0.001
+    learning_rate_critic: 0.001
+    log_name: luna_eval/td3-ber
+    batch_size: 256
+  specialized_config:
+    num_episodes: 1000
+    do_render: False
+
+# LunaLander
+agentL3:
+  type: td3
+  checkpoint: null
+  env_id: 1
+  eps: 1
+  eval_freq: 50
+  eval_episodes: 20
+  discount: 0.98
+  actor_hidden_sizes: [256, 256]
+  critic_hidden_sizes: [256, 256, 128]
+  policy_delay: 3
+  update_target_every: -1
+  noise_sigma: 0.2
+  noise_clip: 0.8
+  noise_beta: 1.0 # Pink noise
+  memory_size: 100000
+  buffer_type: PER # Buffer type: PER, BER, ER, BPER
+  buffer_decay_steps: 100000
+  buffer_alpha: 0.6
+  buffer_beta: 0.4
+  num_runs: 1
+  mutation_config:
+    enabled: false
+  trainer_config:
+    learning_rate_actor: 0.001
+    learning_rate_critic: 0.001
+    log_name: luna_eval/td3-per
+    batch_size: 256
+  specialized_config:
+    num_episodes: 1000
+    do_render: False
+
+# LunaLander
+agentL4:
+  type: td3
+  checkpoint: null
+  env_id: 1
+  eps: 1
+  eval_freq: 50
+  eval_episodes: 20
+  discount: 0.98
+  actor_hidden_sizes: [256, 256]
+  critic_hidden_sizes: [256, 256, 128]
+  policy_delay: 3
+  update_target_every: -1
+  noise_sigma: 0.2
+  noise_clip: 0.8
+  noise_beta: 1.0 # Pink noise
+  memory_size: 100000
+  buffer_type: BPER # Buffer type: PER, BER, ER, BPER
+  buffer_decay_steps: 100000
+  buffer_alpha: 0.6
+  buffer_beta: 0.4
+  num_runs: 1
+  mutation_config:
+    enabled: false
+  trainer_config:
+    learning_rate_actor: 0.0003
+    learning_rate_critic: 0.0003
+    log_name: luna_eval/td3-bper
+    batch_size: 256
+  specialized_config:
+    num_episodes: 1000
+    do_render: False
+# LunaLander
+agentL5:
+  env_id: 1
+  type: sac
+  tau: 0.005 # Target network update rate (Soft update)
+  memory_size: 1000000
+  discount: 0.98 # Discount factor
+  alpha: 0.1 # Entropy regularization coefficient
+  alpha_lr: 0.0003 # Learning rate for alpha
+  log_std_min: -20 #lower bound for log_std
+  log_std_max: 2 #upper bound for log_std
+  actor_hidden_sizes: [512, 256]
+  critic_hidden_sizes: [512, 256, 64]
+  alpha_tuning: True
+  trainer_config:
+    learning_rate_actor: 0.0003
+    learning_rate_critic: 0.0003
+    log_name: luna_eval/sac
+    batch_size: 512
+  specialized_config:
+    num_episodes: 1000
+    do_render: False
+    start_training_after_steps: 200000 # 200k
+
+# HalfCheetah
+agentH1:
+  type: td3
+  checkpoint: null
+  env_id: 3
+  eps: 1
+  eval_freq: 50
+  eval_episodes: 20
+  discount: 0.95
+  actor_hidden_sizes: [256, 256]
+  critic_hidden_sizes: [256, 256, 128]
+  policy_delay: 3
+  update_target_every: -1
+  noise_sigma: 0.2
+  noise_clip: 0.8
+  noise_beta: 1.0 # Pink noise
+  memory_size: 100000
+  buffer_type: ER # Buffer type: PER, BER, ER, BPER
+  buffer_decay_steps: 100000
+  buffer_alpha: 0.6
+  buffer_beta: 0.4
+  num_runs: 1
+  mutation_config:
+    enabled: false
+  trainer_config:
+    learning_rate_actor: 0.0001
+    learning_rate_critic: 0.0001
+    log_name: halfcheetah_eval/td3-er
+    batch_size: 256
+  specialized_config:
+    num_episodes: 1000
+    do_render: False
+
+# HalfCheetah
+agentH2:
+  type: td3
+  checkpoint: null
+  env_id: 3
+  eps: 1
+  eval_freq: 50
+  eval_episodes: 20
+  discount: 0.95
+  actor_hidden_sizes: [256, 256]
+  critic_hidden_sizes: [256, 256, 128]
+  policy_delay: 3
+  update_target_every: -1
+  noise_sigma: 0.2
+  noise_clip: 0.8
+  noise_beta: 1.0 # Pink noise
+  memory_size: 100000
+  buffer_type: BER # Buffer type: PER, BER, ER, BPER
+  buffer_decay_steps: 100000
+  buffer_alpha: 0.6
+  buffer_beta: 0.4
+  num_runs: 1
+  mutation_config:
+    enabled: false
+  trainer_config:
+    learning_rate_actor: 0.0001
+    learning_rate_critic: 0.0001
+    log_name: halfcheetah_eval/td3-ber
+    batch_size: 256
+  specialized_config:
+    num_episodes: 1000
+    do_render: False
+
+# HalfCheetah
+agentH3:
+  type: td3
+  checkpoint: null
+  env_id: 3
+  eps: 1
+  eval_freq: 50
+  eval_episodes: 20
+  discount: 0.95
+  actor_hidden_sizes: [256, 256]
+  critic_hidden_sizes: [256, 256, 128]
+  policy_delay: 3
+  update_target_every: -1
+  noise_sigma: 0.2
+  noise_clip: 0.8
+  noise_beta: 1.0 # Pink noise
+  memory_size: 100000
+  buffer_type: PER # Buffer type: PER, BER, ER, BPER
+  buffer_decay_steps: 100000
+  buffer_alpha: 0.6
+  buffer_beta: 0.4
+  num_runs: 1
+  mutation_config:
+    enabled: false
+  trainer_config:
+    learning_rate_actor: 0.0001
+    learning_rate_critic: 0.0001
+    log_name: halfcheetah_eval/td3-per
+    batch_size: 256
+  specialized_config:
+    num_episodes: 1000
+    do_render: False
+
+# HalfCheetah
+agentH4:
+  type: td3
+  checkpoint: null
+  env_id: 3
+  eps: 1
+  eval_freq: 50
+  eval_episodes: 20
+  discount: 0.95
+  actor_hidden_sizes: [256, 256]
+  critic_hidden_sizes: [256, 256, 128]
+  policy_delay: 3
+  update_target_every: -1
+  noise_sigma: 0.2
+  noise_clip: 0.8
+  noise_beta: 1.0 # Pink noise
+  memory_size: 100000
+  buffer_type: BPER # Buffer type: PER, BER, ER, BPER
+  buffer_decay_steps: 100000
+  buffer_alpha: 0.6
+  buffer_beta: 0.4
+  num_runs: 1
+  mutation_config:
+    enabled: false
+  trainer_config:
+    learning_rate_actor: 0.0001
+    learning_rate_critic: 0.0001
+    log_name: halfcheetah_eval/td3-bper
+    batch_size: 256
+  specialized_config:
+    num_episodes: 1000
+    do_render: False
+
+# HalfCheetah
+agentH5:
+  env_id: 3
+  type: sac
+  tau: 0.005 # Target network update rate (Soft update)
+  memory_size: 1000000
+  discount: 0.98 # Discount factor
+  alpha: 0.1 # Entropy regularization coefficient
+  alpha_lr: 0.0003 # Learning rate for alpha
+  log_std_min: -20 #lower bound for log_std
+  log_std_max: 2 #upper bound for log_std
+  actor_hidden_sizes: [512, 256]
+  critic_hidden_sizes: [512, 256, 64]
+  alpha_tuning: True
+  trainer_config:
+    learning_rate_actor: 0.0003
+    learning_rate_critic: 0.0003
+    log_name: halfcheetah_eval/sac
+    batch_size: 512
+  specialized_config:
+    num_episodes: 1000
+    do_render: False
+    start_training_after_steps: 200000 # 200k

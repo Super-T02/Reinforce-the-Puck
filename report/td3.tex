@@ -1,4 +1,4 @@
-\subsection{\acl{TD3}}
+\subsection{\acl{TD3}\protect\footnote{\label{tom_footnote}Implemented and written by Tom Freudenmann}}
 Our \ac{TD3} algorithm is a from scratch implementation of the original paper \cite{fujimoto2018:TD3}. \ac{TD3} is an off-policy actor-critic algorithm for continous action and state spaces. This combination is very vulnerable to overestimation bias and error accumulation in the \ac{TD}-learning \cite{fujimoto2018:TD3}. The overestimation bias is related to discrete Q-learning, where the value estimate is updated with the following greedy target:
 
 \begin{equation}
@@ -35,4 +35,4 @@ Secondly, target policy smoothing regularization is introduced to reduce the vul
     y = r + \gamma Q_{\theta'}(s', \pi_{\phi'}(s') + \epsilon) \quad | \epsilon \sim clip(\mathcal{N}(0, \sigma), -c, c)
 \end{equation}
 
-Moreover, \ac{TD3} extends the basic \ac{DDPG} algorithm \cite{lillicrap2015DDPG} by resolving the overestimation bias, adding soft target network updates and smoothing the target policy to lower the further the variance in the value estimate. As result, it is a state of the art actor-critic algorithm, which shows an improvement in learning speed and performance compared to \ac{DDPG} in some tasks in continuous domains .
+Moreover, \ac{TD3} extends the basic \ac{DDPG} algorithm \cite{lillicrap2015DDPG} by resolving the overestimation bias, adding soft target network updates and smoothing the target policy to lower further the value estimate variance. As result, it is a state of the art actor-critic algorithm, which shows an improvement in learning speed and performance compared to \ac{DDPG} in some tasks in continuous domains. We further adapt the proposed implementation to the hockey environment by using different replay buffers (\autoref{sec:buffers}), reward functions (\autoref{sec:reward}) and pink noise (\autoref{sec:pink}) as exploration noise.

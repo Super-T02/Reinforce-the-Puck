@@ -81,7 +81,7 @@ class SACAgent(BaseAgent):
         )
 
         self._copy_nets()  # directly copy to minimize the difference between the target and the policy network
-
+        self.create_optimizers()
         self.epoch = 0
 
     def _policy_activation(self) -> callable:

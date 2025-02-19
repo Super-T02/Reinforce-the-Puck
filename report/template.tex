@@ -10,7 +10,9 @@
 \usepackage{amsmath}       % blackboard math symbols
 \usepackage{amssymb}
 \usepackage{placeins}
-
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{hyperref}
 
 \usepackage{tikz}
 \usetikzlibrary{shapes.geometric, arrows}
@@ -18,6 +20,10 @@
 \tikzstyle{process} = [rectangle, minimum width=2.5cm, minimum height=0.8cm, text centered, draw=black, fill=blue!20]
 \tikzstyle{decision} = [diamond, minimum width=2.5cm, minimum height=0.8cm, text centered, draw=black, fill=green!30]
 \tikzstyle{arrow} = [thick,->,>=stealth]
+\makeatletter
+\newcommand\footnoteref[1]{\protected@xdef\@thefnmark{\ref{#1}}\@footnotemark}
+\makeatother
+
 
 
 \usepackage{lipsum}
@@ -31,9 +37,9 @@
 \newcommand{\team}[1]{\def\theteam{#1}}
 
 
-\usepackage{hyperref}% should be the last package you include
 
-\usepackage{acronym}
+\usepackage{hyperref}
+\usepackage[printonlyused]{acronym}
 
 
 \fancyhead[L]{\theteam}
@@ -49,23 +55,32 @@
 \author{\theteam}
 
 \begin{document}
-\input{acronyms}
 \maketitle
 
 
 \section{Introduction}\label{sec:intro}
-\lipsum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Curabitur pretium tincidunt lacus. Nulla gravida orci a odio, et feugiat tellus malesuada sed. Donec lacus nunc, viverra nec, blandit vel, egestas et, augue. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Morbi lacinia molestie dui. Praesent blandit dolor. Sed non quam lacus suspendisse faucibus interdum posuere lorem ipsum dolor sit amet. Phasellus viverra nulla ac justo commodo, vitae tincidunt libero tincidunt. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Curabitur pretium tincidunt lacus. Nulla gravida orci a odio, et feugiat tellus malesuada sed. Donec lacus nunc, viverra nec, blandit vel, egestas et, augue. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Morbi lacinia molestie dui. Praesent blandit dolor. Sed non quam lacus suspendisse faucibus interdum posuere lorem ipsum dolor sit amet. Phasellus viverra nulla ac justo commodo, vitae tincidunt libero tincidunt. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.
 
 \section{Method}\label{sec:Method}
 
 \input{framework.tex}
 
 \input{td3.tex}
+\input{pink.tex}
+\input{buffers.tex}
+\input{reward.tex}
 \input{sac.tex}
 
-\input{hybrid_model.tex}
 
-\bibliographystyle{abbrv}
-\bibliography{main}
+\input{hybrid_model.tex}
+\section{Evaluation}
+With all our methodlogies in place, we now investigate their performance in different domains. We start with analysing the sampling behavior of the four implemented buffer types (Section \ref{subsec:buffer_eval}), then we compare the performance on 3 simple environments (Section \ref{subsec:simple_eval}), to show the impact of our modifications at well-known reinforcement learning benchmarks. Finally, we are focusing on the hockey environment, were the trainging the foundation models is anlysed and compared to the results of the simple environments (Section \ref{subsec:hockey_eval}).
+
+\input{buffer_eval.tex}
+\input{simple_eval.tex}
+\input{hockey_eval.tex}
+
+\input{appendix.tex}
 
 \end{document}

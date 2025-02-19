@@ -135,3 +135,5 @@ gifs/*
 *.glo
 *.acn
 !report/report.pdf
+samples.csv
+*Eval
