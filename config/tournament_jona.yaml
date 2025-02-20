@@ -42,3 +42,8 @@ td3-ft-50k:
 sac-ft-50k:
   checkpoint: "../final_checkpoints/19-02-sac-ft-50k/checkpoint_best.pth"
   type: sac
+
+
+moe-v3:
+  checkpoint: "../final_checkpoints/20-02-moe-v3/checkpoint_best.pth"
+  type: moe
