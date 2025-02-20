@@ -12,8 +12,12 @@ This gate values the predicted actions of both agents, given a state, and select
 \end{equation}
 
 The loss function for training the \ac{DDQN} is based on the \ac{TD}-Error,
-which is the difference between the predicted and the target Q-value.
-The 'expert' agents are trained independently against different agents using self-play and further finetuned simulataneously to the gating network.
+which is the difference between the predicted and the target Q-value. We investigated three different training strategies for the hybrid model:
+\begin{itemize}
+    \item Training from scratch:  Training the subagents and the gating network simultaneously from scratch.
+    \item Training by fine-tuning the sub-agents: Using sub-agents that are pre-trained independently and further finetuned simulataneously to the gating network.
+    \item Training with fixed sub agents: Using subagents that are pre-trained independently and left fixed while training the gating network.
+\end{itemize}
 
 \begin{figure}[h]
     \centering
