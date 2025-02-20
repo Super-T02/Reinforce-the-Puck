@@ -130,7 +130,7 @@ td3_foundation_train_data = pd.DataFrame(
 plot_separate(
     sac_foundation_eval_data,
     td3_foundation_eval_data,
-    title="Foundation Training - Eval",
+    title="Foundation Training - Evaluation",
     x_label="Time Step",
     y_label="Reward",
     output_file="foundation_rewards_eval",
@@ -141,7 +141,7 @@ plot_separate(
 plot_separate(
     sac_foundation_train_data,
     td3_foundation_train_data,
-    title="Foundation Training - Train",
+    title="Foundation Training - Training",
     x_label="Time Step",
     y_label="Reward",
     output_file="foundation_rewards_train",
