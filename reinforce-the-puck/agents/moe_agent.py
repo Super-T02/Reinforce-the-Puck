@@ -129,6 +129,8 @@ class MOEAgent(BaseAgent):
             "TD3": TD3AgentConfig,
         }
 
+        print("Device: ", self._config.specialized_config.device)
+
         agent_a_states = tuple(
             state["agent_a"][f"network_{i}"] for i in range(len(state["agent_a"]))
         )
