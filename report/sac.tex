@@ -1,4 +1,4 @@
-\subsection{\acl{SAC}\protect\footnote{Implemented and written by Jonathan Schwab}}
+\subsection{\acl{SAC}}
 Our \ac{SAC} implementation is based on the original paper by \cite{HaarnojaAbbeelLevine2018:SAC} and its follow-up paper \cite{haarnoja2019softactorcriticalgorithmsapplications}.
 \ac{SAC} is an off-policy actor-critic algorithm that learns a stochastic policy in an environment with continuous action and state spaces.
 The algorithm is based on the principle of maximum entropy reinforcement learning, which aims to maximize the expected reward while also maximizing the entropy of the policy. This encourages exploration and prevents the policy from getting stuck in local optima.
@@ -10,7 +10,7 @@ The major components of the \ac{SAC} algorithm are the actor, the critic, and th
 
 The actor is a stochastic policy network, which is based on a vanilla neural network with a Gaussian distribution output layer.
 It estimates the mean and standard deviation $\mu(s), \sigma(s) = f_\theta(s)$ and provides a sampling method which returns
-both a sample from the distribution and the log probability of the selected action.
+both a sample from the distribution and the log probability of the selected sample.
 To make the sampling process differentiable, the reparameterization trick is used where $z \sim \mathcal{N}(0,1)$ and $u = \mu(s) + \sigma(s) \cdot z$.
 The action bounds are enforced by applying the $\tanh$ function to the sampled unbounded action.
 To consider this bounding in the probability density function,
@@ -21,14 +21,14 @@ the probability density function of the unbounded action is scaled by the absolu
     \pi(a \mid s) = \mu(u \mid s) \left| \det \left( \frac{d\mathbf{a}}{d\mathbf{u}} \right) \right|^{-1}.
 \end{equation}
 
-So for each state, sampled from the replay buffer \( \mathcal{D} \) an action is sampled from the actor and the log probability of this action is calculated using the adjusted probability density function.
-The actor is trained using the maximum entropy objective, where the critic estimates the value for each state-action pair:
+For each state, sampled from the replay buffer \( \mathcal{D} \) an action is sampled from the actor and the log probability for this action is calculated using the adjusted probability density function.
+The actor is trained on the maximum entropy objective, where the critic estimates the value for each state-action pair:
 \begin{equation}
     J(\pi) = \mathbb{E}_{s_t \sim \mathcal{D}, a_t \sim \pi} \left[ \alpha \log \pi(a_t \mid s_t) - Q(s_t, a_t) \right]
 \end{equation}
 
-The critic consists of two Q-networks, valuing state-action pairs, to prevent overestimation bias \cite{fujimoto2018addressingfunctionapproximationerror}.
-During training both networks independently predict a value for the given state-action pair $(s_t\sim \mathcal{D}, a_t \sim \pi)$ and the minimum is selected.
+The critic consists of two Q-networks, valuing state-action pairs.
+During training both networks independently predict a value for the given state-action pair $(s_t\sim \mathcal{D}, a_t \sim \pi)$ and the minimum is selected. This is done to prevent overestimation bias \cite{fujimoto2018addressingfunctionapproximationerror}.
 
 The target Q-values incorporate the immediate reward \( r\) and the discounted future reward. Additionally, an entropy term, weighted by the temperature parameter \( \alpha \), is used to balance exploration and exploitation. This formulation aligns with the objective function \( J(\pi) \), which maximizes both the expected reward and the entropy of the policy:
 \begin{equation}
@@ -36,7 +36,7 @@ The target Q-values incorporate the immediate reward \( r\) and the discounted f
 \end{equation}
 
 
-The critic is trained by minimizing the mean squared Bellman error, which represents the difference between the estimated Q-values and the target values:
+The critic is trained to optimize the mean squared Bellman error, which represents the difference between the estimated Q-values and the target values:
 
 \begin{equation} \mathcal{L}_{Q} = \mathbb{E} \left[ (Q(s, a) - y)^2 \right]. \end{equation}
 
@@ -51,4 +51,4 @@ Moreover the automatically temperature parameter tuning using gradient-based opt
 
 \begin{equation} J(\alpha) = \mathbb{E}{a_t \sim \pi} \left[ -\alpha \left( \log \pi(a_t \mid s_t) + \mathcal{H}{\text{target}} \right) \right], \end{equation}
 
-where $\mathcal{H}\text{target}$ is set to negative of the action space dimensionality, as proposed in \cite{haarnoja2019softactorcriticalgorithmsapplications}[D. Hyperparameters]
+where $\mathcal{H}\text{target}$ is set to negative of the action space dimensionality, as proposed in \cite{haarnoja2019softactorcriticalgorithmsapplications}[D. Hyperparameters].
