@@ -1,4 +1,8 @@
 {
+  "cSpell.words": [
+    "livescoreboard",
+    "tensorboard"
+  ],
   "python.analysis.extraPaths": [
     "./reinforce-the-puck"
   ]

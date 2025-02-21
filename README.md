@@ -2,6 +2,8 @@
 
 This repository implements agents for the [Hockey-Environment](https://github.com/martius-lab/hockey-env) of the Reinforcement Learning Lecture at the University of Tübingen in the Winter Term 24/25.
 
+![[example.gif]]
+
 ## Installation
 
 The following section describes how to install all dependencies for the project.
@@ -29,7 +31,113 @@ pip install -r requirements.txt
 
 ## File Structure
 
+The framework contains multiple folders, to provide a high abstraction and easy to implement interface for multiple agents and environments:
 
+```py
+| - .github/ # Actions for our github repo, like building the report and run tests
+| - .vscode/ # Editor Config
+| - config/ # Contains Configurations for training and tournaments
+    | - config.yaml # Basic config
+    | - ...
+    | - tournament.yaml # The tournament configuration file
+| - experiments/ # Contains notebooks where some features are tested
+    | - buffers.ipynb # Tested buffer behavior
+    | - Hockey-Env.ipynb # Test around with the hockey environment
+    | - small_eval.ipynb # Evaluation on the basic environments
+    | - sumtree.ipynb # Test sum tree implementation and behavior
+    | - tournament.ipynb # Test how tournaments work
+| - final_checkpoints/ # Contains our final and best checkpoints
+| - gifs/ # Contains gifs generated with rendered_run.py
+| - logs/ # Contains Tensorboard logs
+| - models/ # Contains .gitignored checkpoints
+| - reinforce-the-puck/ # Source folder
+    | - agents/
+        | - ...
+        | - agent_factory.py # Generates agents by config or checkpoint
+        | - base_agent.py # Interface for all agents
+        | - base_trainer.py # Training loop interface
+        | - basic_hockey_opponent.py #  Baisc Opponent provided for the Hockey env
+        | - ddpg.py # DDPG implementation
+        | - double_q_net.py # DDQN Implementation
+        | - moe_agent.py # Multi Agent implementation
+        | - sac_hierarchical.py # Hierarchical SAC
+        | - sac.py # Original SAC implementation
+        | - td3_cross.py # Cross Q on TD3
+        | - td3.py # Original TD3 implementation
+    | - components/ # Includes important components
+        | - data_structures.py # Sum Tree  implementation
+        | - memory.py # Replay Buffers
+        | - networks.py # NN Networks like Q-Nets
+        | - noise.py # Gaussian, ClippedGaussian and ClippedColoredNoise
+    | - environments/
+        | - advanced_reward_calculator.py # New rewards
+        | - base_wrapper.py # Interface for gymnasium environments
+        | - environment_factory.py # Generates environments based on  the config
+        | - hockey_wrapper.py # Wrapper for the Hockey environment
+    | - evaluation/ # Contains logic for tensorboard
+    | - templates/ # Contains the leaderboard html template
+    | - utils/
+        | - __init__.py # Defines workspace and other important paths
+        | - checkpoint.py # Implements the checkpoint management for the training class
+        | - config.py # Handles configuration and parses the input yaml
+        | - logger.py # Load and setup our logging configuration
+    | - __init__.py # Initialized on load
+    | - comprl_hockey.py # Connect to competition server
+    | - logging_cli.py # Cli to interact with the logging folder
+    | - render_run.py # Render a checkpoint and show the results
+    | - tournament.py # Run a tournament with the specified config and hosts the leaderboard
+    | - train.py # Start the training
+| - tests/ # Contains important tests
+| - .gitignore
+| - .pre-commit-config.yaml
+| - autorestart.sh # Script to restart agent, when connection to competition is lost
+| - LICENSE # MIT License
+| - pyproject.toml # Dependencies managed via poetry
+| - README.md # This file
+| - report.pdf # Our final report
+| - requirements.txt # Dependencies not managed via poetry
+| - run_training.sh # Shell script to distribute training of multiple agents on multiple processes.
+| - task.pdf # Provided goal of the project
+```
+
+## Run Training
+
+We provide to possibilities to train the agents:
+
+1. Run `python reinforce-the-puck/train.py -c <config-file-path>`: Will start a sequential training of the specified configuration. Thus, agent2 starts after agent1 finishes.
+2. Run `./run_training.sh <config-file-path> <max-num-of-processes>`: Will start distributed training of one process  for each agent to train. Thus, agent2 and agent1 are trained in parallel. (Ensure for this method, that yq is installed and working. If you face issues, use variant 1).
+
+## Run Rendered Run
+
+You can run a rendered run with:
+
+```sh
+python reinforce-the-puck/render_run.py --env <Envornment> --episodes <N-Episodes> --agent_type <Agent Type> --agent <path-to-pth-file> --opponent-type <opponent-type> --opponent-checkpoint <path-to-opponent-pth-file>
+```
+
+With `--gif` the result will be saved as gif.
+
+## Run Tournament
+
+You can compare agents based on a tournament. Simply run:
+
+```sh
+python reinforce-the-puck/tournament.py <path-to-tournament-config>
+```
+
+The configuration should look like:
+
+```yaml
+agent_name:
+  checkpoint: "path/to/my/checkpoint.pth"
+  type: agent type
+
+# ...
+```
+
+The script will show a live score board and log the final results as .csv in to the log directory.
+
+![Image of the leaderboard](leaderboard.png)
 
 ## Training Configuration
 
@@ -150,7 +258,3 @@ opponent2:
     log_freq: 10
     log_name: "DELETE-moe-ft-win-loose-dist"
 ```
-
-## Run training
-
-The framework provides
