@@ -15,6 +15,14 @@
       "python": "C:/Users/jonas/miniconda3/envs/rl_proj/python.exe",
       "request": "launch",
       "type": "debugpy"
+    },
+    {
+      "console": "integratedTerminal",
+      "cwd": "${fileDirname}",
+      "name": "File",
+      "program": "${file}",
+      "request": "launch",
+      "type": "debugpy"
     }
   ],
   "version": "0.2.0"

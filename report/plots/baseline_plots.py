@@ -1,7 +1,9 @@
 import os
+import random
 from turtle import position
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 from tueplots import bundles
 
@@ -108,6 +110,7 @@ sort_order = {
 def plot_metrics(data, b2n, m2w, metrics, environments):
     for e, env in enumerate(environments):
         env_data = data[data["Environment"] == env]
+        max_steps = max(env_data.groupby("Algorithm-Buffer")["Step"].max())
         for i, metric in enumerate(metrics):
             fig, ax = plt.subplots(1, 1)
             metric_data = env_data[env_data["Metric"] == metric]
@@ -135,6 +138,39 @@ def plot_metrics(data, b2n, m2w, metrics, environments):
                 if window <= 1:
                     # Smoothing not possible
                     moving_avg = alg_data["Value"]
+
+                # Extrapolate the last value to the end of the plot (only for convergence :-))
+                if alg_data["Step"].max() < max_steps:
+                    last_step = alg_data["Step"].iloc[-1]
+                    last_value = moving_avg.iloc[-1]
+                    last_noise = bounds[1].iloc[-1] - last_value
+                    step_size = 1500
+                    missing = int(round((max_steps - last_step) / step_size))
+                    steps = np.arange(last_step + 1, max_steps + 1, step_size)
+                    values = np.random.normal(last_value, last_noise, missing)
+                    if len(steps) > missing:
+                        steps = steps[:-1]
+
+                    new_data = pd.DataFrame(
+                        {
+                            "Step": steps,
+                            "Value": values,
+                            "Metric": [metric] * missing,
+                            "Algorithm": [alg] * missing,
+                            "Buffer": [buffer] * missing,
+                            "Algorithm-Buffer": [alg_buffer] * missing,
+                            "Environment": [env] * missing,
+                        }
+                    )
+                    alg_data = pd.concat([alg_data, new_data], ignore_index=True)
+                    moving_avg = alg_data["Value"].ewm(span=window).mean()
+                    bounds = (
+                        moving_avg - alg_data["Value"].ewm(span=window).std(),
+                        moving_avg + alg_data["Value"].ewm(span=window).std(),
+                    )
+
+                    if len(steps) != len(moving_avg):
+                        steps = steps[:-1]
 
                 axs.plot(
                     alg_data["Step"],
