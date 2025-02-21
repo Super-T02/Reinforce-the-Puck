@@ -247,6 +247,7 @@ class MoeAgentConfig(AgentConfig):
         self.agent_b_type = ""
         self.hidden_size = [256, 256]
         self.gamma = 0.99
+        self.train_experts = True
 
 
 class SACAgentConfig(AgentConfig):

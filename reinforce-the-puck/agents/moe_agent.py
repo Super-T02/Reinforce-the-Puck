@@ -66,20 +66,21 @@ class MOEAgent(BaseAgent):
         loss = self.router_agent.train_step(batch)
         loss["last_action"] = self.last_action
 
-        with self.agent_a.train_context():
-            agent_a_stats = self.agent_a.train_step(
-                self.agent_a.sample(self._batch_size)
-            )
-        with self.agent_b.train_context():
-            agent_b_stats = self.agent_b.train_step(
-                self.agent_b.sample(self._batch_size)
-            )
+        if self._config.train_experts:
+            with self.agent_a.train_context():
+                agent_a_stats = self.agent_a.train_step(
+                    self.agent_a.sample(self._batch_size)
+                )
+            with self.agent_b.train_context():
+                agent_b_stats = self.agent_b.train_step(
+                    self.agent_b.sample(self._batch_size)
+                )
 
-        # concat stats
-        for key, value in agent_a_stats.items():
-            loss[f"agent_a_{key}"] = value
-        for key, value in agent_b_stats.items():
-            loss[f"agent_b_{key}"] = value
+            # concat stats
+            for key, value in agent_a_stats.items():
+                loss[f"agent_a_{key}"] = value
+            for key, value in agent_b_stats.items():
+                loss[f"agent_b_{key}"] = value
 
         return loss
 

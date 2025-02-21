@@ -9,11 +9,11 @@ env1:
   env_name: Hockey-v0
   env_type: gym
   id: 0
-  max_steps: 1000
+  max_steps: 15000
 
   train_both: False
   train_all: False
-  new_agents_after_eval: 3
+  new_agents_after_eval: 1
   do_render: False
   weights:
     winner_weight: 10.0 # Winner reward
@@ -30,19 +30,20 @@ agent1:
   opponent_names: ["opponent1", "opponent2", "opponent3", "opponent4", "opponent5"]
   env_id: 0
   memory_size: 100000
-  eval_episodes: 5
+  #eval_episodes: 5
   buffer_type: BER
   agent_a_path: "../final_checkpoints/19-02-sac-ft-50k/checkpoint_best.pth"
   agent_a_type: "sac"
   agent_b_path: "../final_checkpoints/td3-v2/checkpoint_best.pth"
   agent_b_type: "td3"
+  train_experts: True
 
   gamma: 0.99
   hidden_size: [512, 512]
 
   trainer_config:
     learning_rate: 0.003
-    log_name: mue_hockey
+    log_name: moe_pretrained_and_expert_training
     batch_size: 512
 
 opponent1:
