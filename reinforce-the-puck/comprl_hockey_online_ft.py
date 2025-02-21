@@ -8,6 +8,7 @@ import numpy as np
 from agents.agent_factory import AgentFactory
 from comprl.client import Agent, launch_client
 from gymnasium.spaces.box import Box
+from utils.checkpoint import Checkpoint, CheckpointManager
 
 
 class RandomAgent(Agent):
@@ -78,6 +79,7 @@ class NewAgent(Agent):
             checkpoint_path, agent_type, observation_space, action_space
         )
         print(f"Agent loaded from {checkpoint_path}")
+        self.cp_mgr = CheckpointManager("hockey_online", 5, "best")
 
     def check_win_reward(self, observation):
         """
@@ -150,6 +152,16 @@ class NewAgent(Agent):
         )
         with self.agent.train_context():
             self.agent.train(self._last_observation[1])
+        checkpoint = Checkpoint(
+            self.agent,
+            "hockey_online",
+            0,
+        )
+        self.cp_mgr.add_checkpoint(checkpoint)
+        self.cp_mgr.save_last_checkpoint()
+
+
+#        self.cp.mgr.save_best_checkpoint()
 
 
 def initialize_agent(agent_args: list[str]) -> Agent:
