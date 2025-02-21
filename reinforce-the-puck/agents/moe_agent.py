@@ -136,6 +136,10 @@ class MOEAgent(BaseAgent):
         agent_a_type = state["agent_a_type"]
         agent_a_config = agent_type_config_mapping[agent_a_type]()
         agent_a_config.update_from_dict(state["agent_a_config"])
+
+        agent_a_config.specialized_config.device = (
+            self._config.specialized_config.device
+        )
         self.agent_a = agent_type_mapping[agent_a_type](
             self._observation_space, self._action_space, agent_a_config
         )
@@ -147,6 +151,9 @@ class MOEAgent(BaseAgent):
         agent_b_type = state["agent_b_type"]
         agent_b_config = agent_type_config_mapping[agent_b_type]()
         agent_b_config.update_from_dict(state["agent_b_config"])
+        agent_b_config.specialized_config.device = (
+            self._config.specialized_config.device
+        )
         self.agent_b = agent_type_mapping[agent_b_type](
             self._observation_space, self._action_space, agent_b_config
         )
