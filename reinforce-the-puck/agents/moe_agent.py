@@ -34,16 +34,16 @@ class MOEAgent(BaseAgent):
         self.last_actor = "a"
 
     def act(self, state) -> any:
-        action = self.router_agent.select_action(state)
+        # action = self.router_agent.select_action(state)
+        with self.agent_a.evaluate_context():
+            action_a = self.agent_a.act(state)
+        with self.agent_b.evaluate_context():
+            action_b = self.agent_b.act(state)
+
+        self.router_agent.select_action()
+
         self.last_action = action
-        if action == 0:
-            self.last_actor = "a"
-            with self.agent_a.evaluate_context():
-                return self.agent_a.act(state)
-        else:
-            self.last_actor = "b"
-            with self.agent_b.evaluate_context():
-                return self.agent_b.act(state)
+        return action
 
     def reset(self) -> "MOEAgent":
         """Reset the agent.
