@@ -83,6 +83,7 @@ The framework contains multiple folders, to provide a high abstraction and easy 
         | - logger.py # Load and setup our logging configuration
     | - __init__.py # Initialized on load
     | - comprl_hockey.py # Connect to competition server
+    | - final_evaluation.py # Get the avg. win rates against the baseline opponents
     | - logging_cli.py # Cli to interact with the logging folder
     | - render_run.py # Render a checkpoint and show the results
     | - tournament.py # Run a tournament with the specified config and hosts the leaderboard
