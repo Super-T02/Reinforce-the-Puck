@@ -33,9 +33,12 @@ This gate estimates the value of choosing a speciffic sub-agent, given a state:
 
         % Sub-Agents
         \node [draw, rectangle, fill=saccolor, below left of=argmax, node distance=3.5cm, minimum width=2.8cm, minimum height=1cm, rounded corners] (sac)
-            {SAC Agent\\$\pi_{\text{SAC}}(s)$};
+            {\shortstack{SAC Agent \\ $\pi_{\text{SAC}}(s)$}};
+
         \node [draw, rectangle, fill=td3color, below right of=argmax, node distance=3.5cm, minimum width=2.8cm, minimum height=1cm, rounded corners] (td3)
-            {TD3 Agent\\$\pi_{\text{TD3}}(s)$};
+            {\shortstack{TD3 Agent \\ $\pi_{\text{TD3}}(s)$}};
+
+
 
         % Output: Action a
         \node [draw, rectangle, fill=actioncolor, below of=argmax, node distance=6cm, minimum width=3cm, minimum height=1cm, rounded corners] (action)
