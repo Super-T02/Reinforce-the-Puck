@@ -1,3 +1,9 @@
+"""
+File: sac.py
+Author: Jonathan Schwab
+Content: This file contains the SACAgent class, which is an agent that uses Soft Actor-Critic to learn a Q-function.
+"""
+
 import os
 
 import numpy as np

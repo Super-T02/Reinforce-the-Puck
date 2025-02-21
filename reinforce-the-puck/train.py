@@ -1,4 +1,8 @@
-"""This file contains the CLI for the training process. Input is a yaml file with the configuration for the training."""
+"""
+File: train.py
+Author: Jonathan Schwab and Tom Freudenmann
+Content: This file contains the CLI for the training process. Input is a yaml file with the configuration for the training.
+"""
 
 import argparse
 import logging

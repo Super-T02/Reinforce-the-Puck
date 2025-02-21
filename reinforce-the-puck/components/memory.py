@@ -1,3 +1,9 @@
+"""
+File: memory.py
+Author: Tom Freudenmann
+Content: This file contains the Memory buffer to store transitions.
+"""
+
 import numpy as np
 import torch
 from components.data_structures import SumTree

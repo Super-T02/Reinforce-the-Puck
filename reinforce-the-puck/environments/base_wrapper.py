@@ -1,9 +1,15 @@
+"""
+File: base_wrapper.py
+Author: Jonathan Schwab and Tom Freudenmann
+Content: This file contains the BaseEnvWrapper class.
+"""
+
 import logging
 import os
 
 import gymnasium as gym
 from agents.base_agent import BaseAgent
-from utils import model_dir, workspace_dir
+from utils import workspace_dir
 
 
 class BaseEnvWrapper:

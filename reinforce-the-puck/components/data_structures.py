@@ -1,3 +1,9 @@
+"""
+File: data_structures.py
+Author: Tom Freudenmann
+Content: This file contains the SumTree data structure.
+"""
+
 import numpy as np
 
 

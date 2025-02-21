@@ -1,4 +1,8 @@
-"""This file contains the tournament logic, where agents can compete against each other to determine the best one."""
+"""
+File: tournament.py
+Author: Tom Freudenmann
+Content: This file contains the Tournament and Player classes, as well as the Flask app for the live scoreboard.
+"""
 
 import argparse
 import datetime

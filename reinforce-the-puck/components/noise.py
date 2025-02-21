@@ -1,3 +1,9 @@
+"""
+File: noise.py
+Author: Tom Freudenmann
+Content: This file contains different noise classes.
+"""
+
 import abc
 
 import numpy as np

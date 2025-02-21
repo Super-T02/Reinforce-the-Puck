@@ -1,3 +1,9 @@
+"""
+File: logger.py
+Author: Jonathan Schwab and Tom Freudenmann
+Content: This file contains the logger initialization function.
+"""
+
 import logging
 import logging.config
 import os

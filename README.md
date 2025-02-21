@@ -41,11 +41,11 @@ The framework contains multiple folders, to provide a high abstraction and easy 
     | - ...
     | - tournament.yaml # The tournament configuration file
 | - experiments/ # Contains notebooks where some features are tested
-    | - buffers.ipynb # Tested buffer behavior
-    | - Hockey-Env.ipynb # Test around with the hockey environment
-    | - small_eval.ipynb # Evaluation on the basic environments
-    | - sumtree.ipynb # Test sum tree implementation and behavior
-    | - tournament.ipynb # Test how tournaments work
+    | - buffers.ipynb # Tested buffer behavior (Tom Freudenmann)
+    | - Hockey-Env.ipynb # Test around with the hockey environment (Tom Freudenmann)
+    | - small_eval.ipynb # Evaluation on the basic environments (Tom Freudenmann)
+    | - sumtree.ipynb # Test sum tree implementation and behavior (Tom Freudenmann)
+    | - tournament.ipynb # Test how tournaments work (Both)
 | - final_checkpoints/ # Contains our final and best checkpoints
 | - gifs/ # Contains gifs generated with rendered_run.py
 | - logs/ # Contains Tensorboard logs
@@ -53,51 +53,51 @@ The framework contains multiple folders, to provide a high abstraction and easy 
 | - reinforce-the-puck/ # Source folder
     | - agents/
         | - ...
-        | - agent_factory.py # Generates agents by config or checkpoint
-        | - base_agent.py # Interface for all agents
-        | - base_trainer.py # Training loop interface
-        | - basic_hockey_opponent.py #  Baisc Opponent provided for the Hockey env
-        | - ddpg.py # DDPG implementation
-        | - double_q_net.py # DDQN Implementation
-        | - moe_agent.py # Multi Agent implementation
-        | - sac_hierarchical.py # Hierarchical SAC
-        | - sac.py # Original SAC implementation
-        | - td3_cross.py # Cross Q on TD3
-        | - td3.py # Original TD3 implementation
+        | - agent_factory.py # Generates agents by config or checkpoint (Jonathan Schwab)
+        | - base_agent.py # Interface for all agents (Both)
+        | - base_trainer.py # Training loop interface (Jonathan Schwab)
+        | - basic_hockey_opponent.py #  Baisc Opponent provided for the Hockey env (Both)
+        | - ddpg.py # DDPG implementation (Tom Freudenmann)
+        | - double_q_net.py # DDQN Implementation (Jonathan Schwab)
+        | - moe_agent.py # Multi Agent implementation (Jonathan Schwab)
+        | - sac_hierarchical.py # Hierarchical SAC (Jonathan Schwab)
+        | - sac.py # Original SAC implementation (Jonathan Schwab)
+        | - td3_cross.py # Cross Q on TD3 (Tom Freudenmann)
+        | - td3.py # Original TD3 implementation (Tom Freudenmann)
     | - components/ # Includes important components
-        | - data_structures.py # Sum Tree  implementation
-        | - memory.py # Replay Buffers
-        | - networks.py # NN Networks like Q-Nets
-        | - noise.py # Gaussian, ClippedGaussian and ClippedColoredNoise
+        | - data_structures.py # Sum Tree  implementation (Tom Freudenmann)
+        | - memory.py # Replay Buffers (Tom Freudenmann)
+        | - networks.py # NN Networks like Q-Nets (Both)
+        | - noise.py # Gaussian, ClippedGaussian and ClippedColoredNoise (Tom Freudenmann)
     | - environments/
-        | - advanced_reward_calculator.py # New rewards
-        | - base_wrapper.py # Interface for gymnasium environments
-        | - environment_factory.py # Generates environments based on  the config
-        | - hockey_wrapper.py # Wrapper for the Hockey environment
-    | - evaluation/ # Contains logic for tensorboard
-    | - templates/ # Contains the leaderboard html template
+        | - advanced_reward_calculator.py # New rewards (Both)
+        | - base_wrapper.py # Interface for gymnasium environments (Both)
+        | - environment_factory.py # Generates environments based on  the config (Both)
+        | - hockey_wrapper.py # Wrapper for the Hockey environment (Both)
+    | - evaluation/ # Contains logic for tensorboard (Jonathan Schwab)
+    | - templates/ # Contains the leaderboard html template (Tom Freudenmann)
     | - utils/
         | - __init__.py # Defines workspace and other important paths
-        | - checkpoint.py # Implements the checkpoint management for the training class
-        | - config.py # Handles configuration and parses the input yaml
-        | - logger.py # Load and setup our logging configuration
+        | - checkpoint.py # Implements the checkpoint management for the training class (Tom Freudenmann)
+        | - config.py # Handles configuration and parses the input yaml (Both)
+        | - logger.py # Load and setup our logging configuration (Both)
     | - __init__.py # Initialized on load
-    | - comprl_hockey.py # Connect to competition server
-    | - final_evaluation.py # Get the avg. win rates against the baseline opponents
-    | - logging_cli.py # Cli to interact with the logging folder
-    | - render_run.py # Render a checkpoint and show the results
-    | - tournament.py # Run a tournament with the specified config and hosts the leaderboard
-    | - train.py # Start the training
-| - tests/ # Contains important tests
+    | - comprl_hockey.py # Connect to competition server (Provided)
+    | - final_evaluation.py # Get the avg. win rates against the baseline opponents (Tom Freudenmann)
+    | - logging_cli.py # Cli to interact with the logging folder (Tom Freudenmann)
+    | - render_run.py # Render a checkpoint and show the results (Jonathan Schwab)
+    | - tournament.py # Run a tournament with the specified config and hosts the leaderboard (Tom Freudenmann)
+    | - train.py # Start the training (Both)
+| - tests/ # Contains important tests (Both)
 | - .gitignore
 | - .pre-commit-config.yaml
 | - autorestart.sh # Script to restart agent, when connection to competition is lost
 | - LICENSE # MIT License
 | - pyproject.toml # Dependencies managed via poetry
 | - README.md # This file
-| - report.pdf # Our final report
+| - report.pdf # Our final report (Both)
 | - requirements.txt # Dependencies not managed via poetry
-| - run_training.sh # Shell script to distribute training of multiple agents on multiple processes.
+| - run_training.sh # Shell script to distribute training of multiple agents on multiple processes. (Tom Freudenmann)
 | - task.pdf # Provided goal of the project
 ```
 

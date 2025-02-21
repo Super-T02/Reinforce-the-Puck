@@ -1,6 +1,12 @@
+"""
+File: base_trainer.py
+Author: Jonathan Schwab
+Content:
+This file contains the base trainer class, which is the parent class for all trainers.
+"""
+
 import datetime
 import logging
-import multiprocessing
 import os
 import pickle
 from typing import List

@@ -1,3 +1,9 @@
+<!--
+File: scoreboard.html
+Author: Tom Freudenmann
+Contains: HTML code for the live scoreboard page.
+This page fetches live data from the server and updates the leaderboard and game results tables every 2 seconds.
+-->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -46,7 +52,7 @@
             </tr>
         </thead>
         <tbody id="leaderboard-body">
-            <!-- Live leaderboard data will be inserted here -->
+            <!-- Live leaderboard here -->
         </tbody>
     </table>
 
@@ -64,18 +70,17 @@
             </tr>
         </thead>
         <tbody id="scoreboard-body">
-            <!-- Live data will be inserted here -->
+            <!-- Live data here -->
         </tbody>
     </table>
 
 
     <script>
         async function fetchLiveStats() {
-            // Fetch game results
             const response = await fetch("/live_stats");
             const data = await response.json();
             const tbody = document.getElementById("scoreboard-body");
-            tbody.innerHTML = ""; // Clear existing rows
+            tbody.innerHTML = "";
 
             data.forEach(row => {
                 const tr = document.createElement("tr");
@@ -92,11 +97,10 @@
         }
 
         async function fetchLeaderboard() {
-            // Fetch leaderboard data
             const response = await fetch("/leaderboard");
             const data = await response.json();
             const tbody = document.getElementById("leaderboard-body");
-            tbody.innerHTML = ""; // Clear existing rows
+            tbody.innerHTML = "";
 
             data.forEach((row, index) => {
                 const tr = document.createElement("tr");

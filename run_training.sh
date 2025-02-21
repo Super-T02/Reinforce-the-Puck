@@ -1,3 +1,8 @@
+#!/bin/bash
+# File: run_training.sh
+# Author: Tom Freudenmann
+# Content: Script to run training for all agents specified in the configuration file.
+
 CONFIG_FILE="config/config.yaml"
 NUM_CORES=$(nproc)
 MAX_PROCESSES=$((NUM_CORES - 1))
@@ -81,7 +86,7 @@ for AGENT in $AGENTS; do
   echo "$AGENT:" >> "$AGENT_CONFIG_FILE"
   echo "$AGENT_PARAMS" | yq -y '.' | sed 's/^/  /' >> "$AGENT_CONFIG_FILE"
   echo "Created config for $AGENT: $AGENT_CONFIG_FILE"
-  # Wait 5 seconds to
+
   sleep 1
 
   # Run the training script with the agent-specific config

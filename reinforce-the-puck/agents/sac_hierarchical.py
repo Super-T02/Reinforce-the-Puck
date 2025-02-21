@@ -1,3 +1,9 @@
+"""
+File: sac_hierarchical.py
+Author: Jonathan Schwab
+Content: This file contains the SACHierarchicalAgent class, which is an agent that uses a hierarchical approach to learn a Q-function.
+"""
+
 import os
 
 import numpy as np
@@ -6,7 +12,7 @@ from agents.base_agent import AgentMode, BaseAgent
 from components.memory import Batch
 from components.networks import QFunction, StochasticPolicyNetwork
 from gymnasium import spaces
-from utils.config import AgentConfig, HierarchicalAgentConfig, global_config
+from utils.config import HierarchicalAgentConfig
 
 
 class SACHierarchicalAgent(BaseAgent):

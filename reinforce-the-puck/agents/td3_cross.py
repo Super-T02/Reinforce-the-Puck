@@ -1,3 +1,9 @@
+"""
+File: td3_cross.py
+Author: Tom Freudenmann
+Content: This file contains the Twin Delayed Deep Deterministic Policy Gradient (TD3) with cross q adaptation agent.
+"""
+
 import numpy as np
 import torch
 from agents.base_agent import AgentMode

@@ -1,3 +1,9 @@
+"""
+File: logging_cli.py
+Author: Tom Freudenmann
+Content: This file contains a CLI to manage TensorBoard runs.
+"""
+
 import argparse
 import curses
 import os
