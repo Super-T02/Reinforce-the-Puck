@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "reinforce-the-puck"
 version = "0.1.0"
-description = "Dreamer Agent for the laser Hockey game"
+description = "Framework for implementing reinforcement learning agents in the context of air hockey"
 authors = [
     "Tom Freudenmann <tom.freudenmann@student.uni-tuebingen.de>",
     "Jonathan Schwab <jonathan.schwab@student.uni-tuebingen.de>",

@@ -35,138 +35,164 @@ env3:
     block_puck_weight: 0 # Blocking puck = better
     stay_in_goal_weight: 0.02 # Staying in goal = better if opponent is shooting
 
-agent1:
-  type: td3
-  checkpoint: null
-  opponent_names:
-    ["opponent3", "opponent4", "opponent5", "opponent1", "opponent2"]
-  env_id: 2
-  eps: 1
-  eval_freq: 50
-  eval_episodes: 20
-  discount: 0.98
-  actor_hidden_sizes: [512, 256]
-  critic_hidden_sizes: [512, 256, 64]
-  policy_delay: 2
-  update_target_every: -1
-  noise_sigma: 0.1
-  noise_clip: 0.5
-  noise_beta: 1.0 # Pink noise
-  memory_size: 1000000
-  buffer_type: BPER # Buffer type: PER, BER, ER, BPER
-  buffer_decay_steps: 1000000
-  buffer_alpha: 0.6
-  buffer_beta: 0.4
-  num_runs: 1
-  mutation_config:
-    enabled: false
-  trainer_config:
-    learning_rate_actor: 0.00003
-    learning_rate_critic: 0.00003
-    log_name: buffer_eval_foundation/td3-ft-dist-goal-ball-foundation-bper
-    batch_size: 256
-  specialized_config:
-    num_episodes: 60000
-    do_render: False
+# agent1:
+#   type: td3
+#   checkpoint: null
+#   opponent_names:
+#     ["opponent3", "opponent4", "opponent5", "opponent1", "opponent2"]
+#   env_id: 2
+#   eps: 1
+#   eval_freq: 50
+#   eval_episodes: 20
+#   discount: 0.98
+#   actor_hidden_sizes: [512, 256]
+#   critic_hidden_sizes: [512, 256, 64]
+#   policy_delay: 2
+#   update_target_every: -1
+#   noise_sigma: 0.1
+#   noise_clip: 0.5
+#   noise_beta: 1.0 # Pink noise
+#   memory_size: 1000000
+#   buffer_type: BPER # Buffer type: PER, BER, ER, BPER
+#   buffer_decay_steps: 1000000
+#   buffer_alpha: 0.6
+#   buffer_beta: 0.4
+#   num_runs: 1
+#   mutation_config:
+#     enabled: false
+#   trainer_config:
+#     learning_rate_actor: 0.00003
+#     learning_rate_critic: 0.00003
+#     log_name: buffer_eval_foundation/td3-ft-dist-goal-ball-foundation-bper
+#     batch_size: 256
+#   specialized_config:
+#     num_episodes: 60000
+#     do_render: False
 
-agent2:
-  type: td3
-  checkpoint: null
-  opponent_names:
-    ["opponent3", "opponent4", "opponent5", "opponent1", "opponent2"]
-  env_id: 2
-  eps: 1
-  eval_freq: 50
-  eval_episodes: 20
-  discount: 0.98
-  actor_hidden_sizes: [512, 256]
-  critic_hidden_sizes: [512, 256, 64]
-  policy_delay: 2
-  update_target_every: -1
-  noise_sigma: 0.1
-  noise_clip: 0.5
-  noise_beta: 1.0 # Pink noise
-  memory_size: 1000000
-  buffer_type: PER # Buffer type: PER, BER, ER, BPER
-  buffer_decay_steps: 1000000
-  buffer_alpha: 0.6
-  buffer_beta: 0.4
-  num_runs: 1
-  mutation_config:
-    enabled: false
-  trainer_config:
-    learning_rate_actor: 0.00003
-    learning_rate_critic: 0.00003
-    log_name: buffer_eval_foundation/td3-ft-dist-goal-ball-foundation-per
-    batch_size: 256
-  specialized_config:
-    num_episodes: 60000
-    do_render: False
+# agent2:
+#   type: td3
+#   checkpoint: null
+#   opponent_names:
+#     ["opponent3", "opponent4", "opponent5", "opponent1", "opponent2"]
+#   env_id: 2
+#   eps: 1
+#   eval_freq: 50
+#   eval_episodes: 20
+#   discount: 0.98
+#   actor_hidden_sizes: [512, 256]
+#   critic_hidden_sizes: [512, 256, 64]
+#   policy_delay: 2
+#   update_target_every: -1
+#   noise_sigma: 0.1
+#   noise_clip: 0.5
+#   noise_beta: 1.0 # Pink noise
+#   memory_size: 1000000
+#   buffer_type: PER # Buffer type: PER, BER, ER, BPER
+#   buffer_decay_steps: 1000000
+#   buffer_alpha: 0.6
+#   buffer_beta: 0.4
+#   num_runs: 1
+#   mutation_config:
+#     enabled: false
+#   trainer_config:
+#     learning_rate_actor: 0.00003
+#     learning_rate_critic: 0.00003
+#     log_name: buffer_eval_foundation/td3-ft-dist-goal-ball-foundation-per
+#     batch_size: 256
+#   specialized_config:
+#     num_episodes: 60000
+#     do_render: False
 
-agent3:
-  type: td3
-  checkpoint: null
-  opponent_names:
-    ["opponent3", "opponent4", "opponent5", "opponent1", "opponent2"]
-  env_id: 2
-  eps: 1
-  eval_freq: 50
-  eval_episodes: 20
-  discount: 0.98
-  actor_hidden_sizes: [512, 256]
-  critic_hidden_sizes: [512, 256, 64]
-  policy_delay: 2
-  update_target_every: -1
-  noise_sigma: 0.1
-  noise_clip: 0.5
-  noise_beta: 1.0 # Pink noise
-  memory_size: 1000000
-  buffer_type: BER # Buffer type: PER, BER, ER, BPER
-  buffer_decay_steps: 1000000
-  buffer_alpha: 0.6
-  buffer_beta: 0.4
-  num_runs: 1
-  mutation_config:
-    enabled: false
-  trainer_config:
-    learning_rate_actor: 0.00003
-    learning_rate_critic: 0.00003
-    log_name: buffer_eval_foundation/td3-ft-dist-goal-ball-foundation-ber
-    batch_size: 256
-  specialized_config:
-    num_episodes: 60000
-    do_render: False
+# agent3:
+#   type: td3
+#   checkpoint: null
+#   opponent_names:
+#     ["opponent3", "opponent4", "opponent5", "opponent1", "opponent2"]
+#   env_id: 2
+#   eps: 1
+#   eval_freq: 50
+#   eval_episodes: 20
+#   discount: 0.98
+#   actor_hidden_sizes: [512, 256]
+#   critic_hidden_sizes: [512, 256, 64]
+#   policy_delay: 2
+#   update_target_every: -1
+#   noise_sigma: 0.1
+#   noise_clip: 0.5
+#   noise_beta: 1.0 # Pink noise
+#   memory_size: 1000000
+#   buffer_type: BER # Buffer type: PER, BER, ER, BPER
+#   buffer_decay_steps: 1000000
+#   buffer_alpha: 0.6
+#   buffer_beta: 0.4
+#   num_runs: 1
+#   mutation_config:
+#     enabled: false
+#   trainer_config:
+#     learning_rate_actor: 0.00003
+#     learning_rate_critic: 0.00003
+#     log_name: buffer_eval_foundation/td3-ft-dist-goal-ball-foundation-ber
+#     batch_size: 256
+#   specialized_config:
+#     num_episodes: 60000
+#     do_render: False
 
-agent4:
-  type: td3
+# agent4:
+#   type: td3
+#   checkpoint: null
+#   opponent_names:
+#     ["opponent3", "opponent4", "opponent5", "opponent1", "opponent2"]
+#   env_id: 2
+#   eps: 1
+#   eval_freq: 50
+#   eval_episodes: 20
+#   discount: 0.98
+#   actor_hidden_sizes: [512, 256]
+#   critic_hidden_sizes: [512, 256, 64]
+#   policy_delay: 2
+#   update_target_every: -1
+#   noise_sigma: 0.1
+#   noise_clip: 0.5
+#   noise_beta: 1.0 # Pink noise
+#   memory_size: 1000000
+#   buffer_type: ER # Buffer type: PER, BER, ER, BPER
+#   buffer_decay_steps: 1000000
+#   buffer_alpha: 0.6
+#   buffer_beta: 0.4
+#   num_runs: 1
+#   mutation_config:
+#     enabled: false
+#   trainer_config:
+#     learning_rate_actor: 0.00003
+#     learning_rate_critic: 0.00003
+#     log_name: buffer_eval_foundation/td3-ft-dist-goal-ball-foundation-er
+#     batch_size: 256
+#   specialized_config:
+#     num_episodes: 60000
+#     do_render: False
+
+agent5:
+  type: "sac"
   checkpoint: null
   opponent_names:
     ["opponent3", "opponent4", "opponent5", "opponent1", "opponent2"]
   env_id: 2
-  eps: 1
-  eval_freq: 50
-  eval_episodes: 20
-  discount: 0.98
+  tau: 0.005 # Target network update rate (Soft update)
+  memory_size: 1000000
+  buffer_type: ER
+  discount: 0.98 # Discount factor
+  alpha: 0.1 # Entropy regularization coefficient
+  alpha_lr: 0.0003 # Learning rate for alpha
+  log_std_min: -20 #lower bound for log_std
+  log_std_max: 2 #upper bound for log_std
   actor_hidden_sizes: [512, 256]
   critic_hidden_sizes: [512, 256, 64]
-  policy_delay: 2
-  update_target_every: -1
-  noise_sigma: 0.1
-  noise_clip: 0.5
-  noise_beta: 1.0 # Pink noise
-  memory_size: 1000000
-  buffer_type: ER # Buffer type: PER, BER, ER, BPER
-  buffer_decay_steps: 1000000
-  buffer_alpha: 0.6
-  buffer_beta: 0.4
-  num_runs: 1
-  mutation_config:
-    enabled: false
+  alpha_tuning: True
   trainer_config:
-    learning_rate_actor: 0.00003
-    learning_rate_critic: 0.00003
-    log_name: buffer_eval_foundation/td3-ft-dist-goal-ball-foundation-er
-    batch_size: 256
+    learning_rate_actor: 0.0003
+    learning_rate_critic: 0.0003
+    log_name: buffer_eval_foundation/sac-er
+    batch_size: 512
   specialized_config:
     num_episodes: 60000
     do_render: False
