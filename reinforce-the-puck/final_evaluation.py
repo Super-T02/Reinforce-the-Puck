@@ -1,4 +1,8 @@
-"""This file contains the tournament logic, where agents can compete against each other to determine the best one."""
+"""
+File: final_evaluation.py
+Author: Tom Freudenmann
+Content: This file contains final evaluation of the agents.
+"""
 
 import argparse
 import datetime
