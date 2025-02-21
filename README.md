@@ -2,7 +2,7 @@
 
 This repository implements agents for the [Hockey-Environment](https://github.com/martius-lab/hockey-env) of the Reinforcement Learning Lecture at the University of Tübingen in the Winter Term 24/25.
 
-![[example.gif]]
+![example.gif](example.gif)
 
 ## Installation
 
