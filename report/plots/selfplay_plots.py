@@ -70,7 +70,7 @@ td3_selfplay_train_data = pd.read_csv(
 plot_all_data(
     sac_selfplay_train_data,
     td3_selfplay_train_data,
-    "Self-Play - Training",
+    "Asynmmetric Self-Play - Training",
     "Steps",
     "Reward",
     "selfplay_rewards_train",
@@ -80,7 +80,7 @@ plot_all_data(
 plot_all_data(
     sac_selfplay_eval_data,
     td3_selfplay_eval_data,
-    "Self-Play - Evaluation",
+    "Asynmmetric Self-Play - Evaluation",
     "Steps",
     "Reward",
     "selfplay_rewards_eval",

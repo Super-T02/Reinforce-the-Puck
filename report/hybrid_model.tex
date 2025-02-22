@@ -12,48 +12,43 @@ This gate estimates the value of choosing a speciffic sub-agent, given a state:
     a = \pi_{i^*(s)}(s)
 \end{gather}
 
-
-
 \begin{figure}[ht]
     \centering
-    \begin{tikzpicture}[node distance=2cm, auto,>=latex']
-        % Define custom colors
-        \definecolor{statecolor}{RGB}{173,216,230}    % Light Blue
-        \definecolor{diamondcolor}{RGB}{255,182,193}    % Light Pink
-        \definecolor{saccolor}{RGB}{255,255,224}          % Light Yellow
-        \definecolor{td3color}{RGB}{224,255,255}          % Light Cyan
-        \definecolor{actioncolor}{RGB}{255,228,181}       % Moccasin
+    \begin{tikzpicture}[auto,>=latex']
+      % Definieren der benutzerdefinierten Farben
+      \definecolor{statecolor}{RGB}{173,216,230}    % Light Blue
+      \definecolor{diamondcolor}{RGB}{255,182,193}    % Light Pink
+      \definecolor{saccolor}{RGB}{255,255,224}          % Light Yellow
+      \definecolor{td3color}{RGB}{224,255,255}          % Light Cyan
+      \definecolor{actioncolor}{RGB}{255,228,181}       % Moccasin
 
-        % Input: State s
-        \node [draw, rectangle, fill=statecolor, minimum width=2.5cm, minimum height=1cm, rounded corners] (state) {State $s$};
+      % Positionierung der Knoten
+      % Zustand s
+      \node [draw, rectangle, fill=statecolor, minimum width=2cm, minimum height=1cm, rounded corners] (state) at (0,0) {State $s$};
 
-        % Decision: argmax (diamond) directly below state
-        \node [draw, diamond, fill=diamondcolor, below of=state, node distance=3cm, aspect=2, inner sep=1pt] (argmax)
-            {$\arg\max\limits_{i \in \text{Sub-Agents}} Q(i,s)$};
+      % Entscheidungs-Diamond: argmax mit erhöhter Größe für längeren Text
+      \node [draw, diamond, fill=diamondcolor, aspect=3, inner sep=2pt, minimum width=3cm] (argmax) at (4.5,0)
+        {$\arg\max\limits_{i \in \text{Sub-Agents}} Q(i,s)$};
 
-        % Sub-Agents
-        \node [draw, rectangle, fill=saccolor, below left of=argmax, node distance=3.5cm, minimum width=2.8cm, minimum height=1cm, rounded corners] (sac)
-            {\shortstack{SAC Agent \\ $\pi_{\text{SAC}}(s)$}};
+      % Sub-Agents, horizontal angeordnet: SAC oben, TD3 unten
+      \node [draw, rectangle, fill=saccolor, minimum width=3.5cm, minimum height=1cm, rounded corners] (sac) at (8,1.5)
+        {\shortstack{SAC Agent \\ $\pi_{\text{SAC}}(s)$}};
+      \node [draw, rectangle, fill=td3color, minimum width=3.5cm, minimum height=1cm, rounded corners] (td3) at (8,-1.5)
+        {\shortstack{TD3 Agent \\ $\pi_{\text{TD3}}(s)$}};
 
-        \node [draw, rectangle, fill=td3color, below right of=argmax, node distance=3.5cm, minimum width=2.8cm, minimum height=1cm, rounded corners] (td3)
-            {\shortstack{TD3 Agent \\ $\pi_{\text{TD3}}(s)$}};
+      % Ausgabe: Action a
+      \node [draw, rectangle, fill=actioncolor, minimum width=3.5cm, minimum height=1cm, rounded corners] (action) at (12,0)
+        {Action $a$};
 
-
-
-        % Output: Action a
-        \node [draw, rectangle, fill=actioncolor, below of=argmax, node distance=6cm, minimum width=3cm, minimum height=1cm, rounded corners] (action)
-            {Action $a$};
-
-        % Arrows
-        \draw[->, thick] (state) -- (argmax);
-        \draw[->, thick] (argmax) -- node [left] {$i^*(s)=\text{SAC}$} (sac);
-        \draw[->, thick] (argmax) -- node [right] {$i^*(s)=\text{TD3}$} (td3);
-        \draw[->, thick] (sac) -- (action);
-        \draw[->, thick] (td3) -- (action);
+      % Pfeile
+      \draw[->, thick] (state) -- (argmax);
+      \draw[->, thick] (argmax) -- node [above left] {$i^*(s)=\text{SAC}$} (sac);
+      \draw[->, thick] (argmax) -- node [below left] {$i^*(s)=\text{TD3}$} (td3);
+      \draw[->, thick] (sac) -- (action);
+      \draw[->, thick] (td3) -- (action);
     \end{tikzpicture}
-    \caption{Hybrid Model with DDQN-based Agent Selection and \ac{SAC} and \ac{TD3} Sub-Agents}
+    \caption{Hybrides Modell mit DDQN-basierter Agentenauswahl und \ac{SAC} sowie \ac{TD3} Sub-Agents}
   \end{figure}
-
 
 
 The loss function for training the \ac{DDQN} is based on the \ac{TD}-Error,

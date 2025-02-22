@@ -2,7 +2,7 @@
 We implemented a PyTorch-based framework that abstracts agents and environments, ensuring they are interchangeable and easily configurable for training.
 In a configuration file, the environment\footnote{Our framework supports the OpenAI Gymnasium environment and the Hockey environment.}, the agent type, its training parameters, hyperparameters, and opponents can be specified.
 
-The framework also enables self-play of the agents, where the trained agent is periodically replaced by one of its opponents at a specified frequency. The rule-based agents of the hockey environment can also be used as opponents but are not considered as training candidates.
+The framework also enables (asynmmetric) self-play of the agents, where the trained agent is periodically replaced by one of its opponents at a specified frequency. The rule-based agents of the hockey environment can also be used as opponents but are not considered as training candidates.
 
 
 % A major challenge in reinforcement learning is the formulation of a appropriate reward function for training. Thus the reward for scoring a goal in the hockey environment is sparse, other reward signals have to be considered to enable fast convergence and good exploration.
