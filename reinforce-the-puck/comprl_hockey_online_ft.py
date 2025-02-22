@@ -6,6 +6,7 @@ import uuid
 import hockey.hockey_env as h_env
 import numpy as np
 from agents.agent_factory import AgentFactory
+from agents.moe_agent import MOEAgent
 from comprl.client import Agent, launch_client
 from gymnasium.spaces.box import Box
 from utils.checkpoint import Checkpoint, CheckpointManager
@@ -78,6 +79,9 @@ class NewAgent(Agent):
         self.agent = AgentFactory.create_agent_from_checkpoint(
             checkpoint_path, agent_type, observation_space, action_space
         )
+        if self.agent is MOEAgent:  # enable training of experts for challenge
+            self.agent.config.train_experts = True
+
         print(f"Agent loaded from {checkpoint_path}")
         self.cp_mgr = CheckpointManager("hockey_online", 5, "best")
 
