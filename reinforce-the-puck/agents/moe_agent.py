@@ -1,14 +1,19 @@
+"""
+File: moe_agent.py
+Author: Jonathan Schwab
+Content: This file contains the MOEAgent class, which is an agent that uses a Hybrid approach to learn a Q-function.
+"""
+
 import os
 
-import numpy as np
 import torch
 from agents.base_agent import BaseAgent
 from agents.double_q_net import DoubleQLearningAgent
 from agents.sac import SACAgent
 from agents.td3 import TD3Agent
-from components.memory import Batch, Memory
+from components.memory import Batch
 from gymnasium import spaces
-from utils.config import AgentConfig, MoeAgentConfig, SACAgentConfig, TD3AgentConfig
+from utils.config import MoeAgentConfig, SACAgentConfig, TD3AgentConfig
 
 
 class MOEAgent(BaseAgent):

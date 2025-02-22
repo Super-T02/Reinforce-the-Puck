@@ -1,11 +1,14 @@
+"""
+File: render_run.py
+Author: Jonathan Schwab
+Content: This file contains the run_agent_on_environment function to generate a gif of the agent's performance.
+"""
+
 import argparse
 import datetime
-import logging
 import os
 
-import numpy as np
 from agents.agent_factory import AgentFactory
-from environments.advanced_reward_calculator import AdaptiveHockeyRewardCalculator
 from environments.base_wrapper import BaseEnvWrapper
 from environments.environment_factory import EnvironmentFactory
 from utils import workspace_dir

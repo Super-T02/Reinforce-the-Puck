@@ -1,3 +1,10 @@
+"""
+File: agent_factory.py
+Author: Jonathan Schwab
+Content:
+This file contains the agent factory, which creates agents from a configuration object or a checkpoint file.
+"""
+
 import os
 from logging import getLogger
 
@@ -117,22 +124,26 @@ class AgentFactory:
         elif isinstance(config, MoeAgentConfig):
             agent = MOEAgent(
                 config,
-                agent_a=AgentFactory.create_agent_from_checkpoint(
-                    config.agent_a_path,
-                    config.agent_a_type,
-                    observation_space,
-                    action_space,
-                )
-                if config.agent_a_path is not None
-                else None,
-                agent_b=AgentFactory.create_agent_from_checkpoint(
-                    config.agent_b_path,
-                    config.agent_b_type,
-                    observation_space,
-                    action_space,
-                )
-                if config.agent_b_path is not None
-                else None,
+                agent_a=(
+                    AgentFactory.create_agent_from_checkpoint(
+                        config.agent_a_path,
+                        config.agent_a_type,
+                        observation_space,
+                        action_space,
+                    )
+                    if config.agent_a_path is not None
+                    else None
+                ),
+                agent_b=(
+                    AgentFactory.create_agent_from_checkpoint(
+                        config.agent_b_path,
+                        config.agent_b_type,
+                        observation_space,
+                        action_space,
+                    )
+                    if config.agent_b_path is not None
+                    else None
+                ),
                 observation_space=observation_space,
                 action_space=action_space,
             )

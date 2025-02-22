@@ -1,17 +1,18 @@
+"""
+File: hockey_wrapper.py
+Author: Jonathan Schwab and Tom Freudenmann
+Content: This file contains the HokeyEnvWrapper class.
+"""
+
 import logging
 import os
-from unittest.mock import DEFAULT
 
 import hockey.hockey_env as h_env
 import imageio
 import numpy as np
 from agents.base_agent import BaseAgent
 from agents.moe_agent import MOEAgent
-from environments.advanced_reward_calculator import (
-    AdaptiveHockeyRewardCalculator,
-    TimedReward,
-    Weights,
-)
+from environments.advanced_reward_calculator import TimedReward, Weights
 from environments.base_wrapper import BaseEnvWrapper
 from gymnasium.spaces.box import Box
 from PIL import Image

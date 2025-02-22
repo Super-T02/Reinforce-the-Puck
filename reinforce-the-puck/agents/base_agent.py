@@ -1,3 +1,10 @@
+"""
+File: base_agent.py
+Author: Jonathan Schwab and Tom Freudenmann
+Content:
+This file contains the base agent class, which is the parent class for all agents.
+"""
+
 from enum import Enum
 
 import numpy as np

@@ -1,3 +1,9 @@
+"""
+File: comprl_hockey.py
+Author: Provided from CompRL Repository
+Content: This file contains the main function to launch the client.
+"""
+
 from __future__ import annotations
 
 import argparse

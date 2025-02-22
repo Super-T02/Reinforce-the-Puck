@@ -83,7 +83,7 @@ def parse_yaml_to_latex_tables_with_pandas(yaml_file):
 
 
 # Use the function to generate the LaTeX tables
-yaml_file = "../../config/temp.yaml"  # Replace with the path to your YAML file
+yaml_file = "../../config/evaluation/simple_evaluation.yaml"
 latex_tables = parse_yaml_to_latex_tables_with_pandas(yaml_file)
 goal = "../tables/hyperparameters_tables.tex"
 

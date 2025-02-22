@@ -1,3 +1,9 @@
+"""
+File: basic_hockey_opponent.py
+Author: Jonathan Schwab and Tom Freudenmann
+Content: This file contains the basic hockey opponent agent.
+"""
+
 from typing import List
 
 import hockey.hockey_env as h_env

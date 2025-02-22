@@ -1,3 +1,9 @@
+"""
+File: ddpg.py
+Author: Tom Freudenmann
+Content: This file contains the DDPG agent implementation.
+"""
+
 import os
 
 import numpy as np

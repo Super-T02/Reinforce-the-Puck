@@ -1,3 +1,9 @@
+"""
+File: config.py
+Author: Jonathan Schwab and Tom Freudenmann
+Content: This file contains the configuration classes for the agents and environments.
+"""
+
 import os
 import random
 

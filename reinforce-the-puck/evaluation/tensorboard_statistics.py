@@ -1,4 +1,9 @@
-import multiprocessing
+"""
+File: tensorboard_statistics.py
+Author: Jonathan Schwab
+Content: This file contains the TensorboardStatistics class.
+"""
+
 import os
 from queue import Queue
 from threading import Thread

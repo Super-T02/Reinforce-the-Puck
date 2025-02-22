@@ -1,9 +1,13 @@
-from agents.basic_hokey_oponent import BasicHokeyOpponentWrapper
+"""
+File: environment_factory.py
+Author: Jonathan Schwab and Tom Freudenmann
+Content: This file contains the EnvironmentFactory class.
+"""
+
 from environments.advanced_reward_calculator import Weights
 from environments.base_wrapper import BaseEnvWrapper
 from environments.hokey_wrapper import HokeyEnvWrapper
 from hockey.hockey_env import Mode
-from utils.config import EnvironmentConfig
 
 
 class EnvironmentFactory:

@@ -1,3 +1,9 @@
+"""
+File: td3.py
+Author: Tom Freudenmann
+Content: This file contains the Twin Delayed Deep Deterministic Policy Gradient (TD3) agent.
+"""
+
 import numpy as np
 import torch
 from agents.base_agent import AgentMode

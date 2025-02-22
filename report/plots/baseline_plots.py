@@ -105,6 +105,22 @@ sort_order = {
     "bper": 3,
 }
 
+metric2axis = {
+    "Reward": ["linear", "linear"],
+    "EvalReward": ["linear", "linear"],
+    "Loss": ["linear", "linear"],
+    "ActorLoss": ["linear", "linear"],
+    "AlphaLoss": ["linear", "linear"],
+}
+
+metric2ylim = {
+    "Reward": [-50, 15],
+    "EvalReward": [-11, 12],
+    "Loss": [0, 1],
+    "ActorLoss": [-5, 5],
+    "AlphaLoss": [-5, 1],
+}
+
 
 # Plotting
 def plot_metrics(data, b2n, m2w, metrics, environments):
@@ -188,6 +204,9 @@ def plot_metrics(data, b2n, m2w, metrics, environments):
                     )
             axs.set_xlabel("Step")
             axs.set_ylabel(metric2name[metric])
+            axs.set_xscale(metric2axis[metric][0])
+            axs.set_yscale(metric2axis[metric][1])
+            axs.set_ylim(metric2ylim[metric])
             axs.set_title(f"{metric2name[metric]} over Steps for {env}")
             axs.grid()
             axs.legend()

@@ -1,3 +1,9 @@
+"""
+File: networks.py
+Author: Jonathan Schwab and Tom Freudenmann
+Content: This file contains the Feedforward and QFunction neural networks.
+"""
+
 from typing import Any
 
 import numpy as np

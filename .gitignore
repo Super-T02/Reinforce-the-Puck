@@ -137,3 +137,4 @@ gifs/*
 !report/report.pdf
 samples.csv
 *Eval
+!reinforce-the-puck/final_evaluation.py

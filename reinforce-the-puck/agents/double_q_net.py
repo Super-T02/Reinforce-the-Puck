@@ -1,3 +1,9 @@
+"""
+File: double_q_net.py
+Author: Jonathan Schwab
+Content: This file contains the DoubleQLearningAgent class, which is an agent that uses double Q-learning to learn a Q-function.
+"""
+
 import os
 
 import numpy as np

@@ -1,3 +1,9 @@
+"""
+File: checkpoint.py
+Author: Tom Freudenmann
+Content: This file contains the Checkpoint and CheckpointManager classes.
+"""
+
 import logging
 import os
 
