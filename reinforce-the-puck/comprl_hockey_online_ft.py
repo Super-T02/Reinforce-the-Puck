@@ -136,9 +136,25 @@ class NewAgent(Agent):
         done = last_reward != 0
 
         if last_obs is not None:
-            self.agent.save_experience(
-                last_obs, action, observation, last_reward, done, done, {}
-            )
+            if isinstance(self.agent, MOEAgent):
+                moe_action = self.agent.last_action
+
+                self.agent.save_experience(
+                    last_obs, moe_action, observation, last_reward, done, done, {}
+                )
+                if self.agent.last_actor == "a":
+                    self.agent.agent_a.save_experience(
+                        last_obs, action, observation, last_reward, done, done, {}
+                    )
+                else:
+                    self.agent.agent_b.save_experience(
+                        last_obs, action, observation, last_reward, done, done, {}
+                    )
+
+            else:
+                self.agent.save_experience(
+                    last_obs, action, observation, last_reward, done, done, {}
+                )
 
         self._last_observation = (observation, self.check_win_reward(observation))
 
