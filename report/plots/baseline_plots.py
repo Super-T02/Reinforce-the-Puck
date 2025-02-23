@@ -67,8 +67,11 @@ def load_tensorboard_data(base_dir, env_name):
 
 
 # Create a combined DataFrame
-hockey = load_tensorboard_data("HockeyEval", "Hockey")
-combined_data = pd.concat([hockey], ignore_index=True).reset_index(drop=True)
+hockey = load_tensorboard_data("HockeyEval", "Hockey Own Reward")
+basic_reward = load_tensorboard_data("BasicRewardEval", "Hockey Original Reward")
+combined_data = pd.concat([hockey, basic_reward], ignore_index=True).reset_index(
+    drop=True
+)
 copy = combined_data.copy()
 
 
@@ -278,16 +281,19 @@ def create_avg_reward_table_latex(data):
             if row[col] == max_value:
                 reward_table.at[index, col] = f"\\textbf{{{row[col]:.2f}}}"
             else:
-                reward_table.at[index, col] = f"{row[col]:.2f}"
+                reward_table.at[index, col] = (
+                    f"{row[col]:.2f}" if not np.isnan(row[col]) else "-"
+                )
 
     # Convert the table to LaTeX format
     latex_table = reward_table.to_latex(
         index=False,  # Do not include the index in the LaTeX table
-        caption="Average Reward for Hockey Environment}\\centering {",
+        caption="Average Evaluation Reward for Hockey Environment}\\centering {",
         label="tab:avg_reward",
         column_format="l" + "r" * (len(reward_table.columns) - 1),  # Align columns
         escape=False,  # Allow LaTeX symbols like \textbf{}
         position="H",
+        na_rep="-",
     )
 
     return latex_table
@@ -298,7 +304,7 @@ plot_metrics(
     buffer2name,
     metric2window,
     ["Reward", "EvalReward", "Loss", "ActorLoss", "AlphaLoss"],
-    ["Hockey"],
+    ["Hockey Own Reward", "Hockey Original Reward"],
 )
 
 reward_table = create_avg_reward_table_latex(copy)
