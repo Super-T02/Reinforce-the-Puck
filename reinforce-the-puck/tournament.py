@@ -170,7 +170,7 @@ class Tournament:
         A player with a higher skill level is more likely to be selected:
 
         1. Sample `tournament_size` players from the pool.
-        2. Calculate the probability of selecting each player based on their skill level. (softmax)
+        2. Calculate the probability of selecting each player based on their sigma value. (softmax)
         3. Sample two players in the pool based on the probabilities from step 2.
         4. Ensure that the skill gap between the two players is less than `max_skill_gap`.
 
@@ -189,8 +189,8 @@ class Tournament:
         tournament_size = max(2, tournament_size)
         for _ in range(100):
             pool = random.sample([a for a in self._agents.values()], tournament_size)
-            mus = [a.rate_obj.mu for a in pool]
-            probs = np.exp(mus) / np.sum(np.exp(mus))
+            sigmas = [a.rate_obj.sigma for a in pool]
+            probs = np.exp(sigmas) / np.sum(np.exp(sigmas))
             idx = np.random.choice(len(pool), size=2, p=probs, replace=False)
             selected = [pool[i] for i in idx]
 
