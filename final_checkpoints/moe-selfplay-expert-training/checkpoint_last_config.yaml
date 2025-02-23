@@ -1,0 +1,70 @@
+agent_a_path: null
+agent_a_type: ''
+agent_b_path: null
+agent_b_type: ''
+buffer_alpha: 0.7
+buffer_beta: 0.5
+buffer_beta_increment: 0.001
+buffer_decay_steps: 100000
+buffer_type: ER
+checkpoint: ../final_checkpoints/moe-v3/checkpoint_best.pth
+env_id: 2
+epochs: 10
+eval_episodes: 20
+eval_freq: 50
+gamma: 0.99
+hidden_size:
+- 512
+- 512
+memory_size: 100000
+mutation_config:
+  enabled: false
+  maxs:
+  - 0.1
+  - 256
+  - 100000
+  means:
+  - 0
+  - 0
+  - 0
+  mins:
+  - 1.0e-06
+  - 16
+  - 1000
+  parameters:
+  - learning_rate
+  - batch_size
+  - memory_size
+  prob:
+  - 0.3
+  - 0.3
+  - 0.3
+  vars:
+  - 0.1
+  - 0.1
+  - 0.1
+name: BasicOpponent
+num_runs: 1
+opponent_names:
+- undefined
+specialized_config:
+  _dtype: None
+  device: cuda
+  do_render: null
+  max_memory_size: null
+  num_episodes: null
+train_experts: true
+trainer_config:
+  batch_size: 512
+  beta1: 0.9
+  beta2: 0.999
+  checkpoint_dir: C:\Users\Arb01351\Documents\GitHub\Reinforce-the-Puck\models\checkpoints
+  epochs: 100
+  id: -1
+  learning_rate: 0.001
+  log_freq: 10
+  log_name: final_moe_selfplay_expert_training
+  max_checkpoints: 5
+  save_checkpoint_freq: 100
+type: moe
+version: 1
