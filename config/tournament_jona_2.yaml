@@ -1,0 +1,41 @@
+
+
+# hsac_foundation:
+#   checkpoint: "../final_checkpoints/07-02-hierarchical-sac-foundation/checkpoint_best.pth"
+#   type: sac_hierarchical
+
+
+
+# td3_ft:
+#   checkpoint: "../final_checkpoints/08-02-td3-ft/checkpoint_best.pth"
+#   type: td3
+
+
+
+td3-v2:
+  checkpoint: "../final_checkpoints/td3-v2/checkpoint_best.pth"
+  type: td3
+
+
+moe-v3:
+  checkpoint: "../final_checkpoints/moe-v3/checkpoint_best.pth"
+  type: moe
+
+
+
+sac-tf:
+  checkpoint: "../final_checkpoints/rewards/sac-default/checkpoint_best.pth"
+  type: sac
+
+td3-tf:
+  checkpoint: "../final_checkpoints/rewards/td3-default/checkpoint_best.pth"
+  type: td3
+
+
+sac-cross-2:
+  checkpoint: "../final_checkpoints/sac-cross-2/checkpoint_best.pth"
+  type: sac
+
+moe-cross2:
+  checkpoint: "../final_checkpoints/moe-cross-2/checkpoint_best.pth"
+  type: moe
