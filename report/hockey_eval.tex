@@ -43,5 +43,12 @@ The performance on the hockey environment is evaluated with the average final pe
 
 
 \subsection{Hybrid Model Evaluation}
-The Hybrid model is evaluated with the same setup as the foundation models. The evaluation reward is recorded every 5000 steps (50 epochs) over 20 runs. The average reward is then saved and plotted in \autoref{fig:selfplay}. All other statistics, like critic-, actor-loss and training reward provided in the appendix \autoref{sec:hockey-plots}. The final average evaluation reward over 100 runs is also provided in \autoref{tab:avg_reward}.
-In \autoref{fig:moe_train_strategies} we can see that the trainig
+The hybrid model is trained against both strong and weak baseline opponents, using \ac{SAC} and \ac{TD3} foundation checkpoints. To prevent overfitting and enhance generalization, opponents are periodically changed throughout training.
+
+The \ac{SAC} and \ac{TD3} foundation checkpoints serve as submodels in the setup with pre-trained experts. As shown in \autoref{fig:moe_train_strategies}, the training strategy that combines pre-trained submodels with simultaneous training of the gate and submodels achieves the highest evaluation reward. The strategy that starts with empty submodels and trains both the gate and submodels also performs well but fails to converge to the maximum reward of ten. Meanwhile, the approach where only the gate is trained initially yields the best evaluation reward but is eventually outperformed by the other strategies as training progresses.
+
+The gate's loss reflects its effectiveness in selecting the optimal submodel for a given state. In \autoref{fig:moe_train_strategies_loss}, periodic peaks in the loss indicate moments when opponents were changed. The training strategy with pre-trained submodels and simultaneous gate-submodel training results in the smoothest loss curve, with a steady decrease after 60,000 steps. In contrast, other strategies exhibit high fluctuations, and their average loss tends to increase over time.
+
+
+\subsection{Evaluation\acl{SAC}}
+\ac{SAC} is evaluated for the default and customized reward, additionally containing a time, distance to goal and refusal to start penalty. In \autoref{fig:eval-own-reward} we can see that our custom reward function almost halves the number of steps required for convergence compared to the standard reward function. Furthermore the final evaluation reward is significant higher compared to the default reward. Another interresting aspect is that \ac{SAC} converges faster compared to \ac{TD3}, which can be explained by the implemented alpha-tuning.

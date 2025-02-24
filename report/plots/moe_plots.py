@@ -48,22 +48,25 @@ def plot_data(ax, df, label, window):
     ax.plot(steps, moving_avg, label=label, alpha=0.8, linewidth=1)
 
 
-def plot_all_data(a, b, c, title, x_label, y_label, output_file, window=10):
+def plot_all_data(a, b, c, title, x_label, y_label, output_file, window=10, ll=None):
     """Plot SAC and TD3 data in one figure."""
     fig, ax = plt.subplots()
 
     # Plot SAC
-    plot_data(ax, a, "Pretrained without finetuning experts", window)
+    plot_data(ax, a, "Pretrained without finetuning submodels", window)
     # Plot TD3
-    plot_data(ax, b, "Trained experts from scratch", window)
+    plot_data(ax, b, "Trained submodels from scratch", window)
 
-    plot_data(ax, c, "Pretrained with finetuning of experts", window)
+    plot_data(ax, c, "Pretrained with finetuning of submodels", window)
 
     ax.set_title(title, fontsize=plt.rcParams["axes.titlesize"])
     ax.set_xlabel(x_label, fontsize=plt.rcParams["axes.labelsize"])
     ax.set_ylabel(y_label, fontsize=plt.rcParams["axes.labelsize"])
     ax.grid(True)
-    ax.legend(loc="lower right")
+    if ll is None:
+        ax.legend(loc="lower right")
+    else:
+        ax.legend(loc="upper left")
 
     plt.savefig(f"../images/{output_file}.png")
     plt.close(fig)
@@ -128,4 +131,5 @@ plot_all_data(
     "Loss",
     "moe_train_strategies_loss",
     window=10,
+    ll="",
 )
