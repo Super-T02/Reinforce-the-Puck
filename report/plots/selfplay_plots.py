@@ -8,11 +8,11 @@ plt.rcParams.update({"figure.dpi": 250})
 plt.rcParams.update(bundles.neurips2024(family="sans-serif"))
 plt.rcParams.update(
     {
-        "font.size": 15,
-        "xtick.labelsize": 15,
-        "ytick.labelsize": 15,
-        "axes.labelsize": 18,
-        "axes.titlesize": 18,
+        "font.size": 9,
+        "xtick.labelsize": 9,
+        "ytick.labelsize": 9,
+        "axes.labelsize": 11,
+        "axes.titlesize": 11,
         "legend.fontsize": 9,
         "legend.title_fontsize": 11,
     }
@@ -37,49 +37,52 @@ def plot_data(ax, df, label, window):
     ax.plot(steps, moving_avg, label=label, alpha=0.8, linewidth=1)
 
 
-def plot_all_data(sac_df, td3_df, title, x_label, y_label, output_file, window=10):
+def plot_all_data(
+    sac_df, td3_df, moe_df, title, x_label, y_label, output_file, window=10
+):
     """Plot SAC and TD3 data in one figure."""
     fig, ax = plt.subplots()
+
+    # cut to 20k steps
+    sac_df = sac_df[sac_df["Step"] <= 150000]
+    td3_df = td3_df[td3_df["Step"] <= 150000]
+    moe_df = moe_df[moe_df["Step"] <= 150000]
 
     # Plot SAC
     plot_data(ax, sac_df, "SAC", window)
     # Plot TD3
     plot_data(ax, td3_df, "TD3", window)
 
+    plot_data(ax, moe_df, "Hybrid Model", window)
+
     ax.set_title(title, fontsize=plt.rcParams["axes.titlesize"])
     ax.set_xlabel(x_label, fontsize=plt.rcParams["axes.labelsize"])
     ax.set_ylabel(y_label, fontsize=plt.rcParams["axes.labelsize"])
     ax.grid(True)
-    ax.legend()
+    ax.legend(loc="lower right")
 
     plt.savefig(f"../images/{output_file}.png")
     plt.close(fig)
 
 
 # Load CSV data
-sac_selfplay_eval_data = pd.read_csv("data/eval_sac_multi_2025-02-07_22-23-56_100.csv")
-sac_selfplay_train_data = pd.read_csv(
-    "data/train_sac_multi_2025-02-07_22-23-56_100.csv"
-)
-td3_selfplay_eval_data = pd.read_csv("data/eval_td3_multi_2025-02-07_22-23-52_100.csv")
-td3_selfplay_train_data = pd.read_csv(
-    "data/train_td3_multi_2025-02-07_22-23-52_100.csv"
+sac_selfplay_eval_data = pd.read_csv(
+    "data/final_sac_selfplay_2025-02-21_14-07-17_100.csv"
 )
 
-# Call plot_all_data twice to generate two separate images
-plot_all_data(
-    sac_selfplay_train_data,
-    td3_selfplay_train_data,
-    "Asynmmetric Self-Play - Training",
-    "Steps",
-    "Reward",
-    "selfplay_rewards_train",
-    window=10,
+td3_selfplay_eval_data = pd.read_csv(
+    "data/final_td3_selfplay_2025-02-21_14-07-15_100.csv"
 )
+
+moe_selfplay_eval_data = pd.read_csv(
+    "data/final_moe_selfplay_2025-02-21_14-07-17_100.csv"
+)
+
 
 plot_all_data(
     sac_selfplay_eval_data,
     td3_selfplay_eval_data,
+    moe_selfplay_eval_data,
     "Asynmmetric Self-Play - Evaluation",
     "Steps",
     "Reward",
