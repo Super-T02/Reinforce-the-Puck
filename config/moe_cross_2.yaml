@@ -1,0 +1,109 @@
+base_config:
+  dtype: float32
+  num_episodes: 50000
+
+agent1:
+  type: moe
+  opponent_names: ["opponent_1", "opponent_2", "opponent_3", "opponent_4", "opponent_5", "opponent_6"]
+  env_id: 2
+  memory_size: 130000
+  #eval_episodes: 5
+  buffer_type: ER
+  agent_a_path: "../final_checkpoints/rewards/sac-default/checkpoint_last.pth"
+  agent_a_type: "sac"
+  agent_b_path: "../final_checkpoints/rewards/td3-default/checkpoint_last.pth"
+  agent_b_type: "td3"
+  train_experts: True
+
+  gamma: 0.98
+  hidden_size: [512, 512]
+
+  trainer_config:
+    learning_rate: 0.003
+    log_name: moe_cross_train
+    batch_size: 512
+
+
+env3:
+  env_name: Hockey-v0
+  env_type: gym
+  id: 2
+  mode: 0 # 0: normal, 1: shooting, 2: defense
+  max_steps: 1000
+  start_training_after_steps: 10
+  train_both: False
+  train_all: False # Train all agents -> If true all agents will be trained
+  new_agents_after_eval: 4
+  do_render: false
+  weights:
+    winner_weight: 10.0 # Winner reward
+    closeness_puck_weight: 0 # Closer = better
+    touch_puck_weight: 0.0 # Touching puck = better
+    puck_direction_weight: 0.0 # Puck direction = better
+    no_touch_penalty: 0.0 # Penalty for not touching puck after 10% of episode
+    timed_penalty_active: False # More time ==> less reward
+    block_puck_weight: 0 # Blocking puck = better
+    stay_in_goal_weight: 0.0 # Staying in goal = better if opponent is shooting
+
+agent_sac:
+  type: sac  
+  opponent_names: ["opponent_1", "opponent_2", "opponent_3", "opponent_4", "opponent_5", "opponent_6"]
+  checkpoint: "../final_checkpoints/rewards/sac-default/checkpoint_last.pth"
+  env_id: 2
+  #eval_episodes: 50
+  tau: 0.005 # Target network update rate (Soft update)
+  memory_size: 100000
+  buffer_type: ER
+  discount: 0.98 # Discount factor
+  alpha: 0.1 # Entropy regularization coefficient
+  alpha_lr: 0.0003 # Learning rate for alpha
+  log_std_min: -20 #lower bound for log_std
+  log_std_max: 2 #upper bound for log_std
+  actor_hidden_sizes: [512, 256]
+  critic_hidden_sizes: [512, 256, 64]
+  alpha_tuning: True
+  trainer_config:
+    #learning_rate_actor: 0.0003
+    learning_rate_actor: 0.0003
+    #learning_rate_critic: 0.0003
+    learning_rate_critic: 0.0003
+    log_name: sac-cross-training
+    batch_size: 512
+
+opponent_1:
+  type: "basic_opponent_strong"
+  env_id: 2
+
+opponent_2:
+  type: "basic_opponent_weak"
+  env_id: 2
+
+
+
+opponent_3:
+  checkpoint: "../final_checkpoints/rewards/td3-default/checkpoint_last.pth"
+  type: td3
+  actor_hidden_sizes: [516, 256]
+  critic_hidden_sizes: [1024, 516, 256, 128]
+  env_id: 2
+
+
+opponent_4:
+  checkpoint: "../final_checkpoints/rewards/sac-default/checkpoint_last.pth"
+  type: sac
+  actor_hidden_sizes: [512, 256]
+  critic_hidden_sizes: [512, 256, 64]
+  env_id: 2
+
+opponent_5:
+  checkpoint: "../final_checkpoints/20-02-moe-v3/checkpoint_best.pth"
+  type: moe
+  hidden_size: [512, 512]
+  env_id: 2
+
+opponent_6:
+  checkpoint: "../final_checkpoints/sac-cross/checkpoint_best.pth"
+  type: sac
+  actor_hidden_sizes: [512, 256]
+  critic_hidden_sizes: [512, 256, 64]
+  env_id: 2

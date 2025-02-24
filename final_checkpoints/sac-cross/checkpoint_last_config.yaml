@@ -9,7 +9,7 @@ buffer_beta: 0.5
 buffer_beta_increment: 0.001
 buffer_decay_steps: 100000
 buffer_type: ER
-checkpoint: null
+checkpoint: ../final_checkpoints/19-02-sac-ft-50k/checkpoint_best.pth
 critic_hidden_sizes:
 - 512
 - 256
@@ -21,7 +21,7 @@ eval_episodes: 20
 eval_freq: 50
 log_std_max: 2
 log_std_min: -20
-memory_size: 1000000
+memory_size: 140000
 mutation_config:
   enabled: false
   maxs:
@@ -51,30 +51,46 @@ mutation_config:
 name: BasicOpponent
 num_runs: 1
 opponent_names:
-- opponent3
-- opponent4
-- opponent5
-- opponent1
-- opponent2
+- opponent_1
+- opponent_2
+- opponent_3
+- opponent_4
+- opponent_5
+- opponent_6
+- opponent_7
+- opponent_8
+- opponent_9
+- opponent_10
+- opponent_11
+- opponent_12
+- opponent_13
+- opponent_14
+- opponent_15
+- opponent_16
+- opponent_17
+- opponent_18
+- opponent_19
+- opponent_20
+- opponent_21
 specialized_config:
   _dtype: torch.float32
   device: cuda
   do_render: false
   max_memory_size: 100000
-  num_episodes: 60000
+  num_episodes: 50000
 tau: 0.005
 trainer_config:
   batch_size: 512
   beta1: 0.9
   beta2: 0.999
-  checkpoint_dir: /home/tomf/projects/WiSe24_25/Reinforce-the-Puck/models/checkpoints
+  checkpoint_dir: C:\Users\Arb01351\Documents\GitHub\Reinforce-the-Puck\models\checkpoints
   epochs: 100
   id: -1
   learning_rate: 0.001
   learning_rate_actor: 0.0003
   learning_rate_critic: 0.0003
   log_freq: 10
-  log_name: buffer_eval_foundation/sac-er
+  log_name: sac-cross-training
   max_checkpoints: 5
   save_checkpoint_freq: 100
 type: sac
