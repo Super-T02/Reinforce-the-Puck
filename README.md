@@ -4,6 +4,8 @@ This repository implements agents for the [Hockey-Environment](https://github.co
 
 ![example.gif](example.gif)
 
+> Note: Our contribution is marked at the top of each file and also in this readme
+
 ## Installation
 
 The following section describes how to install all dependencies for the project.

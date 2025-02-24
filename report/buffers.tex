@@ -1,6 +1,6 @@
-\subsection{New Replay Buffers\protect\footnote{Implemented and written by Tom Freudenmann}} \label{sec:buffers}
+\subsection{New Replay Buffers} \label{sec:buffers}
 
-The basic approach for modeling experience buffers are \ac{ER} buffers \cite{lin1992ER}, which hold the past $n$ (most of the time $n>100000$) transitions. At training time, $m$ transition batches are sampled to train actor and critic networks. Although each iteration is sampled uniformly, early observations in the empty buffer  are drawn more often than late experiences \cite{schaul2015prioritized}. Instead, we propose first \ac{BER},  \ac{PER} \cite{schaul2015prioritized} and \ac{BPER} \cite{Sun2022:BPER}, to ensure a balanced sampling of late and new experiences.
+The basic approach for modeling experience buffers are \ac{ER} buffers \cite{lin1992ER}, which hold the past $n$ (most of the time $n>100000$) transitions. At training time, $m$ transition batches are sampled to train actor and critic networks. Although each iteration is sampled uniformly, early observations in the empty buffer  are drawn more often than late experiences \cite{schaul2015prioritized}. Instead, we propose first \ac{BER} and  \ac{PER} \cite{schaul2015prioritized}, to ensure a balanced or prioritized sampling of late and new experiences.
 
 \paragraph{\acl{BER}} \ac{BER} is a balanced version of the default \ac{ER} where each experience gets a corresponding memory strength. This strength is reduced every time a new experience is added to the  buffer. The resulting probability to draw an experience $j$ from the buffer is $P(j) = \frac{s_j^\alpha}{\sum_{i}s_i^\alpha}$, where $s_i$ corresponds to the strength of experience $i$.
 

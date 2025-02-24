@@ -78,6 +78,11 @@ combined_data = pd.concat([hockey, basic_reward, noise], ignore_index=True).rese
 )
 copy = combined_data.copy()
 
+# Devide critic loss of sac by 2
+copy.loc[(copy["Algorithm"] == "sac") & (copy["Metric"] == "Loss"), "Value"] = (
+    copy.loc[(copy["Algorithm"] == "sac") & (copy["Metric"] == "Loss"), "Value"] / 2
+)
+
 
 # Generate plots
 buffer2name = {
