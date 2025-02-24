@@ -17,9 +17,9 @@ The performance on the hockey environment is evaluated with the average final pe
 
 \subsection{Hybrid Model Evaluation} \label{subsec:hybrid}
 
-The hybrid model is trained against both strong and weak baseline opponents, using \ac{SAC} and \ac{TD3} foundation checkpoints. To prevent overfitting and enhance generalization, opponents are periodically changed throughout training.
+The hybrid model is trained against the basic strong and weak opponent, as well as foundation and finetuned \ac{SAC} and \ac{TD3} checkpoints. To prevent overfitting and enhance generalization, opponents are periodically changed throughout training.
 
-The \ac{SAC} and \ac{TD3} foundation checkpoints serve as submodels in the setup with pre-trained experts. As shown in \autoref{fig:moe_train_strategies}, the training strategy that combines pre-trained submodels with simultaneous training of the gate and submodels achieves the highest evaluation reward. The strategy that starts with empty submodels and trains both the gate and submodels also performs well but fails to converge to the maximum reward of ten. Meanwhile, the approach where only the gate is trained initially yields the best evaluation reward but is eventually outperformed by the other strategies as training progresses.
+\ac{SAC} and \ac{TD3} foundation checkpoints also serve as submodels in the setup with pre-trained experts. As shown in \autoref{fig:moe_train_strategies}, the training strategy that combines pre-trained submodels with simultaneous training of the gate and submodels achieves the highest evaluation reward. The strategy that starts with empty submodels and trains both the gate and submodels also performs well but fails to converge to the maximum reward of ten. Meanwhile, the approach where only the gate is trained initially yields the best evaluation reward but is eventually outperformed by the other strategies as training progresses.
 
 \begin{figure}[h]
     \centering

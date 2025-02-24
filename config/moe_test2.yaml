@@ -13,14 +13,14 @@ agent1:
   agent_a_type: "sac"
   agent_b_path: "../final_checkpoints/td3-buffers/er/checkpoint_last.pth"
   agent_b_type: "td3"
-  train_experts: True
+  train_experts: false
 
   gamma: 0.98
   hidden_size: [512, 512]
 
   trainer_config:
     learning_rate: 0.003
-    log_name: last_moe_cross_train
+    log_name: last_moe_cross_train2
     batch_size: 512
 
 
@@ -35,6 +35,7 @@ env3:
   train_all: False # Train all agents -> If true all agents will be trained
   new_agents_after_eval: 5
   do_render: false
+  checkpoint: "/final_checkpoints/moe-cross-2/checkpoint_best.pth"
   weights:
     winner_weight: 10.0 # Winner reward
     closeness_puck_weight: 0.05 # Closer = better

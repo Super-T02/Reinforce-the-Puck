@@ -9,7 +9,7 @@ The major components of the \ac{SAC} algorithm are the actor, the critic, and th
 
 
 The actor is a stochastic policy network, which is based on a vanilla neural network with a Gaussian distribution output layer.
-It estimates the mean and standard deviation $\mu(s), \sigma(s) = f_\theta(s)$ and provides a sampling method which returns
+It estimates the mean and standard deviation $\mu(s), \sigma(s) = f_\theta(s)$ and provides a sampling method that returns
 both a sample from the distribution and the log probability of the selected sample.
 To make the sampling process differentiable, the reparameterization trick is used where $z \sim \mathcal{N}(0,1)$ and $u = \mu(s) + \sigma(s) \cdot z$.
 The action bounds are enforced by applying the $\tanh$ function to the sampled unbounded action.

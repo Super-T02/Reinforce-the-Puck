@@ -1,6 +1,6 @@
 agent_a_path: ../final_checkpoints/rewards/sac-default/checkpoint_last.pth
 agent_a_type: sac
-agent_b_path: ../final_checkpoints/rewards/td3-default/checkpoint_last.pth
+agent_b_path: ../final_checkpoints/td3-buffers/er/checkpoint_last.pth
 agent_b_type: td3
 buffer_alpha: 0.7
 buffer_beta: 0.5
@@ -16,7 +16,7 @@ gamma: 0.98
 hidden_size:
 - 512
 - 512
-memory_size: 130000
+memory_size: 100000
 mutation_config:
   enabled: false
   maxs:
@@ -68,7 +68,7 @@ trainer_config:
   id: -1
   learning_rate: 0.003
   log_freq: 10
-  log_name: moe_cross_train
+  log_name: last_moe_cross_train2
   max_checkpoints: 5
   save_checkpoint_freq: 100
 type: moe
