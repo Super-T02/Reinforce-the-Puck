@@ -1,4 +1,4 @@
-\subsection{\acl{TD3}\protect\footnote{\label{tom_footnote}Implemented and written by Tom Freudenmann}}
+\subsection{\acl{TD3}}\label{sec:td3}
 Our \ac{TD3} algorithm is a from scratch implementation of the original paper \cite{fujimoto2018:TD3}. \ac{TD3} is an off-policy actor-critic algorithm for continuous action and state spaces. This combination is very vulnerable to overestimation bias and error accumulation in \ac{TD}-learning \cite{fujimoto2018:TD3}. The overestimation bias is related to discrete Q-learning, where the value estimate is updated with the following greedy target:
 
 \begin{equation}

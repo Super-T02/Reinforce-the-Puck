@@ -1,4 +1,4 @@
-\subsection{Custom Reward Design\protect\footnote{Implemented and written by Tom Freudenmann}} \label{sec:reward}
+\subsection{Custom Reward Design} \label{sec:reward}
 
 The hockey environment already provides a set of reward signals, including a positive signal for winning, the distance to the ball, contact to the ball, and the direction of the pucks' movement. As we observed, our early state agents have problems playing the puck when it starts on their side. Therefore, we added  a time penalty, which decreases the overall reward for the complete run, and a penalty for not touching the not moving puck after $10\%$ of the environment steps.
 
