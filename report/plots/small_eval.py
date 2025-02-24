@@ -51,6 +51,9 @@ def load_tensorboard_data(base_dir, env_name):
                     if len(split) > 1:
                         buffer = split[1]
 
+                    if buffer in ["bper"]:
+                        continue
+
                     df["Metric"] = metric
                     df["RunName"] = runname_timestamp
                     df["Algorithm"] = alg

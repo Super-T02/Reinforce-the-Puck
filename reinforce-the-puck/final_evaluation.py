@@ -114,7 +114,7 @@ class FinalEvaluation:
             p2.name,
             p1_score,
             p2_score,
-            "-".join([p1.name, p2.name]),
+            "$".join([p1.name, p2.name]),
         ]
         return p1, p2, won
 
@@ -193,24 +193,22 @@ class FinalEvaluation:
         if input_path is not None:
             self._stats = pd.read_csv(input_path)
 
-        result_df = pd.DataFrame(
-            columns=["Agent", "Opponent", "Win-Rate (%)", "Tie-Rate (%)"]
-        )
+        result_df = pd.DataFrame(columns=["Agent", "Opponent", "Win-Rate (%)"])
 
         for game in self._stats["game-type"].unique():
-            p1, p2 = game.split("-")
+            p1, p2 = game.split("$")
             game_data = self._stats[self._stats["game-type"] == game]
             p1_wins = len(game_data[game_data["p1_score"] > game_data["p2_score"]])
             p2_wins = len(game_data[game_data["p2_score"] > game_data["p1_score"]])
             ties = len(game_data[game_data["p1_score"] == game_data["p2_score"]])
             total_games = p1_wins + p2_wins + ties
             win_rate = (p1_wins / total_games) * 100
-            tie_rate = (ties / total_games) * 100
-            result_df.loc[len(result_df)] = [p1, p2, win_rate, tie_rate]
+            # tie_rate = (ties / total_games) * 100
+            result_df.loc[len(result_df)] = [p1, p2, win_rate]
 
         # Generate opponent | agent table
         result_df = result_df.pivot(
-            columns="Agent", index="Opponent", values=["Win-Rate (%)", "Tie-Rate (%)"]
+            columns="Agent", index="Opponent", values=["Win-Rate (%)"]
         )
         result_df = result_df.sort_index(axis=0)
 
@@ -223,10 +221,8 @@ class FinalEvaluation:
             multicolumn=True,
             escape=True,
             caption="Performance between the agents and the baseline opponents.} \\centering {",
-            column_format="l"
-            + "c" * (len(result_df.columns) // 2)
-            + "|"
-            + "c" * (len(result_df.columns) // 2),
+            column_format="l" + "c" * len(result_df.columns.levels[1]),
+            label="tab:performance_opponents",
             na_rep="-",
         )
 
@@ -260,7 +256,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     eval_instance = FinalEvaluation(args.n_epochs, args.render)
     eval_instance.from_yaml(args.config)
-    eval_instance.run(n_games=args.n_epochs)
+    eval_instance.run(n_games=args.n_games)
     eval_instance.show_result_table()
     eval_instance.save_stats(
         os.path.join(
