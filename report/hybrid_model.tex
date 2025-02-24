@@ -5,8 +5,8 @@ we noticed that both agents have their strengths and weaknesses in different sit
 To combine the strengths of both agents, we created a hybrid model.
 This approach is inspired by the \ac{MoE} architecture, where multiple experts are combined using a gating network to weight the experts predictions.
 But since we've got a continuous spatial action space, weighting both experts predictions would not be a feasible option.
-Thus, a \ac{DDQN} \cite{vanhasselt2015deepreinforcementlearningdouble} was implemented as a selection gate for sub-agents.
-This gate estimates the value of choosing a specific sub-agent, given a state:
+Thus, a \ac{DDQN} \cite{vanhasselt2015deepreinforcementlearningdouble} was implemented as a selection gate for subagents.
+This gate estimates the value of choosing a specific subagent, given a state:
 
 \begin{gather}
     i^*(s) = \arg\max_{i \in \text{Sub-Agents}} Q(i, s) \\
@@ -56,6 +56,6 @@ The loss function for training the \ac{DDQN} is based on the \ac{TD}-Error,
 which is the difference between the predicted and the target Q-value. We investigated three different training strategies for the hybrid model:
 \begin{itemize}
     \item Training from scratch:  Training the subagents and the gating network simultaneously from scratch.
-    \item Training by fine-tuning the sub-agents: Using sub-agents that are pre-trained independently and further finetuned simultaneously to the gating network.
+    \item Training by fine-tuning the sub-agents: Using sub-agents that are pre-trained independently and further fine-tuned simultaneously to the gating network.
     \item Training with fixed sub agents: Using subagents that are pre-trained independently and left fixed while training the gating network.
 \end{itemize}
