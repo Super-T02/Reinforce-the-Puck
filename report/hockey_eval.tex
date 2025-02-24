@@ -1,11 +1,12 @@
-…\subsection{Hockey Environment} \label{subsec:hockey_eval}
+\subsection{Hockey Environment} \label{subsec:hockey_eval}
 
+The performance on the hockey environment is evaluated with the average final performance (\autoref{tab:avg_reward}) and the corresponding evaluation reward of the training in 600000 environment steps (\autoref{fig:eval-own-reward}). Therefore, we train \ac{SAC} and \ac{TD3} on the original environment reward and our own reward. The opponents are the strong/weak basic opponents, \ac{SAC} foundation, \ac{TD3} foundation and Hybrid foundation agents, which are pretrained on the strong/weak opponents. To stabalize training, the opponents change after 10000 environment steps (100 epochs). The evaluation reward contains only the win/lose signal with $r_{eval} \in \left\{-10, 0, 10\right\}$ and is recorded every 5000 steps (50 epochs) over 20 runs. The average reward is then saved and plotted in \autoref{fig:eval-own-reward}. All other statistics, like critic-, actor-loss and training reward provided in the appendix \autoref{sec:hockey-plots}. The final average evaluation reward over 100 runs is also provided in \autoref{tab:avg_reward}.
 
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.8\textwidth]{images/baseline_Hockey_EvalReward.png}
-    \caption{}
+    \caption{Evaluation Rewards for \ac{SAC} and \ac{TD3} with original and own reward. \ac{TD3} is also presented with \ac{BER} and \ac{PER} over 600000 environment steps.}
     \label{fig:eval-own-reward}
 \end{figure}
 
@@ -13,23 +14,6 @@
 \input{tables/avg_reward_table_hockey.tex}
 
 \input{tables/performance_opponents.tex}
-
-
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.8\textwidth]{images/selfplay_rewards_eval.png}
-    \caption{}
-    \label{fig:selfplay_eval_reward}
-\end{figure}
-
-
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.8\textwidth]{images/moe_train_strategies.png}
-    \caption{}
-    \label{fig:moe_train_strategies}
-\end{figure}
-
 
 % \begin{figure}[!h]
 %     \centering
