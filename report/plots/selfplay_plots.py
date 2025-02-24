@@ -83,7 +83,7 @@ plot_all_data(
     sac_selfplay_eval_data,
     td3_selfplay_eval_data,
     moe_selfplay_eval_data,
-    "Asynmmetric Self-Play - Evaluation Reward",
+    "Simultaneous Self-Play - Evaluation Reward",
     "Steps",
     "Reward",
     "selfplay_rewards_eval",
