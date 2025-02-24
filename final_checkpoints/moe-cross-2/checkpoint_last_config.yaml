@@ -58,12 +58,12 @@ specialized_config:
   do_render: false
   max_memory_size: 100000
   num_episodes: 50000
-train_experts: true
+train_experts: false
 trainer_config:
   batch_size: 512
   beta1: 0.9
   beta2: 0.999
-  checkpoint_dir: C:\Users\Arb01351\Documents\GitHub\Reinforce-the-Puck\models\checkpoints
+  checkpoint_dir: D:\Users\Jona\Dokumente\GitHub\Reinforce-the-Puck\models\checkpoints
   epochs: 100
   id: -1
   learning_rate: 0.003

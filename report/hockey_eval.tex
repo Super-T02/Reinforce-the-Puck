@@ -11,68 +11,37 @@ The performance on the hockey environment is evaluated with the average final pe
 \end{figure}
 
 
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/selfplay_rewards_eval.png}
+    \caption{Selfplay Rewards Evaluation for \ac{SAC}, \ac{TD3} and the Hybrid model.}
+    \label{fig:selfplay}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \begin{minipage}{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/moe_train_strategies.png}
+        \caption{Training strategies for the Hybrid model.}
+        \label{fig:moe_train_strategies}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/moe_train_strategies_loss.png}
+        \caption{Training strategies for the Hybrid model.}
+        \label{fig:moe_train_strategies_loss}
+    \end{minipage}
+\end{figure}
+
+
+
 \input{tables/avg_reward_table_hockey.tex}
 
 \input{tables/performance_opponents.tex}
 
-% \begin{figure}[!h]
-%     \centering
 
-%     % Erste Reihe
-%     \begin{minipage}{0.45\textwidth}
-%         \centering
-%         \includegraphics[width=\linewidth]{images/foundation_rewards_eval.png}
-%         \caption{Foundation Rewards Evaluation}
-%         \label{fig:foundation_rewards_eval}
-%     \end{minipage}
-%     \hfill
-%     \begin{minipage}{0.45\textwidth}
-%         \centering
-%         \includegraphics[width=\linewidth]{images/foundation_rewards_train.png}
-%         \caption{Foundation Rewards Training}
-%         \label{fig:foundation_rewards_train}
-%     \end{minipage}
-
-%     \vspace{0.5cm} % Abstand zwischen den Reihen
-
-%     % Zweite Reihe
-%     \begin{minipage}{0.45\textwidth}
-%         \centering
-%         \includegraphics[width=\linewidth]{images/selfplay_rewards_eval.png}
-%         \caption{Selfplay Rewards Evaluation}
-%         \label{fig:selfplay_rewards_eval}
-%     \end{minipage}
-%     \hfill
-%     \begin{minipage}{0.45\textwidth}
-%         \centering
-%         \includegraphics[width=\linewidth]{images/selfplay_rewards_train.png}
-%         \caption{Selfplay Rewards Training}
-%         \label{fig:selfplay_rewards_train}
-%     \end{minipage}
-
-%     \caption{Training of \ac{SAC} and \ac{TD3} agents on the hockey environment.}
-%     \label{fig:reward_comparison}
-% \end{figure}
-
-% \begin{figure}[ht]
-%     \centering
-%     \begin{minipage}{0.48\textwidth}
-%         \centering
-%         \includegraphics[width=\linewidth]{images/foundation_actor_loss.png}
-%         \caption{Foundation actor loss}
-%         \label{fig:foundation_actor_loss}
-%     \end{minipage}\hfill
-%     \begin{minipage}{0.48\textwidth}
-%         \centering
-%         \includegraphics[width=\linewidth]{images/foundation_critic_loss.png}
-%         \caption{Foundation critic loss}
-%         \label{fig:foundation_critic_loss}
-%     \end{minipage}
-% \end{figure}
-
-% \begin{figure}[ht]
-%     \centering
-%     \includegraphics[width=0.48\textwidth]{images/foundation_alpha_loss.png}
-%     \caption{Foundation alpha loss}
-%     \label{fig:foundation_alpha_loss}
-% \end{figure}
+\subsection{Hybrid Model Evaluation}
+The Hybrid model is evaluated with the same setup as the foundation models. The evaluation reward is recorded every 5000 steps (50 epochs) over 20 runs. The average reward is then saved and plotted in \autoref{fig:selfplay}. All other statistics, like critic-, actor-loss and training reward provided in the appendix \autoref{sec:hockey-plots}. The final average evaluation reward over 100 runs is also provided in \autoref{tab:avg_reward}.
+In \autoref{fig:moe_train_strategies} we can see that the trainig
