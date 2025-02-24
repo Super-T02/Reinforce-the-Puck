@@ -53,6 +53,9 @@ def load_tensorboard_data(base_dir, env_name):
                     if len(split) > 1:
                         buffer = split[1]
 
+                    if buffer in ["bper"]:
+                        continue
+
                     df["Metric"] = metric
                     df["RunName"] = runname_timestamp
                     df["Algorithm"] = alg
@@ -69,7 +72,8 @@ def load_tensorboard_data(base_dir, env_name):
 # Create a combined DataFrame
 hockey = load_tensorboard_data("HockeyEval", "Hockey Own Reward")
 basic_reward = load_tensorboard_data("BasicRewardEval", "Hockey Original Reward")
-combined_data = pd.concat([hockey, basic_reward], ignore_index=True).reset_index(
+noise = load_tensorboard_data("NoiseEval", "Hockey Own Reward")
+combined_data = pd.concat([hockey, basic_reward, noise], ignore_index=True).reset_index(
     drop=True
 )
 copy = combined_data.copy()
@@ -77,10 +81,13 @@ copy = combined_data.copy()
 
 # Generate plots
 buffer2name = {
-    "er": "ER",
+    "er": "Own",
     "per": "PER",
     "ber": "BER",
     "bper": "BPER",
+    "white": "White",
+    "blue": "Blue",
+    "original": "Original",
 }
 
 # Metrics
@@ -102,10 +109,12 @@ metric2name = {
 
 # Sorting order
 sort_order = {
-    "er": 0,
-    "per": 1,
-    "ber": 2,
-    "bper": 3,
+    "original": 0,
+    "white": 1,
+    "blue": 2,
+    "er": 3,
+    "per": 4,
+    "ber": 5,
 }
 
 metric2axis = {
@@ -122,6 +131,11 @@ metric2ylim = {
     "Loss": [0, 1],
     "ActorLoss": [-5, 5],
     "AlphaLoss": [-5, 1],
+}
+
+alg2line = {
+    "sac": "-",
+    "td3": "-.",
 }
 
 
@@ -147,6 +161,9 @@ def plot_metrics(data, b2n, m2w, metrics, environments):
                 name = f"{alg.upper()} ({b2n[buffer]})"
                 window = m2w[metric]
 
+                if buffer in ["bper", "white", "blue"]:
+                    continue
+
                 # Exponential smoothing
                 moving_avg = alg_data["Value"].ewm(span=window).mean()
                 bounds = (
@@ -158,44 +175,12 @@ def plot_metrics(data, b2n, m2w, metrics, environments):
                     # Smoothing not possible
                     moving_avg = alg_data["Value"]
 
-                # Extrapolate the last value to the end of the plot (only for convergence :-))
-                if alg_data["Step"].max() < max_steps:
-                    last_step = alg_data["Step"].iloc[-1]
-                    last_value = moving_avg.iloc[-1]
-                    last_noise = bounds[1].iloc[-1] - last_value
-                    step_size = 1500
-                    missing = int(round((max_steps - last_step) / step_size))
-                    steps = np.arange(last_step + 1, max_steps + 1, step_size)
-                    values = np.random.normal(last_value, last_noise, missing)
-                    if len(steps) > missing:
-                        steps = steps[:-1]
-
-                    new_data = pd.DataFrame(
-                        {
-                            "Step": steps,
-                            "Value": values,
-                            "Metric": [metric] * missing,
-                            "Algorithm": [alg] * missing,
-                            "Buffer": [buffer] * missing,
-                            "Algorithm-Buffer": [alg_buffer] * missing,
-                            "Environment": [env] * missing,
-                        }
-                    )
-                    alg_data = pd.concat([alg_data, new_data], ignore_index=True)
-                    moving_avg = alg_data["Value"].ewm(span=window).mean()
-                    bounds = (
-                        moving_avg - alg_data["Value"].ewm(span=window).std(),
-                        moving_avg + alg_data["Value"].ewm(span=window).std(),
-                    )
-
-                    if len(steps) != len(moving_avg):
-                        steps = steps[:-1]
-
                 axs.plot(
                     alg_data["Step"],
                     moving_avg,
                     label=name,
                     alpha=0.8,
+                    linestyle=alg2line[alg],
                 )
 
                 if window > 1:
@@ -204,6 +189,7 @@ def plot_metrics(data, b2n, m2w, metrics, environments):
                         bounds[0],
                         bounds[1],
                         alpha=0.2,
+                        linestyle=alg2line[alg],
                     )
             axs.set_xlabel("Step")
             axs.set_ylabel(metric2name[metric])
@@ -229,11 +215,14 @@ def create_avg_reward_table_latex(data):
         str: A LaTeX-formatted table as a string.
     """
     order = {
-        "sac-er": 0,
-        "td3-er": 1,
-        "td3-per": 2,
-        "td3-ber": 3,
-        "td3-bper": 4,
+        "sac": 0,
+        "td3": 1,
+        "sac-er": 2,
+        "td3-er": 3,
+        "td3-white": 4,
+        "td3-blue": 5,
+        "td3-per": 6,
+        "td3-ber": 7,
     }
 
     # Filter for the "Reward" metric
@@ -261,15 +250,29 @@ def create_avg_reward_table_latex(data):
         index="Environment", columns="Algorithm-Buffer", values="Value"
     )
 
+    # Merge alg-original and alg-er columns
+    reward_table["sac"] = reward_table["sac-original"]
+    reward_table["td3"] = reward_table["td3-original"]
+    reward_table.drop(columns=["sac-original", "td3-original"], inplace=True)
+    reward_table["sac"] = reward_table["sac"].combine_first(reward_table["sac-er"])
+    reward_table["td3"] = reward_table["td3"].combine_first(reward_table["td3-er"])
+    reward_table.drop(columns=["sac-er", "td3-er"], inplace=True)
+
     reward_table = reward_table[
         [col for col in sorted(reward_table.columns, key=lambda x: order[x])]
     ]
 
     # Rename columns for better readability
-    reward_table.columns = [
-        f"{alg.split('-')[0].upper()} ({buffer2name[alg.split('-')[1]]})"
-        for alg in reward_table.columns
-    ]
+    for alg in reward_table.columns:
+        if "-" in alg:
+            reward_table.rename(
+                columns={
+                    alg: f"{alg.split('-')[0].upper()} ({buffer2name[alg.split('-')[1]]})"
+                },
+                inplace=True,
+            )
+        else:
+            reward_table.rename(columns={alg: alg.upper()}, inplace=True)
 
     # Reset index for a clean table
     reward_table.reset_index(inplace=True)
@@ -299,12 +302,15 @@ def create_avg_reward_table_latex(data):
     return latex_table
 
 
+hockey = copy.copy()
+hockey["Environment"] = "Hockey"
+
 plot_metrics(
-    copy,
+    hockey,
     buffer2name,
     metric2window,
     ["Reward", "EvalReward", "Loss", "ActorLoss", "AlphaLoss"],
-    ["Hockey Own Reward", "Hockey Original Reward"],
+    ["Hockey"],
 )
 
 reward_table = create_avg_reward_table_latex(copy)
