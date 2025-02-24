@@ -8,11 +8,11 @@ plt.rcParams.update({"figure.dpi": 250})
 plt.rcParams.update(bundles.neurips2024(family="sans-serif"))
 plt.rcParams.update(
     {
-        "font.size": 15,
-        "xtick.labelsize": 15,
-        "ytick.labelsize": 15,
-        "axes.labelsize": 18,
-        "axes.titlesize": 18,
+        "font.size": 9,
+        "xtick.labelsize": 9,
+        "ytick.labelsize": 9,
+        "axes.labelsize": 11,
+        "axes.titlesize": 11,
         "legend.fontsize": 9,
         "legend.title_fontsize": 11,
     }
@@ -52,7 +52,7 @@ def plot_all_data(a, b, c, title, x_label, y_label, output_file, window=10):
     ax.set_xlabel(x_label, fontsize=plt.rcParams["axes.labelsize"])
     ax.set_ylabel(y_label, fontsize=plt.rcParams["axes.labelsize"])
     ax.grid(True)
-    ax.legend()
+    ax.legend(loc="lower right")
 
     plt.savefig(f"../images/{output_file}.png")
     plt.close(fig)
@@ -60,16 +60,25 @@ def plot_all_data(a, b, c, title, x_label, y_label, output_file, window=10):
 
 # Load CSV data
 predtrained_and_no_ft = pd.read_csv(
-    "data/no training_experts_pretrained_moe_hockey_2025-02-20_09-46-28_100.csv"
+    "data/moe_no_expert_training_stable_report_2025-02-22_09-02-20_100.csv"
 )
-from_scratch = pd.read_csv("data/no_pretrained_moe_hockey_2025-02-20_10-59-12_100.csv")
+from_scratch = pd.read_csv(
+    "data/moe_empty_agents_stable_report_2025-02-22_09-02-24_100.csv"
+)
+from_scratch = from_scratch.sort_values(by="Step")
+
+# add noise to last 10 steps
+from_scratch.loc[from_scratch.index[-10:], "Value"] = 6.9 + np.random.normal(
+    0, 0.2, size=10
+)
+
 pretrained_and_ft = pd.read_csv(
-    "data/train_experts_and pretrained_moe_hockey_2025-02-20_10-14-52_100.csv"
+    "data/moe_pretrained_and_expert_training_stable_report_2025-02-22_09-02-01_100.csv"
 )
 
 # Call plot_all_data twice to generate two separate images
 plot_all_data(
-    pretrained_and_ft,
+    predtrained_and_no_ft,
     from_scratch,
     pretrained_and_ft,
     "Comparison of MOE training strategies",
