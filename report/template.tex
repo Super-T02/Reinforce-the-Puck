@@ -63,7 +63,7 @@
 \input{intoduction.tex}
 
 \section{Method}\label{sec:Method}
-This chapter describes the methodological framework utilized in developing and evaluating reinforcement learning agents for the hockey environment. We introduce first \ac{TD3} (\ref{sec:td3})\footnote{\label{foot:tom}Tom Freudenmann} and explain our key changes to enhance the learning behavior and final reward with pink noise (\ref{sec:pink})\footnoteref{foot:tom}, new replay buffers (\ref{sec:buffers})\footnoteref{foot:tom} and our custom reward design (\ref{sec:reward})\footnoteref{foot:tom}. Afterwards, \ac{SAC} (\ref{sec:sac})\footnote{\label{foot:jona}Jonathan Schwab} and the hybrid model (\ref{sec:hybrid})\footnoteref{foot:jona} are introduced in detail.
+This chapter describes the methodological framework utilized in developing and evaluating reinforcement learning agents for the hockey environment. We introduce first \ac{TD3} (\ref{sec:td3})\footnote{\label{foot:tom}Tom Freudenmann} and explain our key changes to enhance the learning behavior and final reward with pink noise (\ref{sec:pink})\footnoteref{foot:tom}, new replay buffers (\ref{sec:buffers})\footnoteref{foot:tom} and our custom reward design (\ref{sec:reward})\footnoteref{foot:tom}. Afterward, \ac{SAC} (\ref{sec:sac})\footnote{\label{foot:jona}Jonathan Schwab} and the hybrid model (\ref{sec:hybrid})\footnoteref{foot:jona} are introduced in detail.
 
 \input{framework.tex}
 
@@ -76,7 +76,7 @@ This chapter describes the methodological framework utilized in developing and e
 
 \input{hybrid_model.tex}
 \section{Evaluation\protect\footnote{Data recording performed equally. Text: TD3 + modifications (Tom Freudenmann), SAC + hypbrid (Jonathan Schwab)}}
-With all our methodlogies in place, we now investigate their performance in different domains. We start with analyzing the performance on 3 simple environments (\ref{subsec:simple_eval}), to show the impact of our modifications at well-known reinforcement learning benchmarks. Afterwards, we focus on the hockey environment, were the training the foundation models is analyzed and compared to the results of the simple environments (\ref{subsec:hockey_eval}). Finally, the hybrid model is evaluated on the hockey environment and shortly compared to the other implementations (\ref{subsec:hybrid}).
+With all our methodologies in place, we now investigate their performance in different domains. We start with analyzing the performance on 3 simple environments (\ref{subsec:simple_eval}) to show the impact of our modifications at well-known reinforcement learning benchmarks. Afterward, we focus on the hockey environment, where the training of the foundation models is analyzed and compared to the results of the simple environments (\ref{subsec:hockey_eval}). Finally, the hybrid model is evaluated on the hockey environment and shortly compared to the other implementations (\ref{subsec:hybrid}).
 
 \input{buffer_eval.tex}
 \input{simple_eval.tex}
