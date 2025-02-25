@@ -59,7 +59,7 @@ def plot_all_data(a, b, c, title, x_label, y_label, output_file, window=10, ll=N
 
     plot_data(ax, c, "Pretrained with finetuning of submodels", window)
 
-    # ax.set_title(title, fontsize=plt.rcParams["axes.titlesize"])
+    ax.set_title(y_label + " Comparison", fontsize=plt.rcParams["axes.titlesize"])
     ax.set_xlabel(x_label, fontsize=plt.rcParams["axes.labelsize"])
     ax.set_ylabel(y_label, fontsize=plt.rcParams["axes.labelsize"])
     ax.grid(True)
