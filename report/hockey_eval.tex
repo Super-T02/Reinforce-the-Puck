@@ -19,23 +19,38 @@ The performance on the hockey environment is evaluated with the average final pe
 
 The hybrid model is trained against the basic strong and weak opponent, as well as foundation and finetuned \ac{SAC} and \ac{TD3} checkpoints. To prevent overfitting and enhance generalization, opponents are periodically changed throughout training.
 
-\ac{SAC} and \ac{TD3} foundation checkpoints also serve as submodels in the setup with pre-trained experts. As shown in \autoref{fig:moe_train_strategies}, the training strategy that combines pre-trained submodels with simultaneous training of the gate and submodels achieves the highest evaluation reward. The strategy that starts with empty submodels and trains both the gate and submodels also performs well but fails to converge to the maximum reward of ten. Meanwhile, the approach where only the gate is trained initially yields the best evaluation reward but is eventually outperformed by the other strategies as training progresses.
+\ac{SAC} and \ac{TD3} foundation checkpoints also serve as submodels in the setup with pre-trained experts. As shown in \autoref{fig:moe_strategies}, the training strategy that combines pre-trained submodels with simultaneous training of the gate and submodels achieves the highest evaluation reward. The strategy that starts with empty submodels and trains both the gate and submodels also performs well but fails to converge to the maximum reward of ten. Meanwhile, the approach where only the gate is trained initially yields the best evaluation reward but is eventually outperformed by the other strategies as training progresses.
 
 \begin{figure}[h]
     \centering
+    \caption*{Evaluation reward and loss comparison of hybrid model training strategies}
+    \label{fig:moe_strategies}
     \begin{minipage}{0.49\textwidth}
         \centering
         \includegraphics[width=\textwidth]{images/moe_train_strategies.png}
-        \caption{Training strategies for the Hybrid model.}
-        \label{fig:moe_train_strategies}
+        % \caption{Evl strategies (Hybrid model).}
+        % \label{fig:moe_train_strategies}
     \end{minipage}
     \hfill
     \begin{minipage}{0.49\textwidth}
         \centering
         \includegraphics[width=\textwidth]{images/moe_train_strategies_loss.png}
-        \caption{Training strategies for the Hybrid model.}
-        \label{fig:moe_train_strategies_loss}
+        % \caption{Loss comparison (Hybrid model).}
+        % \label{fig:moe_train_strategies_loss}
     \end{minipage}
+
+    \vspace{0.5em} % Kleiner Abstand zur Legende
+    \begin{tikzpicture}
+        % Legenden-Einträge mit geringeren Abständen
+        \draw[blue, thick] (0,0) -- (1,0);
+        \node[right] at (1.2,0) {\small Pre-trained (no fine-tuning)};
+
+        \draw[orange, thick] (5.4,0) -- (6.2,0);
+        \node[right] at (6.4,0) {\small Trained from scratch};
+
+        \draw[green, thick] (2.5,-0.7) -- (3.5,-0.7);
+        \node[right] at (3.7,-0.7) {\small Pre-trained + fine-tuned};
+    \end{tikzpicture}
 \end{figure}
 
-The gate's loss reflects its effectiveness in selecting the optimal submodel for a given state. In \autoref{fig:moe_train_strategies_loss}, periodic peaks in the loss indicate moments when opponents were changed. The training strategy with pre-trained submodels and simultaneous gate-submodel training results in the smoothest loss curve, with a steady decrease after 60,000 steps. In contrast, other strategies exhibit high fluctuations, and their average loss tends to increase over time.
+The gate's loss reflects its effectiveness in selecting the optimal submodel for a given state. In \autoref{fig:moe_strategies}, periodic peaks in the loss indicate moments when opponents were changed. The training strategy with pre-trained submodels and simultaneous gate-submodel training results in the smoothest loss curve, with a steady decrease after 60,000 steps. In contrast, other strategies exhibit high fluctuations, and their average loss tends to increase over time.
