@@ -5,7 +5,7 @@ we noticed that both agents have their strengths and weaknesses in different sit
 To combine the strengths of both agents, we created a hybrid model.
 This approach is inspired by the \ac{MoE} architecture, where multiple experts are combined using a gating network to weight the experts predictions.
 But since we've got a continuous spatial action space, weighting both experts predictions would not be a feasible option.
-Thus, a \ac{DDQN} \cite{vanhasselt2015deepreinforcementlearningdouble} was implemented as a selection gate for subagents.
+Thus, a \ac{DDQN} \cite{vanhasselt2015deepreinforcementlearningdouble} was implemented as a selection gate for subagents. The subagents are encoded as discrete numbers (actions).
 This gate estimates the value of choosing a specific subagent, given a state:
 
 \begin{gather}
