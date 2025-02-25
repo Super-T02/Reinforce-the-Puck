@@ -1,15 +1,9 @@
 td3-er:
   checkpoint: "../final_checkpoints/td3-buffers/er/checkpoint_last.pth"
   type: td3
-td3-pink:
-  checkpoint: "../final_checkpoints/td3-noise/pink/checkpoint_last.pth"
-  type: td3
 sac-er:
   checkpoint: "../final_checkpoints/td3-buffers/sac-er/checkpoint_last.pth"
   type: sac
-sac-default-reward:
-  checkpoint: "../final_checkpoints/rewards/sac-default/checkpoint_last.pth"
-  type: sac
-moe-selfplay-expert-training:
-  checkpoint: "../final_checkpoints/moe-selfplay-expert-training/checkpoint_best.pth"
+moe-cross2:
+  checkpoint: "../final_checkpoints/moe-cross-2/checkpoint_best.pth"
   type: moe

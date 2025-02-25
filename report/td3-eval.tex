@@ -7,4 +7,4 @@ Finally, \ac{TD3} in particular benefits from the proposed new reward, containin
 
 Instead, \ac{SAC} performs already well on the default reward, but converges faster with the custom reward. In \autoref{fig:eval-own-reward} we can see that our custom reward function almost halves the number of steps required for convergence compared to the standard reward function. Furthermore, the final evaluation reward only increased by 0.8 compared with the custom reward. Another interesting aspect is that \ac{SAC} converges faster compared to \ac{TD3}, which can be explained by the implemented alpha-tuning.
 
-Finally, both algorithms beat the weak opponent with todo and todo. Instead, against the strong opponent, they win with a rate of todo and todo (\ref{tab:weak-strong}).
+Finally, both algorithms beat the weak opponent with 99.20\% (\ac{TD3}) and 98.40\% (\ac{SAC}). Instead, against the strong opponent, they win with a rate of 97.90\% (\ac{TD3}) and 97.10\% (\ac{SAC}) (appendix \ref{sec:performance_opponents}).
