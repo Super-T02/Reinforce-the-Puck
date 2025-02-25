@@ -10,7 +10,7 @@ It estimates the mean and standard deviation $\mu(s), \sigma(s) = f_\theta(s)$ a
 both a sample from the distribution and the log probability of the selected sample.
 To make the sampling process differentiable, the reparameterization trick is used where $z \sim \mathcal{N}(0,1)$ and $u = \mu(s) + \sigma(s) \cdot z$.
 The action bounds are enforced by applying the $\tanh$ function to the sampled unbounded action.
-To consider this bounding in the probability density function,
+To account this bounding in the probability density function,
 the probability density function of the unbounded action is scaled by the absolute determinant of the Jacobian matrix of the $\tanh$ function  \cite{fujimoto2018:TD3}[C. Enforcing Action Bounds]:
 
 
