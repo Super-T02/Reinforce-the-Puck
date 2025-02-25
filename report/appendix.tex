@@ -9,12 +9,15 @@
 
 This section contains plots and hyperparameter related to the evaluation. They are intended as supplementary material and emphasis the correctness of the evaluation.
 
-\subsection{Hyperparameter for evaluation} \label{sec:hyper_simple}
+\subsection{Hyperparameter for simple evaluation} \label{sec:hyper_simple}
 
+This section contains our hyperparameter configuration for Pendulum (\autoref{tab:hyperparameters_pendulum}), Lunar Lander (\autoref{tab:hyperparameters_lunarlander}) and Half Cheetah (\autoref{tab:hyperparameters_halfcheetah}). Please note, that \ac{SAC} has always the same hyperparameters. In contrast, \ac{TD3} requires different hyperparameter configurations to work better on the specified environments.
 \input{tables/hyperparameters_tables.tex}
 
 \newpage
 \subsection{Evaluation Plots for Pendulum} \label{sec:simple_plots}
+
+In this section, we present the evaluation plots for the Pendulum environment. The plots illustrate the performance of the \ac{TD3} and \ac{SAC} algorithms over the environment steps. As observed, \ac{TD3} consistently outperforms \ac{SAC} in terms of reward (\autoref{fig:reward_pendulum}), actor loss (\autoref{fig:actor_pendulum}) and critic loss (\autoref{fig:critic_pendulum}). The following figures provide a detailed comparison of the two algorithms' performance metrics.
 
 \begin{figure}[!h]
     \centering
@@ -59,6 +62,8 @@ This section contains plots and hyperparameter related to the evaluation. They a
 
 \subsection{Evaluation Plots for Lunar Lander}
 
+In this section, we present the evaluation plots for the Lunar Lander environment. The plots illustrate the performance of the \ac{TD3} and \ac{SAC} algorithms over the environment steps. As observed, \ac{SAC} consistently outperforms all \ac{TD3} variants in terms of reward (\autoref{fig:reward_lunar}), actor loss (\autoref{fig:actor_lunar}) and critic loss (\autoref{fig:critic_lunar}). The following figures provide a detailed comparison of the two algorithms' performance metrics.
+
 \begin{figure}[!h]
     \centering
 
@@ -102,6 +107,8 @@ This section contains plots and hyperparameter related to the evaluation. They a
 
 \subsection{Evaluation Plots for HalfCheetah}
 
+In this section, we present the evaluation plots for the HalfCheetah environment. The plots illustrate the performance of the \ac{TD3} and \ac{SAC} algorithms over the environment steps. As observed, \ac{SAC} clearly outperforms all \ac{TD3} variants and converges much faster and to a higher reward (\autoref{fig:reward_half}). In contrast, \ac{TD3} learns only slowly. The following figures provide a detailed comparison of the two algorithms' performance metrics, including actor loss (\autoref{fig:actor_half}), critic loss (\autoref{fig:critic_half}), and alpha loss (\autoref{fig:alpha_half}).
+
 \begin{figure}[!h]
     \centering
 
@@ -144,6 +151,8 @@ This section contains plots and hyperparameter related to the evaluation. They a
 \newpage
 \subsection{Hockey Evaluation Plots} \label{sec:hockey-plots}
 
+In this section, we present the evaluation plots for the Hockey environment. The plots illustrate the performance of the \ac{TD3} and \ac{SAC} algorithms over the environment steps. As observed, \ac{SAC} converges faster than \ac{TD3} in terms of reward (\autoref{fig:reward_hockey}). However, PER converges at a local optimum rather than a global one, as seen in both reward and actor loss (\autoref{fig:actor_hockey}). The loss of own reward in all variants is the smallest for the actor. Additionally, \ac{ER} performs better and with less uncertainty than \ac{BER}. The following figures provide a detailed comparison of the two algorithms' performance metrics, including critic loss (\autoref{fig:critic_hockey}) and alpha loss (\autoref{fig:alpha_hockey}).
+
 \begin{figure}[!h]
     \centering
 
@@ -185,6 +194,7 @@ This section contains plots and hyperparameter related to the evaluation. They a
 
 \newpage
 \subsection{Simultaneous Self-Play Plots} \label{sec:self-play}
+\autoref{fig:selfplay} shows how the evaluation reward of our three agents in simultaneous self-play. In this mode every 100 epochs (1000 steps) the agents and opponents are sampled from a predefined list of all agents to train. As result, the agents learn ``online'' to adapt to each other. With the figure follows that simultaneous self-play decreases the overall model performance (see also \autoref{tab:tournament_leaderboard}). Furthermore, the Hybrid model outperforms \ac{TD3} and \ac{SAC} because it learns faster. As result, we descided to use fixed self-play that keeps the opponents fixed for the training of one agent. To ensure enough self-play, we use the past trained models as new opponents.
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.8\textwidth]{images/selfplay_rewards_eval.png}
@@ -192,5 +202,13 @@ This section contains plots and hyperparameter related to the evaluation. They a
     \label{fig:selfplay}
 \end{figure}
 
+\newpage
+\subsection{Final Tournament} \label{sec:final-tournament}
+\autoref{tab:tournament_leaderboard} contains our final tournament with the each tested approach.The tournament was done over 5000 matches with each 100 sub-games and leaderboard of our framework ranks agents dynamically based on their performance using the Placket-Luce rating system \cite{af5079a1-8ca5-3727-a405-0a82390327b7}. There, each agent has a skill rating average $\mu$ and variance $\sigma$, which are updated after every match. Games are simulated, and winners gain rating points while losers may lose them. Agents are paired based on a probability distribution over their skill levels, ensuring fair matchups. To ensure a diverse tournament, we first sample 4 agents and assign them probabilities based on the softmax of their $\sigma$. Based on them, the final 2 agents are sampled. Agent names, types, ratings, and average scores are displayed on the leaderboard. As we can see, the self-play agents result in worse ratings. We assume that our self-play mechanism causes instabilities. Thus, we changed to fixed self-play that results in our best agents.
+
+\input{tables/tournament_leaderboard.tex}
+
+\newpage
 \subsection{Final Win-Rates} \label{sec:performance_opponents}
+\autoref{tab:performance_opponents} contains the rewards of our best \ac{TD3}, \ac{SAC} and Hybrid agents based on the results of \autoref{tab:tournament_leaderboard}. Therefore, each model hast played 1000 games against each opponent to have enough statistics for our final evaluation.
 \input{tables/performance_opponents.tex}
