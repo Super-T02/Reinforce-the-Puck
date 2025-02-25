@@ -1,11 +1,11 @@
 \subsection{Hockey Environment} \label{subsec:hockey_eval}
 
-The performance on the hockey environment is evaluated with the average final performance (\autoref{tab:avg_reward}) and the corresponding evaluation reward of the training in 600000 environment steps (\autoref{fig:eval-own-reward}). Therefore, we train \ac{SAC} and \ac{TD3} on the original environment reward and our own reward. The opponents are the strong/weak basic opponents, \ac{SAC} foundation, \ac{TD3} foundation and Hybrid foundation agents, which are pretrained on the strong/weak opponents. To stabalize training, the opponents change after 10000 environment steps (100 epochs). The evaluation reward contains only the win/lose signal with $r_{eval} \in \left\{-10, 0, 10\right\}$ and is recorded every 5000 steps (50 epochs) over 20 runs. The average reward is then saved and plotted in \autoref{fig:eval-own-reward}. All other statistics, like critic-, actor-loss and training reward are provided in the appendix \autoref{sec:hockey-plots}. The final average evaluation reward over 100 runs is also provided in \autoref{tab:avg_reward}.
+The performance on the hockey environment is evaluated with the average final performance (\autoref{tab:avg_reward}) and the corresponding evaluation reward of the training in 600000 environment steps (\autoref{fig:eval-own-reward}). Therefore, we train \ac{SAC} and \ac{TD3} on the original environment reward and our own reward. The opponents are the strong/weak basic opponents, \ac{SAC} foundation, \ac{TD3} foundation, and Hybrid foundation agents, which are pretrained on the strong/weak opponents. To stabilize training, the opponents change after 10000 environment steps (100 epochs). The evaluation reward contains only the win/lose signal with $r_{eval} \in \left\{-10, 0, 10\right\}$ and is recorded every 5000 steps (50 epochs) over 20 runs. The average reward is then saved and plotted in \autoref{fig:eval-own-reward}. All other statistics, like critic-, actor-loss and training reward, are provided in the appendix \autoref{sec:hockey-plots}. The final average evaluation reward over 100 runs is also provided in \autoref{tab:avg_reward}.
 
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.8\textwidth]{images/baseline_Hockey_EvalReward.png}
+    \includegraphics[width=0.75\textwidth]{images/baseline_Hockey_EvalReward.png}
     \caption{Evaluation Rewards for \ac{SAC} and \ac{TD3} with original and own reward. \ac{TD3} is also presented with \ac{BER} and \ac{PER} over 600000 environment steps.}
     \label{fig:eval-own-reward}
 \end{figure}
@@ -17,14 +17,10 @@ The performance on the hockey environment is evaluated with the average final pe
 
 \subsection{Hybrid Model Evaluation} \label{subsec:hybrid}
 
-The hybrid model is trained against the basic strong and weak opponent, as well as foundation and finetuned \ac{SAC} and \ac{TD3} checkpoints. To prevent overfitting and enhance generalization, opponents are periodically changed throughout training.
+The hybrid model is trained against the basic strong and weak opponent, as well as foundation and fine-tuned \ac{SAC} and \ac{TD3} checkpoints. To prevent overfitting and enhance generalization, opponents are periodically changed throughout training. \ac{SAC} and \ac{TD3} foundation checkpoints also serve as submodels in the setup with pretrained experts. As shown in \autoref{fig:moe_strategies}, the training strategy that combines pretrained submodels with simultaneous training of the gate and submodels achieves the highest evaluation reward. The strategy that starts with empty submodels and trains both the gate and submodels also performs well but fails to converge to the maximum reward of ten. Meanwhile, the approach where only the gate is trained initially yields the best evaluation reward but is eventually outperformed by the other strategies as training progresses. The gate's loss reflects its effectiveness in selecting the optimal submodel for a given state. In \autoref{fig:moe_strategies}, periodic peaks in the loss indicate moments when opponents were changed. The training strategy with pretrained submodels and simultaneous gate-submodel training results in the smoothest loss curve, with a steady decrease after 60,000 steps. In contrast, other strategies exhibit high fluctuations, and their average loss tends to increase over time.
 
-\ac{SAC} and \ac{TD3} foundation checkpoints also serve as submodels in the setup with pre-trained experts. As shown in \autoref{fig:moe_strategies}, the training strategy that combines pre-trained submodels with simultaneous training of the gate and submodels achieves the highest evaluation reward. The strategy that starts with empty submodels and trains both the gate and submodels also performs well but fails to converge to the maximum reward of ten. Meanwhile, the approach where only the gate is trained initially yields the best evaluation reward but is eventually outperformed by the other strategies as training progresses.
-
-\begin{figure}[h]
+\begin{figure}[t]
     \centering
-    \caption*{Evaluation reward and loss comparison of hybrid model training strategies}
-    \label{fig:moe_strategies}
     \begin{minipage}{0.49\textwidth}
         \centering
         \includegraphics[width=\textwidth]{images/moe_train_strategies.png}
@@ -39,18 +35,18 @@ The hybrid model is trained against the basic strong and weak opponent, as well 
         % \label{fig:moe_train_strategies_loss}
     \end{minipage}
 
-    \vspace{0.5em} % Kleiner Abstand zur Legende
+    \vspace{0.1em} % Kleiner Abstand zur Legende
     \begin{tikzpicture}
         % Legenden-Einträge mit geringeren Abständen
-        \draw[blue, thick] (0,0) -- (1,0);
-        \node[right] at (1.2,0) {\small Pre-trained (no fine-tuning)};
+        \draw[myblue, thick] (-10,0) -- (-9.5,0);
+        \node[right] at (-9.3,0) {\small Pre-trained (no fine-tuning)};
 
-        \draw[orange, thick] (5.4,0) -- (6.2,0);
-        \node[right] at (6.4,0) {\small Trained from scratch};
+        \draw[myorange, thick] (-4.5,0) -- (-4.0,0);
+        \node[right] at (-3.7,0) {\small Trained from scratch};
 
-        \draw[green, thick] (2.5,-0.7) -- (3.5,-0.7);
-        \node[right] at (3.7,-0.7) {\small Pre-trained + fine-tuned};
+        \draw[mygreen, thick] (0,0) -- (0.5,0);
+        \node[right] at (0.8,0) {\small Pre-trained + fine-tuned};
     \end{tikzpicture}
+    \caption{Evaluation reward and loss comparison of hybrid model training strategies}
+    \label{fig:moe_strategies}
 \end{figure}
-
-The gate's loss reflects its effectiveness in selecting the optimal submodel for a given state. In \autoref{fig:moe_strategies}, periodic peaks in the loss indicate moments when opponents were changed. The training strategy with pre-trained submodels and simultaneous gate-submodel training results in the smoothest loss curve, with a steady decrease after 60,000 steps. In contrast, other strategies exhibit high fluctuations, and their average loss tends to increase over time.
