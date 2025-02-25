@@ -6,7 +6,7 @@ The performance on the hockey environment is evaluated with the average final pe
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.75\textwidth]{images/baseline_Hockey_EvalReward.png}
-    \caption{Evaluation Rewards for \ac{SAC} and \ac{TD3} with original and own reward. \ac{TD3} is also presented with \ac{BER} and \ac{PER} over 600000 environment steps.}
+    \caption{Evaluation Rewards for \ac{SAC} and \ac{TD3} with original and own reward.}
     \label{fig:eval-own-reward}
 \end{figure}
 
@@ -17,7 +17,7 @@ The performance on the hockey environment is evaluated with the average final pe
 
 \subsection{Hybrid Model Evaluation} \label{subsec:hybrid}
 
-The hybrid model is trained against the basic strong and weak opponent, as well as foundation and fine-tuned \ac{SAC} and \ac{TD3} checkpoints. To prevent overfitting and enhance generalization, opponents are periodically changed throughout training. \ac{SAC} and \ac{TD3} foundation checkpoints also serve as submodels in the setup with pretrained experts. As shown in \autoref{fig:moe_strategies}, the training strategy that combines pretrained submodels with simultaneous training of the gate and submodels achieves the highest evaluation reward. The strategy that starts with empty submodels and trains both the gate and submodels also performs well but fails to converge to the maximum reward of ten. Meanwhile, the approach where only the gate is trained initially yields the best evaluation reward but is eventually outperformed by the other strategies as training progresses. The gate's loss reflects its effectiveness in selecting the optimal submodel for a given state. In \autoref{fig:moe_strategies}, periodic peaks in the loss indicate moments when opponents were changed. The training strategy with pretrained submodels and simultaneous gate-submodel training results in the smoothest loss curve, with a steady decrease after 60,000 steps. In contrast, other strategies exhibit high fluctuations, and their average loss tends to increase over time.
+The hybrid model is trained against the basic strong and weak opponent, as well as foundation and fine-tuned \ac{SAC} and \ac{TD3} checkpoints. To prevent overfitting and enhance generalization, opponents are periodically changed throughout training. \ac{SAC} and \ac{TD3} foundation checkpoints also serve as submodels in the setup with pretrained experts. As shown in \autoref{fig:moe_strategies}, the training strategy that combines pretrained submodels with simultaneous training of the gate and submodels achieves the highest evaluation reward. The strategy that starts with empty submodels and trains both the gate and submodels also performs well but fails to converge to the maximum reward of ten. Meanwhile, the approach where only the gate is trained initially yields the best evaluation reward but is eventually outperformed by the other strategies as training progresses. The gate's loss reflects its effectiveness in selecting the optimal submodel for a given state. In \autoref{fig:moe_strategies}, periodic peaks in the loss indicate moments when opponents were changed. The training strategy with pretrained submodels and simultaneous gate-submodel training results in the smoothest loss curve, with a steady decrease after 60,000 steps. In contrast, other strategies exhibit high fluctuations, and their average loss tends to increase over time. Finally, our best Hybrid model wins with 97.70\% and 94.60\% against the weak and strong opponents (appendix \ref{sec:performance_opponents}).
 
 \begin{figure}[t]
     \centering

@@ -1,14 +1,13 @@
-\begin{table}[H]
+\begin{table}[h]
 \caption{Performance between the agents and the baseline opponents.} \centering {}
 \label{tab:performance_opponents}
-\begin{tabular}{lccccc}
+\begin{tabular}{lccc}
 \toprule
- & \multicolumn{5}{c}{Win-Rate (\%)} \\
-Agent & moe-selfplay-expert-training & sac-default-reward & sac-er & td3-er & td3-pink \\
-Opponent &  &  &  &  &  \\
+Agent & Hybrid Model & SAC (Own) & TD3 (Own) \\
+Opponent &  &  &  \\
 \midrule
-\textbf{strong} & 79.90 & 97.40 & 97.70 & 97.80 & 98.90 \\
-\textbf{weak} & 91.00 & 98.90 & 99.00 & 98.80 & 99.80 \\
+\textbf{strong} & 94.60 & 97.10 & \textbf{97.90} \\
+\textbf{weak} & 97.70 & 98.40 & \textbf{99.20} \\
 \bottomrule
 \end{tabular}
 \end{table}
