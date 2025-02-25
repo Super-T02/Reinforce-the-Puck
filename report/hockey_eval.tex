@@ -39,13 +39,13 @@ The hybrid model is trained against the basic strong and weak opponent, as well 
     \begin{tikzpicture}
         % Legenden-Einträge mit geringeren Abständen
         \draw[myblue, thick] (-10,0) -- (-9.5,0);
-        \node[right] at (-9.3,0) {\small Pre-trained (no fine-tuning)};
+        \node[right] at (-9.3,0) {\small Pre-trained, no submodel fine-tuning};
 
-        \draw[myorange, thick] (-4.5,0) -- (-4.0,0);
-        \node[right] at (-3.7,0) {\small Trained from scratch};
+        \draw[myorange, thick] (-3.8,0) -- (-3.3,0);
+        \node[right] at (-3.2,0) {\small All trained from scratch};
 
-        \draw[mygreen, thick] (0,0) -- (0.5,0);
-        \node[right] at (0.8,0) {\small Pre-trained + fine-tuned};
+        \draw[mygreen, thick] (0.6,0) -- (1.1,0);
+        \node[right] at (1.2,0) {\small Pre-trained + fine-tuned all};
     \end{tikzpicture}
     \caption{Evaluation reward and loss comparison of hybrid model training strategies}
     \label{fig:moe_strategies}
